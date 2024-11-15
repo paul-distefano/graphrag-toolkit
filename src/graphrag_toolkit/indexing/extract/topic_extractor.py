@@ -6,7 +6,7 @@ import asyncio
 from typing import Tuple, List, Optional, Sequence, Dict
 
 from graphrag_toolkit.utils import LLMCache
-from graphrag_toolkit.indexing import parse_extracted_topics
+from graphrag_toolkit.indexing.utils import parse_extracted_topics
 from graphrag_toolkit.indexing.extract.scoped_value_provider import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.indexing.model import TopicCollection
