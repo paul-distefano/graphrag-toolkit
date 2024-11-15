@@ -6,7 +6,7 @@ import asyncio
 from typing import Tuple, List, Optional, Sequence, Dict
 
 from graphrag_toolkit.utils import LLMCache
-from graphrag_toolkit.indexing.utils import parse_extracted_topics
+from graphrag_toolkit.indexing.utils import parse_extracted_topics, format_list, format_text
 from graphrag_toolkit.indexing.extract.scoped_value_provider import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.indexing.model import TopicCollection
@@ -85,12 +85,6 @@ class TopicExtractor(BaseExtractor):
             workers=self.num_workers, 
             desc=f'Extracting topics [nodes: {len(nodes)}, num_workers: {self.num_workers}]'
         )
-    
-    def _format_text(self, text):
-        if isinstance(text, list):
-            return '\n'.join(s for s in text)
-        else:
-            return text
         
     def _get_metadata_or_default(self, metadata, key, default):
         value = metadata.get(key, default)
@@ -103,7 +97,7 @@ class TopicExtractor(BaseExtractor):
         (entity_classification_scope, current_entity_classifications) = self.entity_classification_provider.get_current_values(node)
         (topic_scope, current_topics) = self.topic_provider.get_current_values(node)
         
-        text = self._format_text(self._get_metadata_or_default(node.metadata, self.source_metadata_field, node.text) if self.source_metadata_field else node.text)
+        text = format_text(self._get_metadata_or_default(node.metadata, self.source_metadata_field, node.text) if self.source_metadata_field else node.text)
         (topics, garbage) = await self._extract_topics(text, current_entity_classifications, current_topics)
         
         node_entity_classifications = [
@@ -131,8 +125,8 @@ class TopicExtractor(BaseExtractor):
             return self.llm.predict(
                 PromptTemplate(template=self.prompt_template),
                 text=text,
-                preferred_entity_classifications=self._format_list(preferred_entity_classifications),
-                preferred_topics=self._format_list(preferred_topics)
+                preferred_entity_classifications=format_list(preferred_entity_classifications),
+                preferred_topics=format_list(preferred_topics)
             )
         
         coro = asyncio.to_thread(blocking_llm_call)

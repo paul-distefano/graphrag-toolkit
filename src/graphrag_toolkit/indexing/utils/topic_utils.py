@@ -7,6 +7,12 @@ from typing import Tuple, List
 from graphrag_toolkit.indexing.extract.constants import DEFAULT_TOPIC
 from graphrag_toolkit.indexing.model import TopicCollection, Topic, Fact, Entity, Relation, Statement
 
+def format_text(text):
+        if isinstance(text, list):
+            return '\n'.join(s for s in text)
+        else:
+            return text
+
 def format_list(values:List[str]):
     return '\n'.join([f'   - {value}' for value in values])
 
@@ -16,10 +22,10 @@ def clean(s):
 def format_value(s):
     return s.replace('_', ' ') if s else ''
     
-def strip_full_stop(self, s):
+def strip_full_stop(s):
     return s[:-1] if s and s.endswith('.') else s
     
-def strip_parentheses(self, s):
+def strip_parentheses(s):
     return re.sub('\(.*\)', '', s).replace('  ', ' ').strip()
 
 def parse_extracted_topics(raw_text:str) -> Tuple[TopicCollection, List[str]]:
