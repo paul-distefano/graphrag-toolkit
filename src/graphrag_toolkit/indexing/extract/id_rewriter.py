@@ -1,0 +1,78 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+import hashlib
+import uuid
+from typing import Any, List, Sequence, Optional
+
+from graphrag_toolkit.indexing.build.checkpoint import DoNotCheckpoint
+
+from llama_index.core.schema import BaseNode, Document
+from llama_index.core.node_parser import NodeParser
+from llama_index.core.schema import NodeRelationship
+
+class IdRewriter(NodeParser, DoNotCheckpoint):
+    inner:Optional[NodeParser]=None
+    
+    def _get_properties_str(self, properties, default):
+        if properties:
+            return ';'.join(sorted([f'{k}:{v}' for k,v in properties.items()]))
+        else:
+            return default
+            
+    def _get_hash(self, s):
+        return hashlib.md5(s.encode('utf-8')).digest().hex()
+    
+    def _new_doc_id(self, node):
+        
+        metadata_str = self._get_properties_str(node.metadata, node.doc_id)       
+        return f'aws:{self._get_hash(str(node.text))[:8]}:{self._get_hash(metadata_str)[:4]}'
+        
+    def _new_node_id(self, node):
+        
+        source_info = node.relationships.get(NodeRelationship.SOURCE, None)
+        source_id = source_info.node_id if source_info else f'aws:{uuid.uuid4().hex}' 
+        metadata_str = self._get_properties_str(node.metadata, node.node_id) 
+        
+        return f'{source_id}:{self._get_hash(str(node.text) + metadata_str)[:8]}'
+        
+    def _new_id(self, node):
+        
+        if node.id_.startswith('aws:'):
+            return node.id_
+        elif isinstance(node, Document):
+            return self._new_doc_id(node)
+        else:
+            return self._new_node_id(node)
+    
+    def _parse_nodes(
+        self,
+        nodes: Sequence[BaseNode],
+        show_progress: bool = False,
+        **kwargs: Any,
+    ) -> List[BaseNode]:
+    
+        id_mappings = {}
+        
+        for n in nodes:
+            n.id_ = self._new_id(n)
+            id_mappings[n.id_] = n.id_
+                      
+        if not self.inner:
+            return nodes
+            
+        results = self.inner(nodes, **kwargs)
+        
+        for n in results:
+            id_mappings[n.id_] = self._new_id(n)
+        
+        def update_ids(n):
+            n.id_ = id_mappings[n.id_]
+            for r in n.relationships.values():
+                r.node_id = id_mappings.get(r.node_id, r.node_id)
+            return n
+            
+        return [
+            update_ids(n) 
+            for n in results
+        ]
