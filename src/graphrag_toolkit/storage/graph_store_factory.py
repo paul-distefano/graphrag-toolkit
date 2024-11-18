@@ -40,13 +40,13 @@ class GraphStoreFactory():
         (graph_type, init_info) = graph_info_resolver(graph_info)
 
         if graph_type == NEPTUNE_DATABASE:
-            logger.info(f"Opening Neptune database [endpoint: {init_info}]")
+            logger.debug(f"Opening Neptune database [endpoint: {init_info}]")
             return GraphStoreFactory.for_neptune_database(init_info, **kwargs)
         elif graph_type == NEPTUNE_ANALYTICS:
-            logger.info(f"Opening Neptune Analytics graph [graph_id: {init_info}]")
+            logger.debug(f"Opening Neptune Analytics graph [graph_id: {init_info}]")
             return GraphStoreFactory.for_neptune_analytics(init_info, **kwargs)
         else:
-            logger.info(f'Opening dummy graph store')
+            logger.debug(f'Opening dummy graph store')
             return DummyGraphStore()
     
     @staticmethod

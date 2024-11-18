@@ -36,13 +36,13 @@ class VectorIndexFactory():
         (vector_index_type, init_info) = vector_info_resolver(vector_index_info)
 
         if vector_index_type == OPENSEARCH_SERVERLESS:
-            logger.info(f"Opening OpenSearch vector index [index_name: {index_name}, endpoint: {init_info}]")
+            logger.debug(f"Opening OpenSearch vector index [index_name: {index_name}, endpoint: {init_info}]")
             return VectorIndexFactory.for_opensearch(index_name, init_info, **kwargs)
         elif vector_index_type == NEPTUNE_ANALYTICS:
-            logger.info(f"Opening Neptune Analytics vector index [index_name: {index_name}, graph_id: {init_info}]")
+            logger.debug(f"Opening Neptune Analytics vector index [index_name: {index_name}, graph_id: {init_info}]")
             return VectorIndexFactory.for_neptune_analytics(index_name, init_info, **kwargs)
         else:
-            logger.info(f"Opening dummy vector store [index_name: {index_name}]")
+            logger.debug(f"Opening dummy vector store [index_name: {index_name}]")
             return VectorIndexFactory.for_dummy_vector_index(index_name, **kwargs)
     
     @staticmethod

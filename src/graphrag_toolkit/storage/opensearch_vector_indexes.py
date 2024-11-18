@@ -5,7 +5,6 @@ import boto3
 import json
 import logging
 import aiohttp
-import asyncio
 from typing import List
 
 from llama_index.core.bridge.pydantic import PrivateAttr
@@ -16,9 +15,9 @@ from llama_index.core.vector_stores.types import  VectorStoreQueryResult, Vector
 from llama_index.core.embeddings.utils import EmbedType
 from llama_index.core.indices.utils import embed_nodes
 
-from opensearchpy.exceptions import NotFoundError
-from opensearchpy import AWSV4SignerAsyncAuth, AsyncHttpConnection, AWSV4SignerAuth
-from opensearchpy.exceptions import NotFoundError
+from opensearchpy.exceptions import NotFoundError, RequestError
+from opensearchpy import AWSV4SignerAsyncAuth, AsyncHttpConnection
+from opensearchpy import Urllib3AWSV4SignerAuth, OpenSearch, Urllib3HttpConnection
 
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.storage.vector_index import VectorIndex, to_embedded_query
@@ -33,6 +32,57 @@ def try_close_session():
             asyncio_run(client_session.close())
     except Exception as err:
         logger.warning(f'Error while trying to close session [error: {err}]')
+
+def create_index_if_not_exists(endpoint, index_name, dimensions):
+
+    session = boto3.Session()
+    region = session.region_name
+    credentials = session.get_credentials()
+    service = 'aoss'
+        
+    auth = Urllib3AWSV4SignerAuth(credentials, region, service)
+
+    client = OpenSearch(
+        hosts=[endpoint],
+        http_auth=auth,
+        use_ssl=True,
+        verify_certs=True,
+        connection_class=Urllib3HttpConnection,
+        pool_maxsize = 1
+    )
+
+    embedding_field = 'embedding'
+    method = {
+        "name": "hnsw",
+        "space_type": "l2",
+        "engine": "nmslib",
+        "parameters": {"ef_construction": 256, "m": 48},
+    }
+
+    idx_conf = {
+        "settings": {"index": {"knn": True, "knn.algo_param.ef_search": 100}},
+        "mappings": {
+            "properties": {
+                embedding_field: {
+                    "type": "knn_vector",
+                    "dimension": dimensions,
+                    "method": method,
+                },
+            }
+        }
+    }
+
+    try:
+        if not client.indices.exists(index_name):
+            client.indices.create(index=index_name, body=idx_conf)
+    except RequestError as e:
+        if e.error == 'resource_already_exists_exception':
+            pass
+        else:
+            logger.exception('Error creating an OpenSearch index')
+    finally:
+        client.close()
+
 
     
 def create_opensearch_vector_client(endpoint, index_name, dimensions, embed_model):
@@ -82,17 +132,12 @@ class OpenSearchIndex(VectorIndex):
 
     @staticmethod
     def for_index(index_name, endpoint, embed_model=None, dimensions=None):
+        
         embed_model = embed_model or GraphRAGConfig.embed_model
         dimensions = dimensions or GraphRAGConfig.embed_dimensions
 
-        # create and close client to ensure index is created
-        client = create_opensearch_vector_client(
-            endpoint, 
-            index_name, 
-            dimensions, 
-            embed_model
-        )
-        asyncio_run(client._os_client.close())
+        create_index_if_not_exists(endpoint, index_name, dimensions)
+
         return OpenSearchIndex(index_name=index_name, endpoint=endpoint, dimensions=dimensions, embed_model=embed_model)
     
     class Config:
@@ -190,9 +235,7 @@ class OpenSearchIndex(VectorIndex):
             docs.append(doc)
         
         if docs:
-            asyncio.get_event_loop().run_until_complete(
-                self.client.index_results(docs)
-            )
+            asyncio_run(self.client.index_results(docs))
         
         return nodes
     
@@ -200,7 +243,7 @@ class OpenSearchIndex(VectorIndex):
 
         query_bundle:QueryBundle = to_embedded_query(query, self.embed_model)
         
-        results:VectorStoreQueryResult = asyncio.get_event_loop().run_until_complete(
+        results:VectorStoreQueryResult = asyncio_run(
             self.client.aquery(
                 VectorStoreQueryMode.DEFAULT, 
                 query_str=query_bundle.query_str, 
@@ -265,6 +308,4 @@ class OpenSearchIndex(VectorIndex):
             }
         }
         
-        return asyncio.get_event_loop().run_until_complete(
-            self.get_all_embeddings(query, max_results=len(ids) * 2)
-        )
+        return asyncio_run(self.get_all_embeddings(query, max_results=len(ids) * 2))
