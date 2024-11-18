@@ -74,6 +74,7 @@ def create_index_if_not_exists(endpoint, index_name, dimensions):
 
     try:
         if not client.indices.exists(index_name):
+            logger.debug(f'Creating OpenSearch index [index_name: {index_name}, endpoint: {endpoint}]')
             client.indices.create(index=index_name, body=idx_conf)
     except RequestError as e:
         if e.error == 'resource_already_exists_exception':
