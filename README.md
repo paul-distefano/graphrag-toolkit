@@ -12,6 +12,10 @@ The graphrag-toolkit requires python and [pip](http://www.pip-installer.org/en/l
 $ pip install https://github.com/awslabs/graphrag-toolkit/releases/latest/download/graphrag-toolkit.zip
 ```
 
+### Supported Python versions
+
+The graphrag-toolkit requires Python 3.10 or greater.
+
 ## Example of use
 
 ### Constructing a graph
@@ -76,6 +80,14 @@ response = query_engine.query("When was Timestream for InfluxDB released?")
 
 print(response.response)
 ```
+
+## Documentation
+
+  - [Constructing a graph](./docs/constructing-a-graph.md) 
+  - [Querying the graph](./docs/querying-a-graph.md) 
+  - [Configuration](./docs/configuration.md) 
+  - [Architecture](./docs/architecture.md)
+  - [Graph model](./docs/graph-model.md)
 
 
 ### Supported Python versions
