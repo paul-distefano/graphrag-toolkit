@@ -12,9 +12,75 @@ The graphrag-toolkit requires python and [pip](http://www.pip-installer.org/en/l
 $ pip install https://github.com/awslabs/graphrag-toolkit/releases/latest/download/graphrag-toolkit.zip
 ```
 
+## Example of use
+
+### Constructing a graph
+
+```
+from graphrag_toolkit import LexicalGraphIndex
+from graphrag_toolkit.storage import GraphStoreFactory
+from graphrag_toolkit.storage import VectorStoreFactory
+
+from llama_index.readers.web import SimpleWebPageReader
+
+import nest_asyncio
+nest_asyncio.apply()
+
+doc_urls = [
+    'https://aws.amazon.com/about-aws/whats-new/2024/04/amazon-timestream-liveanalytics-fedramp-high-authorization-aws-govcloud-west-region/',
+    'https://aws.amazon.com/about-aws/whats-new/2024/03/amazon-timestream-influxdb-available/'
+]
+
+docs = SimpleWebPageReader(html_to_text=True).load_data(doc_urls)
+
+graph_store = GraphStoreFactory.for_graph_store(
+    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
+)
+
+vector_store = VectorStoreFactory.for_vector_store(
+    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
+)
+
+graph_index = LexicalGraphIndex(
+    graph_store, 
+    vector_store
+)
+
+graph_index.extract_and_build(docs)
+```
+
+### Querying the graph
+
+```
+from graphrag_toolkit import LexicalGraphQueryEngine
+from graphrag_toolkit.storage import GraphStoreFactory
+from graphrag_toolkit.storage import VectorStoreFactory
+
+import nest_asyncio
+nest_asyncio.apply()
+
+graph_store = GraphStoreFactory.for_graph_store(
+    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
+)
+
+vector_store = VectorStoreFactory.for_vector_store(
+    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
+)
+
+query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
+    graph_store, 
+    vector_store
+)
+
+response = query_engine.query("When was Timestream for InfluxDB released?")
+
+print(response.response)
+```
+
+
 ### Supported Python versions
 
-The graphrag-toolkit requires Python 3.10 or greater
+The graphrag-toolkit requires Python 3.10 or greater.
 
 ## Security
 
