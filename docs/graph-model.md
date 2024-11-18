@@ -1,6 +1,6 @@
 ## Graph Model
 
-The graphrag-toolkit uses a form of [lexical graph with a hierarchical structure](https://graphr.ag/reference/knowledge-graph/lexical-graph-hierarchical-structure/). The toolkit's lexical graph is an auto-generated graph derived from unstructured sources, whose job is to help question-answering systems retrieve information which is *semantically dissimilar from the question*, but nonetheless *relevant to the answer*.
+The graphrag-toolkit uses a form of hierarchical [lexical graph](https://graphr.ag/reference/knowledge-graph/lexical-graph-hierarchical-structure/) that is auto-generated graph derived from unstructured sources, and whose job is to help question-answering systems retrieve information which is *semantically dissimilar from the question*, but nonetheless *relevant to the answer*.
 
 The graph has three tiers:
 
