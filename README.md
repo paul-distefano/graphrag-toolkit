@@ -31,8 +31,10 @@ import nest_asyncio
 nest_asyncio.apply()
 
 doc_urls = [
-    'https://aws.amazon.com/about-aws/whats-new/2024/04/amazon-timestream-liveanalytics-fedramp-high-authorization-aws-govcloud-west-region/',
-    'https://aws.amazon.com/about-aws/whats-new/2024/03/amazon-timestream-influxdb-available/'
+    'https://docs.aws.amazon.com/neptune/latest/userguide/intro.html',
+    'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html',
+    'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-features.html',
+    'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-vs-neptune-database.html'
 ]
 
 docs = SimpleWebPageReader(html_to_text=True).load_data(doc_urls)
@@ -76,7 +78,7 @@ query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
     vector_store
 )
 
-response = query_engine.query("When was Timestream for InfluxDB released?")
+response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
 
 print(response.response)
 ```
