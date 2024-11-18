@@ -53,14 +53,15 @@ A statement or assertion extracted from the underlying sources. Statements are t
 Statements are typically associated with one or more facts (both SPO and SPC facts). For example:
 
 ```
-Neptune supports open graph APIs for property graphs (Gremlin and openCypher) and RDF graphs (SPARQL)
+Statement: Neptune supports open graph APIs for property graphs (Gremlin and openCypher) and RDF graphs (SPARQL)
 
-SPARQL FOR RDF graphs
-SPARQL API FOR RDF graphs
-openCypher API FOR property graphs
-Gremlin FOR property graphs
-Gremlin API FOR property graphs
-openCypher FOR property graphs
+Facts:
+ - SPARQL FOR RDF graphs
+ - SPARQL API FOR RDF graphs
+ - openCypher API FOR property graphs
+ - Gremlin FOR property graphs
+ - Gremlin API FOR property graphs
+ - openCypher FOR property graphs
 ```
 
 In some circumstances a statement may include one or more contextual details in addition to, or instead of, any associated facts. These contextual details take the same triplet form as facts, but they lack any entity (subject or object) relations, and so are inlined in the statement node.
