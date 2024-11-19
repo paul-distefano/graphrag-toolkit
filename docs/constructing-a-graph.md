@@ -139,13 +139,36 @@ graph_index.build(file_based_chunks)
 
 You can configure the `LexicalGraphIndex` extract and build stages in two different respects. You can configure the number of workers and batch sizes for each strage using the `GraphRAGConfig` object. See [Configuration]('./configuration.md') for more details on using the configuration object, and the [Architecture]('./architecture.md') section on the implications of varying the number of workers and batch sizes in each of the stages. Besides configuring the workers and batch sizes, you can also configure the extraction process with regard to chunking, proposition extraction and entity classification.
 
+To configure the extraction process, pass an instance of `ExtractionConfig` to the `LexicalGraphIndex` constructor:
+
+```
+from graphrag_toolkit import LexicalGraphIndex, ExtractionConfig
+
+...
+
+graph_index = LexicalGraphIndex(
+    graph_store, 
+    vector_store,
+    extraction_config = ExtractionConfig(
+      enable_chunking=False,
+      enable_proposition_extraction=False
+    )
+)
+```
+
+
+The `ExtractionConfig` object has the following parameters.
+
 | Parameter  | Description | Default Value |
 | ------------- | ------------- | ------------- |
 | `enable_chunking` | Chunk the source data using a LlamaIndex `SentenceSplitter` | `True` |
 | `chunk_size` | Token chunk size for each chunk if using the `SentenceSplitter` | `256` |
 | `chunk_overlap` | Token overlap of each chunk when splitting if using the `SentenceSplitter` | `20` |
 | `enable_proposition_extraction` | Perform proposition extraction before extracting topics, statements, facts and entities | `True` |
-| `preferred_entity_classifications` | Comma-separated list of preferred entity classifications used to seed the entity extraction | `[]` |
+| `preferred_entity_classifications` | Comma-separated list of preferred entity classifications used to seed the entity extraction | `DEFAULT_ENTITY_CLASSIFICATIONS` |
+
+
+
   
 
 ### Advanced graph construction

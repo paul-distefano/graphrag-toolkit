@@ -20,7 +20,7 @@ from llama_index.core.prompts import PromptTemplate
 from llama_index.core.async_utils import DEFAULT_NUM_WORKERS
 from llama_index.core.async_utils import run_jobs
 
-DEFAULT_ENTITY_CLASSIFICATIONS = ['Company', 'Sports Team', 'Organization', 'Sports Organization', 'Person', 'Role', 'Character', 'Product', 'Service', 'Media', 'Creative Work', 'Game', 'Software', 'Financial Instrument', 'Location', 'Event', 'Concept']
+DEFAULT_ENTITY_CLASSIFICATIONS = ['Company', 'Organization', 'Location', 'Event', 'Sports Team', 'Sports Organization', 'Person', 'Role', 'Character', 'Product', 'Service', 'Media', 'Creative Work', 'Game', 'Software', 'Financial Instrument']
 
 logger = logging.getLogger(__name__)
 
