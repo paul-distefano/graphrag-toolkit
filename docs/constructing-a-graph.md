@@ -8,7 +8,7 @@ You can run the extract and build pipelines together, to provide for the continu
 
 The `LexicalGraphIndex` is a convenience class that allows you to run the extract and build pipelines together or separately. Alternatively, you can build your graph construction application using the underlying pipelines. This gives you more control over the configuration of each stage. We describe these two different approaches in the [Using the LexicalGraphIndex to construct a graph](#using-the-lexicalgraphindex-to-construct-a-graph) and [Advanced graph construction](#advanced-graph-construction) sections below.
 
-### Extract
+#### Extract
 
 The extraction stage is, by default, a three-step process: 
 
@@ -18,9 +18,9 @@ The extraction stage is, by default, a three-step process:
   
 Only the third step here is mandatory. If your source data has already been chunked (you're importing from an Amazon Bedrock Knowledge Base, for example), you can omit step 1. If you're willing to trade a reduction in LLM calls and improved performance for a reduction in the quality of the entity/topic/statement/fact extraction, you can omit step 2.
 
-### Build
+#### Build
 
-In the build stage, the LlamaIndex chunk nodes emitted from the extract stage are broken down further into a stream of individual source, chunk, topic, statement and fact LlamaIndex nodes. Graph construction and vector indexing handlers process these nodes to build and index the graph content. Each of these nodes has a `aws::graph::index` metadata item containing data that can be used to index the node in a vector store (though only the chunk and statement nodes are used in the current implementation).
+In the build stage, the LlamaIndex chunk nodes emitted from the extract stage are broken down further into a stream of individual source, chunk, topic, statement and fact LlamaIndex nodes. Graph construction and vector indexing handlers process these nodes to build and index the graph content. Each of these nodes has an `aws::graph::index` metadata item containing data that can be used to index the node in a vector store (though only the chunk and statement nodes are actually indexed in the current implementation).
 
 ### Using the LexicalGraphIndex to construct a graph
 
