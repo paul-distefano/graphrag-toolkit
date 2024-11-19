@@ -22,7 +22,7 @@ The entities in the entity-relationship tier act as entry points into the graph 
 
 Extraction uses a lightly guided strategy whereby the extraction process is seeded with a list of preferred entity classifications. The LLM is instructed to use an existing classification from the list before creating new ones. Any new classifications introduced by the LLM are then carried forward to subsequent invocations. This approach reduces but doesn't eliminate unwanted variations in entity classification.
 
-Relationship values are currently freestyle (though relatively concise).
+Relationship values are currently unguided (though relatively concise).
 
 ### Summarisation tier
 

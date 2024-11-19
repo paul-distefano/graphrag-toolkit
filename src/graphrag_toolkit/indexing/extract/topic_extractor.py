@@ -9,6 +9,7 @@ from graphrag_toolkit.utils import LLMCache
 from graphrag_toolkit.indexing.utils import parse_extracted_topics, format_list, format_text
 from graphrag_toolkit.indexing.extract.scoped_value_provider import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.config import GraphRAGConfig
+from graphrag_toolkit.indexing import DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.model import TopicCollection
 from graphrag_toolkit.indexing.constants import TOPICS_KEY
 from graphrag_toolkit.indexing.prompts import EXTRACT_TOPICS_PROMPT
@@ -19,8 +20,6 @@ from llama_index.core.extractors.interface import BaseExtractor
 from llama_index.core.prompts import PromptTemplate
 from llama_index.core.async_utils import DEFAULT_NUM_WORKERS
 from llama_index.core.async_utils import run_jobs
-
-DEFAULT_ENTITY_CLASSIFICATIONS = ['Company', 'Organization', 'Location', 'Event', 'Sports Team', 'Sports Organization', 'Person', 'Role', 'Character', 'Product', 'Service', 'Media', 'Creative Work', 'Game', 'Software', 'Financial Instrument']
 
 logger = logging.getLogger(__name__)
 

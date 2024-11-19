@@ -18,6 +18,12 @@ The extraction stage is, by default, a three-step process:
   
 Only the third step here is mandatory. If your source data has already been chunked (you're importing from an Amazon Bedrock Knowledge Base, for example), you can omit step 1. If you're willing to trade a reduction in LLM calls and improved performance for a reduction in the quality of the entity/topic/statement/fact extraction, you can omit step 2.
 
+Extraction uses a lightly guided strategy whereby the extraction process is seeded with a list of preferred entity classifications. The LLM is instructed to use an existing classification from the list before creating new ones. Any new classifications introduced by the LLM are then carried forward to subsequent invocations. This approach reduces but doesn't eliminate unwanted variations in entity classification.
+
+The list of `DEFAULT_ENTITY_CLASSIFICATIONS` used to seed the extraction process can be found [here](https://github.com/awslabs/graphrag-toolkit/blob/main/src/graphrag_toolkit/indexing/constants.py). If these calssifications are not appropriate to your worklaod you can replace them (see the [Configuring the extract and build stages](configuring-the-extract-and-build-stages) and [Advanced graph construction](#advanced-graph-construction) sections below).
+
+Relationship values are currently unguided (though relatively concise).
+
 #### Build
 
 In the build stage, the LlamaIndex chunk nodes emitted from the extract stage are broken down further into a stream of individual source, chunk, topic, statement and fact LlamaIndex nodes. Graph construction and vector indexing handlers process these nodes to build and index the graph content. Each of these nodes has an `aws::graph::index` metadata item containing data that can be used to index the node in a vector store (though only the chunk and statement nodes are actually indexed in the current implementation).
@@ -155,7 +161,6 @@ graph_index = LexicalGraphIndex(
     )
 )
 ```
-
 
 The `ExtractionConfig` object has the following parameters.
 

@@ -8,13 +8,14 @@ from dataclasses import dataclass, field
 from graphrag_toolkit.storage import GraphStoreFactory, GraphStoreType
 from graphrag_toolkit.storage import VectorStoreFactory, VectorStoreType
 from graphrag_toolkit.storage.graph_store import DummyGraphStore
+from graphrag_toolkit.indexing import DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing import NodeHandler
 from graphrag_toolkit.indexing import sink
 from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY
 from graphrag_toolkit.indexing.extract import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.indexing.extract import GraphScopedValueStore
 from graphrag_toolkit.indexing.extract import LLMPropositionExtractor
-from graphrag_toolkit.indexing.extract import TopicExtractor, DEFAULT_ENTITY_CLASSIFICATIONS
+from graphrag_toolkit.indexing.extract import TopicExtractor
 from graphrag_toolkit.indexing.extract import ExtractionPipeline
 from graphrag_toolkit.indexing.build import BuildPipeline
 from graphrag_toolkit.indexing.build import VectorIndexing
@@ -34,7 +35,7 @@ class ExtractionConfig:
     chunk_size:Optional[int]=256
     chunk_overlap:Optional[int]=20
     enable_proposition_extraction:Optional[bool]=True
-    preferred_entity_classifications:Optional[List[str]]=field(default_factory=lambda:[])
+    preferred_entity_classifications:Optional[List[str]]=field(default_factory=lambda:DEFAULT_ENTITY_CLASSIFICATIONS)
 
 ExtractionPipelineConfigType = Union[ExtractionConfig, List[TransformComponent]]
 
@@ -80,7 +81,7 @@ class LexicalGraphIndex():
             vector_store:Optional[VectorStoreType]=None,
             index_name:Optional[str]=None,
             extraction_dir:Optional[str]=None,
-            extraction_pipeline_config:Optional[ExtractionPipelineConfigType]=None,
+            extraction_config:Optional[ExtractionPipelineConfigType]=None,
         ):
 
         self.graph_store = GraphStoreFactory.for_graph_store(graph_store)
@@ -88,10 +89,10 @@ class LexicalGraphIndex():
         self.index_name = index_name or DEFAULT_INDEX_NAME
         self.extraction_dir = extraction_dir or DEFAULT_EXTRACTION_DIR
 
-        if not extraction_pipeline_config or isinstance(extraction_pipeline_config, ExtractionConfig):
-            self.extraction_pipeline_config = self._configure_extraction_pipeline(extraction_pipeline_config)
+        if not extraction_config or isinstance(extraction_config, ExtractionConfig):
+            self.extraction_pipeline_config = self._configure_extraction_pipeline(extraction_config)
         else:
-            self.extraction_pipeline_config = extraction_pipeline_config
+            self.extraction_pipeline_config = extraction_config
 
     def _configure_extraction_pipeline(self, extraction_pipeline_config:Optional[ExtractionConfig]):
         
