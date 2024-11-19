@@ -4,8 +4,8 @@
 import logging
 import abc
 
-from typing import Sequence, Any, List
-from llama_index.core.schema import QueryBundle
+from typing import Sequence, Any, List, Dict
+from llama_index.core.schema import QueryBundle, BaseNode
 from llama_index.core.embeddings.utils import EmbedType
 from llama_index.core.bridge.pydantic import BaseModel, validator
 from graphrag_toolkit.storage.constants import EMBEDDING_INDEXES
@@ -31,15 +31,15 @@ class VectorIndex(BaseModel):
         return v
     
     @abc.abstractmethod
-    def add_embeddings(self, nodes):
+    def add_embeddings(self, nodes:Sequence[BaseNode]) -> Sequence[BaseNode]:
         raise NotImplementedError
     
     @abc.abstractmethod
-    def top_k(self, query:str, top_k:int=5) -> Sequence[Any]:
+    def top_k(self, query:str, top_k:int=5) -> Sequence[Dict[str, Any]]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_embeddings(self, ids:List[str]=[]) -> Sequence[Any]:
+    def get_embeddings(self, ids:List[str]=[]) -> Sequence[Dict[str, Any]]:
         raise NotImplementedError
     
 class DummyVectorIndex(VectorIndex):

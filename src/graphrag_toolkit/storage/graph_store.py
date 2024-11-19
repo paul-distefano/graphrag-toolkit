@@ -111,19 +111,12 @@ class GraphStore(BaseModel):
         return format_id(id_name)
     
     @abc.abstractmethod
-    def execute_query(self, cypher, parameters={}, correlation_id=None):
+    def execute_query(self, cypher, parameters={}, correlation_id=None) -> Dict[str, Any]:
         raise NotImplementedError
-    
-    @property
-    @abc.abstractmethod
-    def client(self):
-        raise NotImplementedError
+
     
 class DummyGraphStore(GraphStore):
     def execute_query(self, cypher, parameters={}, correlation_id=None):  
         logger.debug(f'{self._logging_prefix(correlation_id)}query: {cypher}, parameters: {parameters}')
         return []
     
-    @property
-    def client(self):
-        raise NotImplementedError

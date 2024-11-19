@@ -89,11 +89,12 @@ print(response.response)
 
 ## Documentation
 
-  - [Constructing a graph](./docs/constructing-a-graph.md) 
-  - [Querying the graph](./docs/querying-the-graph.md) 
+  - [Storage Model](./docs/storage-model.md) 
+  - [Constructing a Graph](./docs/constructing-a-graph.md) 
+  - [Querying the Graph](./docs/querying-the-graph.md) 
   - [Configuration](./docs/configuration.md) 
   - [Architecture](./docs/architecture.md)
-  - [Graph model](./docs/graph-model.md)
+  - [Graph Model](./docs/graph-model.md)
 
 
 ### Supported Python versions
