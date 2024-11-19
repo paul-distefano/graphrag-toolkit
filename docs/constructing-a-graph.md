@@ -67,7 +67,7 @@ graph_index = LexicalGraphIndex(
 graph_index.extract_and_build(docs)
 ```
 
-#### Run separate extract and build steps
+#### Run the extract and build stages separately
 
 Using the `LexicalGraphIndex` you can perform the extract and build stages separately. This is useful if you want to extract the graph once, and then build it multiple times (in different environments, for example.)
 
@@ -135,7 +135,7 @@ graph_index = LexicalGraphIndex(
 graph_index.build(file_based_chunks)
 ```
 
-#### Configuring the extract and build steps
+#### Configuring the extract and build stages
 
 You can configure the `LexicalGraphIndex` extract and build stages in two different respects. You can configure the number of workers and batch sizes for each strage using the `GraphRAGConfig` object. See [Configuration]('./configuration.md') for more details on using the configuration object, and the [Architecture]('./architecture.md') section on the implications of varying the number of workers and batch sizes in each of the stages. Besides configuring the workers and batch sizes, you can also configure the extraction process with regard to chunking, proposition extraction and entity classification.
   
