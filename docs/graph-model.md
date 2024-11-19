@@ -4,9 +4,9 @@ The graphrag-toolkit uses a form of hierarchical [lexical graph](https://graphr.
 
 The graph has three tiers:
 
-  - **Lineage** Sources, chunks, and the relations between them
-  - **Summarisation** Hierarchical summarisations and semantic units at different levels of granularity
-  - **Entity-Relationship** Individual entities and relations extracted from the underlying sources
+  - **Lineage** Sources, chunks, and the relations between them.
+  - **Summarisation** Hierarchical summarisations and semantic units at different levels of granularity.
+  - **Entity-Relationship** Individual entities and relations extracted from the underlying sources.
   
 ### Lineage tier
 
@@ -40,11 +40,11 @@ There are two types of fact: subject-predicate-object (SPO) facts, and subject-p
 Neptune Analytics PURPOSE analyze graph data
 ```
 
-SPO facts are connected to other fact via `NEXT` relationships where the object entity of a first fact acts as the subject entity for a subsequent fact.
+SPO facts are connected to other facts via `NEXT` relationships, where the object entity of a first fact acts as the subject entity for a subsequent fact.
 
-Facts provide *connectivity across different sources*. It's not uncommon for an individual fact to be mentioned multiple times in the underlying corpus: for example, a particular fact might be repeated in different news articles reporting on the same story. In the graph, there's a single node to represent a specific fact. From this node it is then possible to traverse via statements, topics and chunks to all the places where that particular fact is mentioned.
+Facts provide *connectivity across different sources*. It's not uncommon for an individual fact to be mentioned multiple times in the underlying corpus: for example, in a news articles dataset, a particular fact might be repeated in different news articles reporting on the same story. In the graph, there will be a single node to represent this specific fact. From this node it is then possible to traverse via statements, topics and chunks to all the places where that particular fact is mentioned.
 
-Facts can, optionally, be embedded – and so as well as enhancing connectivity, they can also be used to provide a low-level vector-based entry point into the graph. 
+Facts can, optionally, be embedded – and so as well as enhancing connectivity, they can also be used to provide a low-level, vector-based entry point into the graph. 
 
 #### Statements
 
@@ -67,25 +67,25 @@ Gremlin API FOR property graphs
 openCypher FOR property graphs
 ```
 
-In some circumstances a statement may include one or more contextual details in addition to, or instead of, any associated facts. These contextual details take the same triplet form as facts, but they lack any entity (subject or object) relations, and so are inlined in the statement node.
+In some circumstances a statement may include one or more contextual *details* in addition to, or instead of, any associated facts. These contextual details take the same triplet form as facts, but they lack any entity (subject or object) relations, and so are inlined as a property in the statement node.
 
 Statements are grouped beneath topics (see below). Within a particular topic, statements are also joined in a linked list via `PREVIOUS` relationships, making it easy to retrieve previous (and subsequent) statements belonging to the same underlying source.
 
 Statements act as the primary unit of context for question-answering. They are connected transitively to other statements via both facts and topics.
 
-Statements can, optionally, be embedded, and so can act as higher-level entry points in the graph based on a vector search. The vector-guided retriever uses statement embeddings to guide its search strategies. Statement embeddings also allow statements to be used in a 'baseline RAG' manner to retrieve relatively small pieces of context for simple questions.
+Statements can, optionally, be embedded, and so can act as higher-level entry points in the graph based on a vector search. The vector-guided retriever uses statement embeddings to guide its search strategies. Statement embeddings also allow statements to be used in a 'baseline RAG' manner to retrieve relatively small pieces of context for answering simple questions.
 
 #### Topics
 
-A topic is a theme or area of focus within a specific source document. Source documents will typically have several topics. For example, one of the source documest in our Neptune documentation example has the following topics:
+A topic is a theme or area of focus within a specific source document. Source documents will typically have several topics. For example, one of the source documents in our Neptune documentation example has the following topics:
 
 ```
 Neptune Analytics
 Loading Graph Data into Amazon Neptune Analytics
 ```
 
-Topics are scoped to individual source documents so as to provide connectivity across chunks within a single source: it’s common for several chunks from the same source to be connected to the same topic.
+Topics are scoped to individual source documents so as to provide connectivity across chunks within a single source. It's common for several chunks from the same source to be connected to the same topic.
 
-Topics increase connectivity between relevant chunks within a single source, and provide a simple document-level summary mechanism.
+Topics increase *connectivity between relevant chunks within a single source*, and provide a simple document-level summary mechanism.
 
 

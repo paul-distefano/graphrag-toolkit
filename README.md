@@ -37,7 +37,10 @@ doc_urls = [
     'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-vs-neptune-database.html'
 ]
 
-docs = SimpleWebPageReader(html_to_text=True).load_data(doc_urls)
+docs = SimpleWebPageReader(
+    html_to_text=True,
+    metadata_fn=lambda url:{'url': url}
+).load_data(doc_urls)
 
 graph_store = GraphStoreFactory.for_graph_store(
     'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
@@ -58,7 +61,7 @@ graph_index.extract_and_build(docs)
 ### Querying the graph
 
 ```
-from graphrag_toolkit import LexicalGraphQueryEngine
+from graphrag_toolkit import LexicalGraphQueryEngine, format_source
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
 
@@ -75,10 +78,11 @@ vector_store = VectorStoreFactory.for_vector_store(
 
 query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
     graph_store, 
-    vector_store
+    vector_store,
+    post_processors=format_source('url')
 )
 
-response = query_engine.query('What are the differences between Neptune Database and Neptune Analytics?')
+response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
 
 print(response.response)
 ```
