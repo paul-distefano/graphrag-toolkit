@@ -169,8 +169,10 @@ class LexicalGraphIndex():
             checkpoint=checkpoint
         )
 
-        sink_fn = sink if not handler else Pipe(handler)
-        nodes | extraction_pipeline | build_pipeline | sink_fn
+        if handler:
+            nodes | extraction_pipeline | Pipe(handler) | build_pipeline | sink
+        else:
+            nodes | extraction_pipeline | build_pipeline | sink
 
     def build(
             self,
