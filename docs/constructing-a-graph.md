@@ -121,13 +121,6 @@ graph_index = LexicalGraphIndex(
 graph_index.build(file_based_chunks)
 ```
 
-
-
-
-. chunks in the forprovides you with a _ JSON-serialized LlamaINdex nodes.
-
-
-
 ### Advanced graph construction
 
 ConflictException
