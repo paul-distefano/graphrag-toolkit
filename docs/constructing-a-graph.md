@@ -138,6 +138,14 @@ graph_index.build(file_based_chunks)
 #### Configuring the extract and build stages
 
 You can configure the `LexicalGraphIndex` extract and build stages in two different respects. You can configure the number of workers and batch sizes for each strage using the `GraphRAGConfig` object. See [Configuration]('./configuration.md') for more details on using the configuration object, and the [Architecture]('./architecture.md') section on the implications of varying the number of workers and batch sizes in each of the stages. Besides configuring the workers and batch sizes, you can also configure the extraction process with regard to chunking, proposition extraction and entity classification.
+
+| Parameter  | Description | Default Value |
+| ------------- | ------------- | ------------- |
+| `enable_chunking` | Chunk the source data using a LlamaIndex `SentenceSplitter` | `True` |
+| `chunk_size` | Token chunk size for each chunk if using the `SentenceSplitter` | `256` |
+| `chunk_overlap` | Token overlap of each chunk when splitting if using the `SentenceSplitter` | `20` |
+| `enable_proposition_extraction` | Perform proposition extraction before extracting topics, statements, facts and entities | `True` |
+| `preferred_entity_classifications` | Comma-separated list of preferred entity classifications used to seed the entity extraction | `[]` |
   
 
 ### Advanced graph construction

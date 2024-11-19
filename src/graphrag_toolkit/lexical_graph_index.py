@@ -34,7 +34,7 @@ class ExtractionConfig:
     chunk_size:Optional[int]=256
     chunk_overlap:Optional[int]=20
     enable_proposition_extraction:Optional[bool]=True
-    preferred_entity_classifications:Optional[List[str]]=field(default_factory=lambda:DEFAULT_ENTITY_CLASSIFICATIONS)
+    preferred_entity_classifications:Optional[List[str]]=field(default_factory=lambda:[])
 
 ExtractionPipelineConfigType = Union[ExtractionConfig, List[TransformComponent]]
 
