@@ -18,7 +18,7 @@ Graph stores must support the [openCypher](https://opencypher.org/) property gra
 
 You can use the `GraphStoreFactory.for_graph_store()` static factory method to create an instance of a Neptune Analytics or Neptune Database graph store.
 
-To create a Neptune Database graph store, you must supply a connection string that begins `neptune-db://`, followed by an [endpoint](https://docs.aws.amazon.com/neptune/latest/userguide/feature-overview-endpoints.html):
+To create a Neptune Database graph store, supply a connection string that begins `neptune-db://`, followed by an [endpoint](https://docs.aws.amazon.com/neptune/latest/userguide/feature-overview-endpoints.html):
 
 ```
 from graphrag_toolkit.storage import GraphStoreFactory
@@ -28,7 +28,7 @@ neptune_connection_info = 'neptune-db://mydbcluster.cluster-123456789012.us-east
 graph_store = GraphStoreFactory.for_graph_store(neptune_connection_info)
 ```
 
-To create a Neptune Analytics graph store, you must supply a connection string that begins `neptune-graph://`, followed by the graph's identifier:
+To create a Neptune Analytics graph store, supply a connection string that begins `neptune-graph://`, followed by the graph's identifier:
 
 ```
 from graphrag_toolkit.storage import GraphStoreFactory
@@ -40,13 +40,13 @@ graph_store = GraphStoreFactory.for_graph_store(neptune_connection_info)
 
 ### Vector store
 
-A vector store is a collection of vector indexes. The graphrag-toolkit uses up to two vector indexes: a chunk index and a statement index. The chunk index is typically much smaller than the statement index. If you want to use the vector-guided retriever, you will need to enable the statement index. If you want to use the traversal-based retriever, you will need to enable the chunk index. If you want to use both retrievers, you will need to enable both indexes (the `VectorStoreFactory` described below enables both indexes by default).
+A vector store is a collection of vector indexes. The graphrag-toolkit uses up to two vector indexes: a chunk index and a statement index. The chunk index is typically much smaller than the statement index. If you want to use the vector-guided retriever, you will need to enable the statement index. If you want to use the traversal-based retriever, you will need to enable the chunk index. If you want to use both retrievers, you will need to enable both indexes. (The `VectorStoreFactory` described below enables both indexes by default.)
 
 #### Amazon OpenSearch Serverless and Neptune Analytics vector stores
 
 You can use the `VectorStoreFactory.for_vector_store()` static factory method to create an instance of an Amazon OpenSearch Serverless or Neptune Database vector store.
 
-To create an Amazon OpenSearch Serverless vector store, you must supply a connection string that begins `aoss://`, followed the https endpoint of the OpenSearch Serverless collection:
+To create an Amazon OpenSearch Serverless vector store, supply a connection string that begins `aoss://`, followed the https endpoint of the OpenSearch Serverless collection:
 
 ```
 from graphrag_toolkit.storage import VectorStoreFactory
@@ -56,7 +56,7 @@ opensearch_connection_info = 'aoss://https://123456789012.us-east-1.aoss.amazona
 vector_store = VectorStoreFactory.for_vector_store(opensearch_connection_info)
 ```
 
-To create a Neptune Analytics vector store, you must supply a connection string that begins `neptune-graph://`, followed by the graph's identifier:
+To create a Neptune Analytics vector store, supply a connection string that begins `neptune-graph://`, followed by the graph's identifier:
 
 ```
 from graphrag_toolkit.storage import VectorStoreFactory
