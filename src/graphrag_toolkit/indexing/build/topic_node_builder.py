@@ -10,7 +10,7 @@ from graphrag_toolkit.indexing.utils.graph_utils import node_id_from
 from graphrag_toolkit.indexing.build.source_node_builder import SourceNodeBuilder
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.model import TopicCollection
-from graphrag_toolkit.indexing.constants import TRIPLES_KEY
+from graphrag_toolkit.indexing.constants import TOPICS_KEY
 from graphrag_toolkit.storage.constants import INDEX_KEY
 
 class TopicNodeBuilder(NodeBuilder):
@@ -21,7 +21,7 @@ class TopicNodeBuilder(NodeBuilder):
     
     @classmethod
     def metadata_keys(cls) -> List[str]:
-        return [TRIPLES_KEY]
+        return [TOPICS_KEY]
     
     def build_nodes(self, node:BaseNode, other_nodes:Dict[str, BaseNode]):
         
@@ -32,7 +32,7 @@ class TopicNodeBuilder(NodeBuilder):
         statement_nodes=[]
         fact_nodes=[]
 
-        data = node.metadata.get(TRIPLES_KEY, [])
+        data = node.metadata.get(TOPICS_KEY, [])
 
         if not data:
             return (topic_nodes, statement_nodes, fact_nodes)

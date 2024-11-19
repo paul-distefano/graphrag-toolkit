@@ -10,7 +10,7 @@ from graphrag_toolkit.indexing.utils import parse_extracted_topics, format_list,
 from graphrag_toolkit.indexing.extract.scoped_value_provider import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.indexing.model import TopicCollection
-from graphrag_toolkit.indexing.constants import TRIPLES_KEY
+from graphrag_toolkit.indexing.constants import TOPICS_KEY
 from graphrag_toolkit.indexing.prompts import EXTRACT_TOPICS_PROMPT
 
 from llama_index.core.schema import BaseNode
@@ -116,7 +116,7 @@ class TopicExtractor(BaseExtractor):
         self.topic_provider.update_values(topic_scope, current_topics, node_topics)
         
         return {
-            TRIPLES_KEY: topics.model_dump()
+            TOPICS_KEY: topics.model_dump()
         }
             
     async def _extract_topics(self, text:str, preferred_entity_classifications:List[str], preferred_topics:List[str]) -> Tuple[TopicCollection, List[str]]:

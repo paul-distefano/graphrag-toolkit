@@ -7,7 +7,7 @@ from llama_index.core.schema import BaseNode
 
 from graphrag_toolkit.indexing.build.source_node_builder import SourceNodeBuilder
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
-from graphrag_toolkit.indexing.constants import TRIPLES_KEY
+from graphrag_toolkit.indexing.constants import TOPICS_KEY
 from graphrag_toolkit.storage.constants import INDEX_KEY
 
 class ChunkNodeBuilder(NodeBuilder):
@@ -18,7 +18,7 @@ class ChunkNodeBuilder(NodeBuilder):
     
     @classmethod
     def metadata_keys(cls) -> List[str]:
-        return [TRIPLES_KEY]
+        return [TOPICS_KEY]
     
     def build_nodes(self, node:BaseNode, other_nodes:Dict[str, BaseNode]):
         
@@ -26,7 +26,7 @@ class ChunkNodeBuilder(NodeBuilder):
         
         chunk_node = node.copy()
         
-        topics = [topic['value'] for topic in node.metadata.get(TRIPLES_KEY, {}).get('topics', [])]
+        topics = [topic['value'] for topic in node.metadata.get(TOPICS_KEY, {}).get('topics', [])]
 
         metadata = {
             'chunk': {

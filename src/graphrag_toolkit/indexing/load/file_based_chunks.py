@@ -8,7 +8,7 @@ from os.path import join
 from typing import List, Any, Generator, Optional, Dict
 
 from graphrag_toolkit.indexing import NodeHandler
-from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY, TRIPLES_KEY
+from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY, TOPICS_KEY
 from graphrag_toolkit.storage.constants import INDEX_KEY 
 
 from llama_index.core.schema import TextNode, BaseNode
@@ -40,7 +40,7 @@ class FileBasedChunks(NodeHandler):
         def filter(metadata:Dict):
             keys_to_delete = []
             for key in metadata.keys():
-                if key not in [PROPOSITIONS_KEY, TRIPLES_KEY, INDEX_KEY]:
+                if key not in [PROPOSITIONS_KEY, TOPICS_KEY, INDEX_KEY]:
                     if self.metadata_keys is not None and key not in self.metadata_keys:
                         keys_to_delete.append(key)
             for key in keys_to_delete:

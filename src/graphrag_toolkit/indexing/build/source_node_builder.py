@@ -9,7 +9,7 @@ from llama_index.core.schema import NodeRelationship
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
 
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
-from graphrag_toolkit.indexing.constants import TRIPLES_KEY
+from graphrag_toolkit.indexing.constants import TOPICS_KEY
 from graphrag_toolkit.storage.constants import INDEX_KEY
 
 class SourceNodeBuilder(NodeBuilder):
@@ -20,7 +20,7 @@ class SourceNodeBuilder(NodeBuilder):
     
     @classmethod
     def metadata_keys(cls) -> List[str]:
-        return [TRIPLES_KEY]
+        return [TOPICS_KEY]
     
     _source_node_cache: Optional[Any] = PrivateAttr(default=None)
     
