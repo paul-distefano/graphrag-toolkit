@@ -51,7 +51,8 @@ class GraphStoreFactory():
     
     @staticmethod
     def for_neptune_database(graph_endpoint, port=8182, **kwargs):
-        return NeptuneDatabaseClient(endpoint_url=f'https://{graph_endpoint}:{port}')
+        endpoint_url = f'https://{graph_endpoint}' if ':' in graph_endpoint else f'https://{graph_endpoint}:{port}'
+        return NeptuneDatabaseClient(endpoint_url=endpoint_url)
     
     @staticmethod
     def for_neptune_analytics(graph_id, **kwargs):
