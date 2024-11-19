@@ -177,9 +177,9 @@ The `ExtractionConfig` object has the following parameters.
 
 #### Checkpoints
 
-The graphrag-toolkit uses backoff-and-retry strategies to retry failed upsert operations and calls to LLMs and embedding models. However, failures can still happen. If an extract or build stage fails partway through, you typically don't want to reprocess chunks that have successfully made their way through the entire graph construction pipeline.
+The graphrag-toolkit uses backoff-and-retry strategies to retry upsert operations and calls to LLMs and embedding models that don't succeed. However, failures can still happen. If an extract or build stage fails partway through, you typically don't want to reprocess chunks that have successfully made their way through the entire graph construction pipeline.
 
-To avoid having to reprocess chunks that have been successfully processed in a previous run, provide a `Checkpoint` instance to the `extract_and_build()`, `extract()` and/or `build()` methods. A checkpoint adds a checkpoint filter to steps in the extract and build stages, and a checkpoint writer to the end of the build stage. When a chunk is emitted from the build stage, having been handled by both the graph construction and vector indexing handlers, its id will be written to a save point in the graph index `extraction_dir`. If a chunk with the same id is subsequently introduced into either the extract or build stage, it will be filtered out by a checkpoint filter.
+To avoid having to reprocess chunks that have been successfully processed in a previous run, provide a `Checkpoint` instance to the `extract_and_build()`, `extract()` and/or `build()` methods. A checkpoint adds a checkpoint *filter* to steps in the extract and build stages, and a checkpoint *writer* to the end of the build stage. When a chunk is emitted from the build stage, after having been successfully handled by both the graph construction *and* vector indexing handlers, its id will be written to a save point in the graph index `extraction_dir`. If a chunk with the same id is subsequently introduced into either the extract or build stage, it will be filtered out by a checkpoint filter.
 
 The following example passes a checkpoint to the `extract_and_build()` method:
 
