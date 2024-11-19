@@ -13,6 +13,7 @@ class VectorStoreFactory():
     def for_vector_store(vector_store_info:str=None, index_names=EMBEDDING_INDEXES, **kwargs):
         if vector_store_info and isinstance(vector_store_info, VectorStore):
             return vector_store_info
+        index_names = index_names if isinstance(index_names, list) else [index_names]
         return VectorStore([VectorIndexFactory.for_vector_index(index_name, vector_store_info, **kwargs) for index_name in index_names])
     
     @staticmethod
