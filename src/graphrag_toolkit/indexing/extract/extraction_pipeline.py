@@ -63,8 +63,8 @@ class ExtractionPipeline():
                  checkpoint:Optional[Checkpoint]=None):
         
         components = components or []
-        num_workers = num_workers or GraphRAGConfig.extraction_pipeline_num_workers
-        batch_size = batch_size or GraphRAGConfig.extraction_pipeline_batch_size
+        num_workers = num_workers or GraphRAGConfig.extraction_num_workers
+        batch_size = batch_size or GraphRAGConfig.extraction_batch_size
 
         for c in components:
             if isinstance(c, BaseExtractor):

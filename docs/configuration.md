@@ -14,10 +14,10 @@ The
 | `response_llm` | LLM used to generate responses (see [LLM configuration](#llm-configuration)) | `anthropic.claude-3-sonnet-20240229-v1:0` | `RESPONSE_MODEL` |
 | `embed_model` | Embedding model used to generate embeddings for indexed data and queries (see [Embedding model configuration](#embedding-model-configuration)) | `cohere.embed-english-v3` | `EMBEDDINGS_MODEL` |
 | `embed_dimensions` | Number of dimensions in each vector | `1024` | `EMBEDDINGS_DIMENSIONS` |
-| `extraction_pipeline_num_workers` | The number of parallel processes to use when running the extract stage | `2` | `EXTRACTION_PIPELINE_NUM_WORKERS` |
-| `extraction_pipeline_batch_size` | The number of input nodes to be processed in parallel by *all workers* in the extract stage | `4` | `EXTRACTION_PIPELINE_BATCH_SIZE` |
-| `build_pipeline_num_workers` | The number of parallel processes to use when running the build stage | `2` | `BUILD_PIPELINE_NUM_WORKERS` |
-| `build_pipeline_batch_size` | The number of input nodes to be processed in parallel by *each worker* in the build stage | `25` | `BUILD_PIPELINE_BATCH_SIZE` |
+| `extraction_num_workers` | The number of parallel processes to use when running the extract stage | `2` | `EXTRACTION_NUM_WORKERS` |
+| `extraction_batch_size` | The number of input nodes to be processed in parallel by *all workers* in the extract stage | `4` | `EXTRACTION_BATCH_SIZE` |
+| `build_num_workers` | The number of parallel processes to use when running the build stage | `2` | `BUILD_NUM_WORKERS` |
+| `build_batch_size` | The number of input nodes to be processed in parallel by *each worker* in the build stage | `25` | `BUILD_BATCH_SIZE` |
 | `batch_writes_enabled` | Determines whether, on a per-worker basis, to write all elements (nodes and edges, or vectors) emitted by a batch of input nodes as a bulk operation, or singly to the graph and vector stores (see [Batch writes](#batch-writes)) | `True` | `BATCH_WRITES_ENABLED` |
 | `enable_cache` | Determines whether the results of LLM calls to models on Amazon Bedrock are cached to the local filesystem (see [Caching Amazon Bedrock LLM responses](#caching-amazon-bedrock-llm-responses)) | `False` | `ENABLE_CACHE` |
 

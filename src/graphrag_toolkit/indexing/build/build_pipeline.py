@@ -63,8 +63,8 @@ class BuildPipeline():
             ):
         
         components = components or []
-        num_workers = num_workers or GraphRAGConfig.build_pipeline_num_workers
-        batch_size = batch_size or GraphRAGConfig.build_pipeline_batch_size
+        num_workers = num_workers or GraphRAGConfig.build_num_workers
+        batch_size = batch_size or GraphRAGConfig.build_batch_size
         batch_writes_enabled = batch_writes_enabled or GraphRAGConfig.batch_writes_enabled
 
         for c in components:

@@ -21,10 +21,10 @@ DEFAULT_EVALUATION_MODEL = 'anthropic.claude-3-sonnet-20240229-v1:0'
 DEFAULT_EMBEDDINGS_MODEL = 'cohere.embed-english-v3'
 DEFAULT_RERANKING_MODEL = 'mixedbread-ai/mxbai-rerank-xsmall-v1'
 DEFAULT_EMBEDDINGS_DIMENSIONS = 1024
-DEFAULT_EXTRACTION_PIPELINE_NUM_WORKERS = 2
-DEFAULT_EXTRACTION_PIPELINE_BATCH_SIZE = 4
-DEFAULT_BUILD_PIPELINE_NUM_WORKERS = 2
-DEFAULT_BUILD_PIPELINE_BATCH_SIZE = 25
+DEFAULT_EXTRACTION_NUM_WORKERS = 2
+DEFAULT_EXTRACTION_BATCH_SIZE = 4
+DEFAULT_BUILD_NUM_WORKERS = 2
+DEFAULT_BUILD_BATCH_SIZE = 25
 DEFAULT_BATCH_WRITES_ENABLED = True
 DEFAULT_ENABLE_CACHE = False
 
@@ -50,56 +50,56 @@ class _GraphRAGConfig:
     _embed_model: Optional[BaseEmbedding] = None
     _embed_dimensions: Optional[int] = None
     _reranking_model: Optional[str] = None
-    _extraction_pipeline_num_workers: Optional[int] = None
-    _extraction_pipeline_batch_size: Optional[int] = None
-    _build_pipeline_num_workers: Optional[int] = None
-    _build_pipeline_batch_size: Optional[int] = None
+    _extraction_num_workers: Optional[int] = None
+    _extraction_batch_size: Optional[int] = None
+    _build_num_workers: Optional[int] = None
+    _build_batch_size: Optional[int] = None
     _batch_writes_enabled: Optional[bool] = None
     _enable_cache: Optional[bool] = None
 
     @property
-    def extraction_pipeline_num_workers(self) -> int:
-        if self._extraction_pipeline_num_workers is None:
-            self.extraction_pipeline_num_workers = int(os.environ.get('EXTRACTION_PIPELINE_NUM_WORKERS', DEFAULT_EXTRACTION_PIPELINE_NUM_WORKERS)) 
+    def extraction_num_workers(self) -> int:
+        if self._extraction_num_workers is None:
+            self.extraction_num_workers = int(os.environ.get('EXTRACTION_NUM_WORKERS', DEFAULT_EXTRACTION_NUM_WORKERS)) 
 
-        return self._extraction_pipeline_num_workers
+        return self._extraction_num_workers
 
-    @extraction_pipeline_num_workers.setter
-    def extraction_pipeline_num_workers(self, num_workers:int) -> None:
-        self._extraction_pipeline_num_workers = num_workers
-
-    @property
-    def extraction_pipeline_batch_size(self) -> int:
-        if self._extraction_pipeline_batch_size is None:
-            self.extraction_pipeline_batch_size = int(os.environ.get('EXTRACTION_PIPELINE_BATCH_SIZE', DEFAULT_EXTRACTION_PIPELINE_BATCH_SIZE))  
-
-        return self._extraction_pipeline_batch_size
-
-    @extraction_pipeline_batch_size.setter
-    def extraction_pipeline_batch_size(self, batch_size:int) -> None:
-        self._extraction_pipeline_batch_size = batch_size
+    @extraction_num_workers.setter
+    def extraction_num_workers(self, num_workers:int) -> None:
+        self._extraction_num_workers = num_workers
 
     @property
-    def build_pipeline_num_workers(self) -> int:
-        if self._build_pipeline_num_workers is None:
-            self.build_pipeline_num_workers = int(os.environ.get('BUILD_PIPELINE_NUM_WORKERS', DEFAULT_BUILD_PIPELINE_NUM_WORKERS))
+    def extraction_batch_size(self) -> int:
+        if self._extraction_batch_size is None:
+            self.extraction_batch_size = int(os.environ.get('EXTRACTION_BATCH_SIZE', DEFAULT_EXTRACTION_BATCH_SIZE))  
 
-        return self._build_pipeline_num_workers
+        return self._extraction_batch_size
 
-    @build_pipeline_num_workers.setter
-    def build_pipeline_num_workers(self, num_workers:int) -> None:
-        self._build_pipeline_num_workers = num_workers
+    @extraction_batch_size.setter
+    def extraction_batch_size(self, batch_size:int) -> None:
+        self._extraction_batch_size = batch_size
 
     @property
-    def build_pipeline_batch_size(self) -> int:
-        if self._build_pipeline_batch_size is None:
-            self.build_pipeline_batch_size = int(os.environ.get('BUILD_PIPELINE_BATCH_SIZE', DEFAULT_BUILD_PIPELINE_BATCH_SIZE))  
+    def build_num_workers(self) -> int:
+        if self._build_num_workers is None:
+            self.build_num_workers = int(os.environ.get('BUILD_NUM_WORKERS', DEFAULT_BUILD_NUM_WORKERS))
 
-        return self._build_pipeline_batch_size
+        return self._build_num_workers
 
-    @build_pipeline_batch_size.setter
-    def build_pipeline_batch_size(self, batch_size:int) -> None:
-        self._build_pipeline_batch_size = batch_size
+    @build_num_workers.setter
+    def build_num_workers(self, num_workers:int) -> None:
+        self._build_num_workers = num_workers
+
+    @property
+    def build_batch_size(self) -> int:
+        if self._build_batch_size is None:
+            self.build_batch_size = int(os.environ.get('BUILD_BATCH_SIZE', DEFAULT_BUILD_BATCH_SIZE))  
+
+        return self._build_batch_size
+
+    @build_batch_size.setter
+    def build_batch_size(self, batch_size:int) -> None:
+        self._build_batch_size = batch_size
 
     @property
     def batch_writes_enabled(self) -> bool:
