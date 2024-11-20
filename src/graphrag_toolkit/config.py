@@ -39,8 +39,6 @@ def _is_json_string(s):
 class _GraphRAGConfig:
 
     _extraction_llm: Optional[LLM] = None
-    _classification_llm: Optional[LLM] = None 
-    _summarization_llm: Optional[LLM] = None 
     _response_llm: Optional[LLM] = None 
     _evaluation_llm: Optional[LLM] = None 
     _embed_model: Optional[BaseEmbedding] = None
