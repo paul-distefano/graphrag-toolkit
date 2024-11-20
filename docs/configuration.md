@@ -21,14 +21,16 @@ The
 | `batch_writes_enabled` | Determines whether, on a per-worker basis, to write all elements (nodes and edges, or vectors) emitted by a batch of input nodes as a bulk operation, or singly to the graph and vector stores (see [Batch writes](#batch-writes)) | `True` | `BATCH_WRITES_ENABLED` |
 | `enable_cache` | Determines whether the results of LLM calls to models on Amazon Bedrock are cached to the local filesystem (see [Caching Amazon Bedrock LLM responses](#caching-amazon-bedrock-llm-responses)) | `False` | `ENABLE_CACHE` |
 
-To set a configuration parameter:
+To set a configuration parameter in your application code:
 
 ```
 from graphrag_toolkit import GraphRAGConfig
 
 GraphRAGConfig.response_llm = 'anthropic.claude-3-haiku-20240307-v1:0' 
-GraphRAGConfig.extraction_pipeline_num_workers = 4
+GraphRAGConfig.extraction_num_workers = 4
 ```
+
+You can also set configuration parameters via environment variables, as per the variable names in the table above.
 
 #### LLM configuration
 
