@@ -213,6 +213,8 @@ from graphrag_toolkit.indexing.extract import ScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.indexing.extract import ExtractionPipeline
 from graphrag_toolkit.indexing.build import Checkpoint
 from graphrag_toolkit.indexing.build import BuildPipeline
+from graphrag_toolkit.indexing.build import VectorIndexing
+from graphrag_toolkit.indexing.build import GraphConstruction
 
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.readers.web import SimpleWebPageReader
@@ -242,7 +244,7 @@ entity_classification_provider = ScopedValueProvider(
 )
 
 topic_extractor = TopicExtractor(
-    source_metadata_field=PROPOSITIONS_KEY, # Omit tthis if not performing proposition extraction
+    source_metadata_field=PROPOSITIONS_KEY, # Omit this line if not performing proposition extraction
     entity_classification_provider=entity_classification_provider # Entity classifications saved to graph between LLM invocations
 )
 
@@ -257,11 +259,15 @@ extraction_pipeline = ExtractionPipeline.create(
     checkpoint=checkpoint
 )
 
-# Create buildpipeline
+# Create build pipeline components
+graph_construction = GraphConstruction.for_graph_store(graph_store),
+vector_indexing = VectorIndexing.for_vector_store(vector_store)
+        
+# Create build pipeline        
 build_pipeline = BuildPipeline.create(
     components=[         
-        graph_store,
-        vector_store
+        graph_construction,
+        vector_indexing
     ],
     show_progress=True,
     checkpoint=checkpoint
