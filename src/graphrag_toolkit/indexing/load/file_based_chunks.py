@@ -12,7 +12,6 @@ from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY, TOPICS_KEY
 from graphrag_toolkit.storage.constants import INDEX_KEY 
 
 from llama_index.core.schema import TextNode, BaseNode
-from llama_index.core.schema import NodeRelationship, RelatedNodeInfo
 
 logger = logging.getLogger(__name__)
 

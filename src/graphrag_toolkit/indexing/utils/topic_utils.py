@@ -4,7 +4,7 @@
 import re
 from typing import Tuple, List
 
-from graphrag_toolkit.indexing.extract.constants import DEFAULT_TOPIC
+from graphrag_toolkit.indexing.constants import DEFAULT_TOPIC
 from graphrag_toolkit.indexing.model import TopicCollection, Topic, Fact, Entity, Relation, Statement
 
 def format_text(text):

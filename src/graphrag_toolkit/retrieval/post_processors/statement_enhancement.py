@@ -3,7 +3,6 @@
 
 import asyncio
 import re
-import sys
 import logging
 
 from pydantic import Field

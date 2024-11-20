@@ -10,13 +10,12 @@ from graphrag_toolkit.storage import VectorStoreFactory, VectorStoreType
 from graphrag_toolkit.storage.graph_store import DummyGraphStore
 from graphrag_toolkit.indexing import NodeHandler
 from graphrag_toolkit.indexing import sink
-from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY
+from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY, DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.extract import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.indexing.extract import GraphScopedValueStore
 from graphrag_toolkit.indexing.extract import LLMPropositionExtractor
 from graphrag_toolkit.indexing.extract import TopicExtractor
 from graphrag_toolkit.indexing.extract import ExtractionPipeline
-from graphrag_toolkit.indexing.extract.constants import DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.build import BuildPipeline
 from graphrag_toolkit.indexing.build import VectorIndexing
 from graphrag_toolkit.indexing.build import GraphConstruction

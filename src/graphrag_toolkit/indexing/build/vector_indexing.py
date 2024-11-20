@@ -8,7 +8,6 @@ from typing import List, Any, Union
 from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.storage import VectorStoreFactory
 from graphrag_toolkit.indexing.node_handler import NodeHandler
-from graphrag_toolkit.storage.vector_index_factory import VectorIndexFactory
 from graphrag_toolkit.indexing.build.vector_batch_client import VectorBatchClient
 from graphrag_toolkit.storage.constants import INDEX_KEY, EMBEDDING_INDEXES
 

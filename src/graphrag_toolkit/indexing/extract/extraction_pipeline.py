@@ -10,7 +10,7 @@ from graphrag_toolkit.indexing.extract.pipeline_decorator import PipelineDecorat
 from graphrag_toolkit.indexing.build.checkpoint import Checkpoint
 from graphrag_toolkit.indexing.extract.docs_to_nodes import DocsToNodes
 from graphrag_toolkit.indexing.extract.id_rewriter import IdRewriter
-from graphrag_toolkit.indexing.extract.constants import SOURCE_DOC_KEY
+from graphrag_toolkit.indexing.constants import SOURCE_DOC_KEY
 
 from llama_index.core.node_parser import TextSplitter
 from llama_index.core.async_utils import asyncio_run

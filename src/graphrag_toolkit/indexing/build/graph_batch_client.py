@@ -1,9 +1,8 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any, List
 from graphrag_toolkit.storage.graph_store import GraphStore
-from graphrag_toolkit.indexing.utils.graph_utils import get_hash
 
 class GraphBatchClient():
     def __init__(self, graph_client:GraphStore, batch_writes_enabled:bool, batch_size:int):

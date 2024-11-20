@@ -9,9 +9,8 @@ from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.utils import LLMCache
 from graphrag_toolkit.indexing.utils import parse_extracted_topics, format_list, format_text
 from graphrag_toolkit.indexing.extract.scoped_value_provider import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
-from graphrag_toolkit.indexing.extract.constants import DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.model import TopicCollection
-from graphrag_toolkit.indexing.constants import TOPICS_KEY
+from graphrag_toolkit.indexing.constants import TOPICS_KEY, DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.prompts import EXTRACT_TOPICS_PROMPT
 
 from llama_index.core.schema import BaseNode

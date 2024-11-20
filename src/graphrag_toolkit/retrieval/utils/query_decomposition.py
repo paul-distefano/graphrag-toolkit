@@ -8,9 +8,8 @@ from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.utils import LLMCache
 from graphrag_toolkit.retrieval.prompts import EXTRACT_SUBQUERIES_PROMPT, IDENTIFY_MULTIPART_QUESTION_PROMPT
 
-from llama_index.core.base.base_retriever import BaseRetriever
 from llama_index.core.prompts import PromptTemplate
-from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
+from llama_index.core.schema import QueryBundle
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ import six
 from typing import Dict, List
 from llama_index.core.schema import BaseNode, BaseComponent
 
-from graphrag_toolkit.indexing.build.constants import DEFAULT_CLASSIFICATION
+from graphrag_toolkit.indexing.constants import DEFAULT_CLASSIFICATION
 
 @six.add_metaclass(abc.ABCMeta)
 class NodeBuilder(BaseComponent):

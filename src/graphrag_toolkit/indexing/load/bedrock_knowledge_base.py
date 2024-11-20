@@ -14,7 +14,7 @@ from os.path import join
 from urllib.parse import urlparse
 
 from graphrag_toolkit.indexing.extract.id_rewriter import IdRewriter
-from graphrag_toolkit.indexing.extract.constants import SOURCE_DOC_KEY
+from graphrag_toolkit.indexing.constants import SOURCE_DOC_KEY
 
 from llama_index.core.schema import TextNode, Document
 from llama_index.core.schema import NodeRelationship, RelatedNodeInfo

@@ -11,7 +11,6 @@ from io import StringIO
 from hashlib import sha256
 from typing import Any
 from llama_index.llms.bedrock import Bedrock
-from llama_index.core.bridge.pydantic import Field
 
 from graphrag_toolkit.utils.io_utils import read_json, write_json
 from graphrag_toolkit.utils.bedrock_utils import *

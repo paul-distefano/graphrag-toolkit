@@ -17,7 +17,7 @@ from graphrag_toolkit.retrieval.retrievers.keyword_entity_search import KeywordE
 from graphrag_toolkit.retrieval.processors import *
 from graphrag_toolkit.retrieval.model import SearchResultCollection, SearchResult, ScoredEntity, Entity
 
-from llama_index.core.schema import QueryBundle, TextNode
+from llama_index.core.schema import QueryBundle
 from llama_index.core.async_utils import run_async_tasks
 
 logger = logging.getLogger(__name__)

@@ -8,7 +8,7 @@ from graphrag_toolkit.indexing.model import Fact
 from graphrag_toolkit.storage.graph_store import GraphStore
 from graphrag_toolkit.storage.graph_utils import search_string_from, label_from, relationship_name_from
 from graphrag_toolkit.indexing.build.graph_builder import GraphBuilder
-from graphrag_toolkit.indexing.build.constants import DEFAULT_CLASSIFICATION
+from graphrag_toolkit.indexing.constants import DEFAULT_CLASSIFICATION
 
 from llama_index.core.schema import BaseNode
 from llama_index.core.schema import NodeRelationship
