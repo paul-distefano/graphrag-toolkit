@@ -25,7 +25,7 @@ DEFAULT_EXTRACTION_PIPELINE_NUM_WORKERS = 2
 DEFAULT_EXTRACTION_PIPELINE_BATCH_SIZE = 4
 DEFAULT_BUILD_PIPELINE_NUM_WORKERS = 2
 DEFAULT_BUILD_PIPELINE_BATCH_SIZE = 25
-DEFAULT_BUILD_PIPELINE_BATCH_WRITES_ENABLED = True
+DEFAULT_BATCH_WRITES_ENABLED = True
 DEFAULT_ENABLE_CACHE = False
 
 def _is_json_string(s):
@@ -54,7 +54,7 @@ class _GraphRAGConfig:
     _extraction_pipeline_batch_size: Optional[int] = None
     _build_pipeline_num_workers: Optional[int] = None
     _build_pipeline_batch_size: Optional[int] = None
-    _build_pipeline_batch_writes_enabled: Optional[bool] = None
+    _batch_writes_enabled: Optional[bool] = None
     _enable_cache: Optional[bool] = None
 
     @property
@@ -102,15 +102,15 @@ class _GraphRAGConfig:
         self._build_pipeline_batch_size = batch_size
 
     @property
-    def build_pipeline_batch_writes_enabled(self) -> bool:
-        if self._build_pipeline_batch_writes_enabled is None:
-            self.build_pipeline_batch_writes_enabled = string_to_bool(os.environ.get('BUILD_PIPELINE_BATCH_WRITES_ENABLED'), DEFAULT_BUILD_PIPELINE_BATCH_WRITES_ENABLED)
+    def batch_writes_enabled(self) -> bool:
+        if self._batch_writes_enabled is None:
+            self.batch_writes_enabled = string_to_bool(os.environ.get('BATCH_WRITES_ENABLED'), DEFAULT_BATCH_WRITES_ENABLED)
 
-        return self._build_pipeline_batch_writes_enabled
+        return self._batch_writes_enabled
 
-    @build_pipeline_batch_writes_enabled.setter
-    def build_pipeline_batch_writes_enabled(self, batch_writes_enabled:bool) -> None:
-        self._build_pipeline_batch_writes_enabled = batch_writes_enabled
+    @batch_writes_enabled.setter
+    def batch_writes_enabled(self, batch_writes_enabled:bool) -> None:
+        self._batch_writes_enabled = batch_writes_enabled
 
     @property
     def enable_cache(self) -> bool:

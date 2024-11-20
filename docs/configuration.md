@@ -18,7 +18,7 @@ The
 | `extraction_pipeline_batch_size` | The number of input nodes to be processed in parallel by *all workers* in the extract stage | `4` | `EXTRACTION_PIPELINE_BATCH_SIZE` |
 | `build_pipeline_num_workers` | The number of parallel processes to use when running the build stage | `2` | `BUILD_PIPELINE_NUM_WORKERS` |
 | `build_pipeline_batch_size` | The number of input nodes to be processed in parallel by *each worker* in the build stage | `25` | `BUILD_PIPELINE_BATCH_SIZE` |
-| `build_pipeline_batch_writes_enabled` | Determines whether, on a per-worker basis, to write all elements (nodes and edges, or vectors) emitted by a batch of input nodes as a bulk operation, or singly to the graph and vector stores (see [Batch writes](#batch-writes)) | `True` | `BUILD_PIPELINE_BATCH_WRITES_ENABLED` |
+| `batch_writes_enabled` | Determines whether, on a per-worker basis, to write all elements (nodes and edges, or vectors) emitted by a batch of input nodes as a bulk operation, or singly to the graph and vector stores (see [Batch writes](#batch-writes)) | `True` | `BATCH_WRITES_ENABLED` |
 | `enable_cache` | Determines whether the results of LLM calls to models on Amazon Bedrock are cached to the local filesystem (see [Caching Amazon Bedrock LLM responses](#caching-amazon-bedrock-llm-responses)) | `False` | `ENABLE_CACHE` |
 
 To set a configuration parameter:
@@ -71,7 +71,7 @@ The graphrag-toolkit use microbatching to progress source data through the extra
   - In the extract stage a batch of source nodes is processed in parallel by one or more workers, with each worker performing chunking, proposition extraction and topic/statement/fact/entity extraction over its allocated source nodes. For a given batch of source nodes, the extract stage emits a batch of chunks derived from those source nodes.
   - In the build stage, a batch of chunks from the extract stage are broken down into smaller *indexable* nodes representing sources, chunks, topics, statements and facts. These indexable nodes are then processed by graph construction and vector indexing handlers.
 
-The `build_pipeline_batch_writes_enabled` configuration parameter determines whether all of the indexable nodes derived from a batch of incoming chunks are written to the graph and vector stores singly, or as a bulk operation. Bulk/batch operations tend to improve the throughput of the build stage, at the expense of some additonal latency with regard to this data becoming available to query.
+The `batch_writes_enabled` configuration parameter determines whether all of the indexable nodes derived from a batch of incoming chunks are written to the graph and vector stores singly, or as a bulk operation. Bulk/batch operations tend to improve the throughput of the build stage, at the expense of some additonal latency with regard to this data becoming available to query.
 
 #### Caching Amazon Bedrock LLM responses
 
