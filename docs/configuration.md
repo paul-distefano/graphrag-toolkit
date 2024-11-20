@@ -21,7 +21,7 @@ The `extraction_llm` and `response_llm` configuration parameters accept three di
 
   - You can pass an instance of a LlamaIndex `LLM` object. This allows you to configure the graphrag-toolkit for LLM backends other than Amazon bedrock.
   - You can pass the model id of an Amazon Bedrock model. For example: `anthropic.claude-3-haiku-20240307-v1:0`.
-  - You can pass a JSON string representing a LlamaIndex `Bedrock` instance. For example:
+  - You can pass a JSON string representation of a LlamaIndex `Bedrock` instance. For example:
   
   ```
   {
@@ -31,4 +31,20 @@ The `extraction_llm` and `response_llm` configuration parameters accept three di
     "streaming": true
   }
   ```
+  
+#### Embedding model configuration
 
+The `embed_model` configuration parameter accepts three different types of value:
+
+  - You can pass an instance of a LlamaIndex `BaseEmbedding` object. This allows you to configure the graphrag-toolkit for embedding backends other than Amazon bedrock.
+  - You can pass the model name of an Amazon Bedrock model. For example: `amazon.titan-embed-text-v1`.
+  - You can pass a JSON string representation of a LlamaIndex `Bedrock` instance. For example:
+  
+  ```
+  {
+    "model_name": "amazon.titan-embed-text-v2:0",
+    "dimensions": 512
+  }
+  ```
+  
+When configuring an embedding model, you must also set the `embed_dimensions` configuration parameter.
