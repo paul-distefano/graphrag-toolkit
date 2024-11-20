@@ -2,11 +2,13 @@
 
 ## Configuration
 
-The
+The graphrag-toolkit provides a `GraphRAGConfig` object that allows you to configure the LLMs and embedding models used by the indexing and retrieval processes, as well as the parallel and batch processing behaviours of the indexing pipelines. (The graphrag-toolkit doesn't use the LlamaINdex `Settings` object: attributes configured in `Settings` will have no impact in the graphrag-toolkit.)
+
+The graphrag-toolkit also allows you to set the logging level and apply logging filters from within your application.
 
 ### GraphRAGConfig
 
-`GraphRAGConfig` allows you to configure LLMs, embedding models, and the extract and build processes. The configuration includes the follwoing parameters:
+`GraphRAGConfig` allows you to configure LLMs, embedding models, and the extract and build processes. The configuration includes the following parameters:
 
 | Parameter  | Description | Default Value | Environment Variable
 | ------------- | ------------- | ------------- | ------------- |
@@ -80,3 +82,30 @@ The `batch_writes_enabled` configuration parameter determines whether all of the
 If you're using Amazon Bedrock, you can use the local filesystem to cache and reuse LLM responses. Set `enable_cache` to `True`. LLM responses will then be saved in clear text to a `cache` directory. Subsequent invocations of the same model with the exact same prompt will return the cached response.
 
 The `cache` directory can grow very large, particularly if you are caching extarction responses for a very large ingest. The graphrag-toolkit will not manage the size of this directory or delete old entries. If you enable the cache, ensure you clear or prune th ecache directory regularly.
+
+### Logging configuration
+
+The graphrag_toolkit's `set_logging_config` method allows you to set the [logging level](https://docs.python.org/3/library/logging.html#logging-levels), and apply filters to `DEBUG` log lines. Besides the logging level, you can supply an array of prefixes to include when outputting debug information, and an array of prefixes to exclude.
+
+The following example sets the logging level to `DEBUG`, but also applies a filter that specifies that only messages from the storage module are to be emitted:
+
+```
+from graphrag_toolkit import set_logging_config
+
+set_logging_config(
+  'DEBUG', 
+  ['graphrag_toolkit.storage']
+)
+```
+
+The following example sets the logging level to `DEBUG`, together with a filter that specifies that only messages from the storage module are to be emitted, and another filter that excludes messages from the graph store factory within the storage module:
+
+```
+from graphrag_toolkit import set_logging_config
+
+set_logging_config(
+  'DEBUG', 
+  ['graphrag_toolkit.storage'],
+  ['graphrag_toolkit.storage.graph_store_factory']
+)
+```

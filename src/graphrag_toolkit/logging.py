@@ -103,14 +103,16 @@ if logging_level:
 logging.config.dictConfig(LOGGING)
 
 def set_logging_config(logging_level:str, 
-                       debug_include_modules:Optional[List[str]]=None,
+                       debug_include_modules:Optional[List[str]]=['graphrag_toolkit'],
                        debug_exclude_modules:Optional[List[str]]=None):
     LOGGING['loggers']['']['level'] = logging_level.upper()
     
     if debug_include_modules is not None:
+            debug_include_modules = debug_include_modules if isinstance(debug_include_modules, list) else [debug_include_modules]
             LOGGING['filters']['moduleFilter']['debug']['include_modules'] = debug_include_modules
             
     if debug_exclude_modules is not None:
+            debug_exclude_modules = debug_exclude_modules if isinstance(debug_exclude_modules, list) else [debug_exclude_modules]
             LOGGING['filters']['moduleFilter']['debug']['exclude_modules'] = debug_exclude_modules
     
     logging.config.dictConfig(LOGGING)
