@@ -201,3 +201,85 @@ The graphrag-toolkit does not clean up checkpoints. If you use checkpoints, peri
 
 ### Advanced graph construction
 
+```
+import os
+
+from graphrag_toolkit.storage import GraphStoreFactory
+from graphrag_toolkit.storage import VectorStoreFactory
+from graphrag_toolkit.indexing import sink
+from graphrag_toolkit.indexing import PROPOSITIONS_KEY, DEFAULT_ENTITY_CLASSIFICATIONS
+from graphrag_toolkit.indexing.extract import GraphScopedValueStore
+from graphrag_toolkit.indexing.extract import ScopedValueProvider, DEFAULT_SCOPE
+from graphrag_toolkit.indexing.extract import ExtractionPipeline
+from graphrag_toolkit.indexing.build import Checkpoint
+from graphrag_toolkit.indexing.build import BuildPipeline
+
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.readers.web import SimpleWebPageReader
+
+checkpoint = Checkpoint('advanced-construction-example', enabled=True)
+
+# Create graph and vector stores
+graph_store = GraphStoreFactory.for_graph_store(os.environ['GRAPH_STORE'])
+vector_store = VectorStoreFactory.for_vector_store(os.environ['VECTOR_STORE'])
+
+# Create extraction pipeline components
+
+# 1. Chunking using SentenceSplitter
+splitter = SentenceSplitter(
+    chunk_size=256,
+    chunk_overlap=20
+)
+
+# 2. Proposition extraction
+proposition_extractor = LLMPropositionExtractor()
+
+# 3. Topic extraction
+entity_classification_provider = ScopedValueProvider(
+    label='EntityClassification',
+    scoped_value_store=GraphScopedValueStore(graph_store=graph_store),
+    initial_scoped_values = { DEFAULT_SCOPE: DEFAULT_ENTITY_CLASSIFICATIONS }
+)
+
+topic_extractor = TopicExtractor(
+    source_metadata_field=PROPOSITIONS_KEY, # Omit tthis if not performing proposition extraction
+    entity_classification_provider=entity_classification_provider # Entity classifications saved to graph between LLM invocations
+)
+
+# Create extraction pipeline
+extraction_pipeline = ExtractionPipeline.create(
+    components=[
+        splitter, 
+        proposition_extractor,
+        topic_extractor
+    ],
+    show_progress=True,
+    checkpoint=checkpoint
+)
+
+# Create buildpipeline
+build_pipeline = BuildPipeline.create(
+    components=[         
+        graph_store,
+        vector_store
+    ],
+    show_progress=True,
+    checkpoint=checkpoint
+)
+
+# Load source documents
+doc_urls = [
+    'https://docs.aws.amazon.com/neptune/latest/userguide/intro.html',
+    'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html',
+    'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-features.html',
+    'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-vs-neptune-database.html'
+]
+
+docs = SimpleWebPageReader(
+    html_to_text=True,
+    metadata_fn=lambda url:{'url': url}
+).load_data(doc_urls)
+
+# Run the build and exraction stages
+docs | extraction_pipeline | build_pipeline | sink 
+```
