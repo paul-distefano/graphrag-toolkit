@@ -20,7 +20,7 @@ Only the third step here is mandatory. If your source data has already been chun
 
 Extraction uses a lightly guided strategy whereby the extraction process is seeded with a list of preferred entity classifications. The LLM is instructed to use an existing classification from the list before creating new ones. Any new classifications introduced by the LLM are then carried forward to subsequent invocations. This approach reduces but doesn't eliminate unwanted variations in entity classification.
 
-The list of `DEFAULT_ENTITY_CLASSIFICATIONS` used to seed the extraction process can be found [here](https://github.com/awslabs/graphrag-toolkit/blob/main/src/graphrag_toolkit/indexing/constants.py). If these classifications are not appropriate to your worklaod you can replace them (see the [Configuring the extract and build stages](#configuring-the-extract-and-build-stages) and [Advanced graph construction](#advanced-graph-construction) sections below).
+The list of `DEFAULT_ENTITY_CLASSIFICATIONS` used to seed the extraction process can be found [here](https://github.com/awslabs/graphrag-toolkit/blob/main/src/graphrag_toolkit/indexing/extract/constants.py). If these classifications are not appropriate to your worklaod you can replace them (see the [Configuring the extract and build stages](#configuring-the-extract-and-build-stages) and [Advanced graph construction](#advanced-graph-construction) sections below).
 
 Relationship values are currently unguided (though relatively concise).
 
@@ -201,16 +201,21 @@ The graphrag-toolkit does not clean up checkpoints. If you use checkpoints, peri
 
 ### Advanced graph construction
 
+If you want more control over the extract and build stages, then instead of using a `LexicalGraphIndex`, you can use the extract and build pipelines directly: 
+
 ```
 import os
 
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
 from graphrag_toolkit.indexing import sink
-from graphrag_toolkit.indexing import PROPOSITIONS_KEY, DEFAULT_ENTITY_CLASSIFICATIONS
+from graphrag_toolkit.indexing import PROPOSITIONS_KEY
+from graphrag_toolkit.indexing.extract import LLMPropositionExtractor
+from graphrag_toolkit.indexing.extract import TopicExtractor
 from graphrag_toolkit.indexing.extract import GraphScopedValueStore
 from graphrag_toolkit.indexing.extract import ScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.indexing.extract import ExtractionPipeline
+from graphrag_toolkit.indexing.extract.constants import DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.build import Checkpoint
 from graphrag_toolkit.indexing.build import BuildPipeline
 from graphrag_toolkit.indexing.build import VectorIndexing
@@ -218,6 +223,9 @@ from graphrag_toolkit.indexing.build import GraphConstruction
 
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.readers.web import SimpleWebPageReader
+
+import nest_asyncio
+nest_asyncio.apply()
 
 checkpoint = Checkpoint('advanced-construction-example', enabled=True)
 
@@ -255,22 +263,27 @@ extraction_pipeline = ExtractionPipeline.create(
         proposition_extractor,
         topic_extractor
     ],
-    show_progress=True,
-    checkpoint=checkpoint
+    num_workers=2,
+    batch_size=4,
+    checkpoint=checkpoint,
+    show_progress=True
 )
 
 # Create build pipeline components
-graph_construction = GraphConstruction.for_graph_store(graph_store),
+graph_construction = GraphConstruction.for_graph_store(graph_store)
 vector_indexing = VectorIndexing.for_vector_store(vector_store)
         
 # Create build pipeline        
 build_pipeline = BuildPipeline.create(
-    components=[         
+    components=[
         graph_construction,
         vector_indexing
     ],
-    show_progress=True,
-    checkpoint=checkpoint
+    num_workers=2,
+    batch_size=25,
+    batch_writes_enabled=True,
+    checkpoint=checkpoint,
+    show_progress=True   
 )
 
 # Load source documents
@@ -287,5 +300,5 @@ docs = SimpleWebPageReader(
 ).load_data(doc_urls)
 
 # Run the build and exraction stages
-docs | extraction_pipeline | build_pipeline | sink 
+docs | extraction_pipeline | build_pipeline | sink  
 ```
