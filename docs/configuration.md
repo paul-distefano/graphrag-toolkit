@@ -2,18 +2,34 @@
 
 ## Configuration
 
-| Parameter  | Description | Default Value |
-| ------------- | ------------- | ------------- |
-| `extraction_llm` | LLM used to perform graph extraction (see [LLM configuration](#llm-configuration)) | `anthropic.claude-3-sonnet-20240229-v1:0` |
-| `response_llm` | LLM used to generate responses (see [LLM configuration](#llm-configuration)) | `anthropic.claude-3-sonnet-20240229-v1:0` |
-| `embed_model` | Embedding model used to generate embeddings for indexed data and queries (see [Embedding model configuration](#embedding-model-configuration)) | `cohere.embed-english-v3` |
-| `embed_dimensions` | Number of dimensions in each vector | `1024` |
-| `extraction_pipeline_num_workers` | The number of parallel processes to use when running the extract stage | `2` |
-| `extraction_pipeline_batch_size` | The number of input nodes to be processed in parallel by *all workers* in the extract stage | `4` |
-| `build_pipeline_num_workers` | The number of parallel processes to use when running the build stage | `2` |
-| `build_pipeline_batch_size` | The number of input nodes to be processed in parallel by *each worker* in the build stage | `25` |
-| `build_pipeline_batch_writes_enabled` | Determines whether, on a per-worker basis, to write all elements (nodes and edges, or vectors) emitted by a batch of input nodes as a bulk operation, or singly to the graph and vector stores (see [Batch writes](#batch-writes)) | `True` |
-| `enable_cache` | Determines whether the results of LLM calls to models on Amazon Bedrock are cached to the local filesystem (see [Caching Amazon Bedrock LLM responses](#caching-amazon-bedrock-llm-responses)) | `False` |
+The
+
+### GraphRAGConfig
+
+`GraphRAGConfig` allows you to configure LLMs, embedding models, and the extract and build processes. The configuration includes the follwoing parameters:
+
+| Parameter  | Description | Default Value | Environment Variable
+| ------------- | ------------- | ------------- | ------------- |
+| `extraction_llm` | LLM used to perform graph extraction (see [LLM configuration](#llm-configuration)) | `anthropic.claude-3-sonnet-20240229-v1:0` | `EXTRACTION_MODEL` |
+| `response_llm` | LLM used to generate responses (see [LLM configuration](#llm-configuration)) | `anthropic.claude-3-sonnet-20240229-v1:0` | `            self.response_llm = os.environ.get('RESPONSE_MODEL', DEFAULT_RESPONSE_MODEL)
+` |
+| `embed_model` | Embedding model used to generate embeddings for indexed data and queries (see [Embedding model configuration](#embedding-model-configuration)) | `EMBEDDINGS_MODEL` | `cohere.embed-english-v3` |
+| `embed_dimensions` | Number of dimensions in each vector | `1024` | `EMBEDDINGS_DIMENSIONS` |
+| `extraction_pipeline_num_workers` | The number of parallel processes to use when running the extract stage | `2` | `EXTRACTION_PIPELINE_NUM_WORKERS` |
+| `extraction_pipeline_batch_size` | The number of input nodes to be processed in parallel by *all workers* in the extract stage | `4` | `EXTRACTION_PIPELINE_BATCH_SIZE` |
+| `build_pipeline_num_workers` | The number of parallel processes to use when running the build stage | `2` | `BUILD_PIPELINE_NUM_WORKERS` |
+| `build_pipeline_batch_size` | The number of input nodes to be processed in parallel by *each worker* in the build stage | `25` | `BUILD_PIPELINE_BATCH_SIZE` |
+| `build_pipeline_batch_writes_enabled` | Determines whether, on a per-worker basis, to write all elements (nodes and edges, or vectors) emitted by a batch of input nodes as a bulk operation, or singly to the graph and vector stores (see [Batch writes](#batch-writes)) | `True` | `BUILD_PIPELINE_BATCH_WRITES_ENABLED` |
+| `enable_cache` | Determines whether the results of LLM calls to models on Amazon Bedrock are cached to the local filesystem (see [Caching Amazon Bedrock LLM responses](#caching-amazon-bedrock-llm-responses)) | `False` | `ENABLE_CACHE` |
+
+To set a configuration parameter:
+
+```
+from graphrag_toolkit import GraphRAGConfig
+
+GraphRAGConfig.response_llm = 'anthropic.claude-3-haiku-20240307-v1:0' 
+GraphRAGConfig.extraction_pipeline_num_workers = 4
+```
 
 #### LLM configuration
 
@@ -60,6 +76,6 @@ The `build_pipeline_batch_writes_enabled` configuration parameter determines whe
 
 #### Caching Amazon Bedrock LLM responses
 
-If you're using foundation models on Amazon Bedrock you can enable a local filesystem cache. Set `enable_cache` to `True`. LLM responses will then be saved in clear text to a `cache` directory. Subsequent invocations of the same model with the exact same prompt will return the cached response.
+If you're using Amazon Bedrock, you can use the local filesystem to cache and reuse LLM responses. Set `enable_cache` to `True`. LLM responses will then be saved in clear text to a `cache` directory. Subsequent invocations of the same model with the exact same prompt will return the cached response.
 
 The `cache` directory can grow very large, particularly if you are caching extarction responses for a very large ingest. The graphrag-toolkit will not manage the size of this directory or delete old entries. If you enable the cache, ensure you clear or prune th ecache directory regularly.

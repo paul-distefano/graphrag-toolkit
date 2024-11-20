@@ -34,6 +34,12 @@ def _is_json_string(s):
         return True
     except ValueError:
         return False
+    
+def string_to_bool(s, default_value:bool):
+    if not s:
+        return default_value
+    else:
+        return s.lower() in ['true']
 
 @dataclass
 class _GraphRAGConfig:
@@ -54,7 +60,7 @@ class _GraphRAGConfig:
     @property
     def extraction_pipeline_num_workers(self) -> int:
         if self._extraction_pipeline_num_workers is None:
-            self.extraction_pipeline_num_workers = DEFAULT_EXTRACTION_PIPELINE_NUM_WORKERS
+            self.extraction_pipeline_num_workers = int(os.environ.get('EXTRACTION_PIPELINE_NUM_WORKERS', DEFAULT_EXTRACTION_PIPELINE_NUM_WORKERS)) 
 
         return self._extraction_pipeline_num_workers
 
@@ -65,7 +71,7 @@ class _GraphRAGConfig:
     @property
     def extraction_pipeline_batch_size(self) -> int:
         if self._extraction_pipeline_batch_size is None:
-            self.extraction_pipeline_batch_size = DEFAULT_EXTRACTION_PIPELINE_BATCH_SIZE
+            self.extraction_pipeline_batch_size = int(os.environ.get('EXTRACTION_PIPELINE_BATCH_SIZE', DEFAULT_EXTRACTION_PIPELINE_BATCH_SIZE))  
 
         return self._extraction_pipeline_batch_size
 
@@ -76,7 +82,7 @@ class _GraphRAGConfig:
     @property
     def build_pipeline_num_workers(self) -> int:
         if self._build_pipeline_num_workers is None:
-            self.build_pipeline_num_workers = DEFAULT_BUILD_PIPELINE_NUM_WORKERS
+            self.build_pipeline_num_workers = int(os.environ.get('BUILD_PIPELINE_NUM_WORKERS', DEFAULT_BUILD_PIPELINE_NUM_WORKERS))
 
         return self._build_pipeline_num_workers
 
@@ -87,7 +93,7 @@ class _GraphRAGConfig:
     @property
     def build_pipeline_batch_size(self) -> int:
         if self._build_pipeline_batch_size is None:
-            self.build_pipeline_batch_size = DEFAULT_BUILD_PIPELINE_BATCH_SIZE
+            self.build_pipeline_batch_size = int(os.environ.get('BUILD_PIPELINE_BATCH_SIZE', DEFAULT_BUILD_PIPELINE_BATCH_SIZE))  
 
         return self._build_pipeline_batch_size
 
@@ -98,7 +104,7 @@ class _GraphRAGConfig:
     @property
     def build_pipeline_batch_writes_enabled(self) -> bool:
         if self._build_pipeline_batch_writes_enabled is None:
-            self.build_pipeline_batch_writes_enabled = DEFAULT_BUILD_PIPELINE_BATCH_WRITES_ENABLED
+            self.build_pipeline_batch_writes_enabled = string_to_bool(os.environ.get('BUILD_PIPELINE_BATCH_WRITES_ENABLED'), DEFAULT_BUILD_PIPELINE_BATCH_WRITES_ENABLED)
 
         return self._build_pipeline_batch_writes_enabled
 
@@ -109,7 +115,7 @@ class _GraphRAGConfig:
     @property
     def enable_cache(self) -> bool:
         if self._enable_cache is None:
-            self.enable_cache = DEFAULT_ENABLE_CACHE
+            self.enable_cache = string_to_bool(os.environ.get('ENABLE_CACHE'), DEFAULT_ENABLE_CACHE)  
         return self._enable_cache
 
     @enable_cache.setter
