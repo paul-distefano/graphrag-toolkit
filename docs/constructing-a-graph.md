@@ -177,9 +177,9 @@ The `ExtractionConfig` object has the following parameters.
 
 #### Checkpoints
 
-The graphrag-toolkit uses backoff-and-retry strategies to retry upsert operations and calls to LLMs and embedding models that don't succeed. However, failures can still happen. If an extract or build stage fails partway through, you typically don't want to reprocess chunks that have successfully made their way through the entire graph construction pipeline.
+The graphrag-toolkit retries upsert operations and calls to LLMs and embedding models that don't succeed. However, failures can still happen. If an extract or build stage fails partway through, you typically don't want to reprocess chunks that have successfully made their way through the entire graph construction pipeline.
 
-To avoid having to reprocess chunks that have been successfully processed in a previous run, provide a `Checkpoint` instance to the `extract_and_build()`, `extract()` and/or `build()` methods. A checkpoint adds a checkpoint *filter* to steps in the extract and build stages, and a checkpoint *writer* to the end of the build stage. When a chunk is emitted from the build stage, after having been successfully handled by both the graph construction *and* vector indexing handlers, its id will be written to a save point in the graph index `extraction_dir`. If a chunk with the same id is subsequently introduced into either the extract or build stage, it will be filtered out by a checkpoint filter.
+To avoid having to reprocess chunks that have been successfully processed in a previous run, provide a `Checkpoint` instance to the `extract_and_build()`, `extract()` and/or `build()` methods. A checkpoint adds a checkpoint *filter* to steps in the extract and build stages, and a checkpoint *writer* to the end of the build stage. When a chunk is emitted from the build stage, after having been successfully handled by both the graph construction *and* vector indexing handlers, its id will be written to a save point in the graph index `extraction_dir`. If a chunk with the same id is subsequently introduced into either the extract or build stage, it will be filtered out by the checkpoint filter.
 
 The following example passes a checkpoint to the `extract_and_build()` method:
 
@@ -193,7 +193,7 @@ checkpoint = Checkpoint('my-checkpoint')
 graph_index.extract_and_build(docs, checkpoint=checkpoint)
 ```
 
-When you create a `Checkpoint`, you must give it a name. A checkpoint filter will only filter out chunks that were checkpointed by a checkpoint writer with the same name. If you use checkpoints when running separate extract and build processes, as described above, ensure the checkpoints have different names. If you use the same name across separate extract and build processes, the build stage will ignore all the chunks created by the extract stage.
+When you create a `Checkpoint`, you must give it a name. A checkpoint filter will only filter out chunks that were checkpointed by a checkpoint writer with the same name. If you use checkpoints when [running separate extract and build processes](#run-the-extract-and-build-stages-separately), ensure the checkpoints have different names. If you use the same name across separate extract and build processes, the build stage will ignore all the chunks created by the extract stage.
 
 Checkpoints do not provide any transactional guarantees. If a chunk is successfully processed by the graph construction handlers, but then fails in a vector indexing handler, it will not make it to the end of the build pipeline, and so will not be checkpointed. If the build stage is restarted, the chunk will be reprocessed by both the graph construction and vector indexing handlers. For stores that support upserts (e.g. Amazon Neptune Database and Amazon Neptune Analytics) this is not an issue.
 
