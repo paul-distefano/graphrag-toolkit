@@ -20,7 +20,7 @@ Only the third step here is mandatory. If your source data has already been chun
 
 Extraction uses a lightly guided strategy whereby the extraction process is seeded with a list of preferred entity classifications. The LLM is instructed to use an existing classification from the list before creating new ones. Any new classifications introduced by the LLM are then carried forward to subsequent invocations. This approach reduces but doesn't eliminate unwanted variations in entity classification.
 
-The list of `DEFAULT_ENTITY_CLASSIFICATIONS` used to seed the extraction process can be found [here](https://github.com/awslabs/graphrag-toolkit/blob/main/src/graphrag_toolkit/indexing/constants.py). If these classifications are not appropriate to your worklaod you can replace them (see the [Configuring the extract and build stages](configuring-the-extract-and-build-stages) and [Advanced graph construction](#advanced-graph-construction) sections below).
+The list of `DEFAULT_ENTITY_CLASSIFICATIONS` used to seed the extraction process can be found [here](https://github.com/awslabs/graphrag-toolkit/blob/main/src/graphrag_toolkit/indexing/constants.py). If these classifications are not appropriate to your worklaod you can replace them (see the [Configuring the extract and build stages](#configuring-the-extract-and-build-stages) and [Advanced graph construction](#advanced-graph-construction) sections below).
 
 Relationship values are currently unguided (though relatively concise).
 
@@ -145,7 +145,7 @@ graph_index.build(file_based_chunks)
 
 #### Configuring the extract and build stages
 
-You can configure the number of workers and batch sizes for extarct and build stages of the `LexicalGraphIndex` using the `GraphRAGConfig` object. See [Configuration]('./configuration.md') for more details on using the configuration object, and the [Architecture]('./architecture.md') section on the implications of varying the number of workers and batch sizes in each of the stages. 
+You can configure the number of workers and batch sizes for extarct and build stages of the `LexicalGraphIndex` using the `GraphRAGConfig` object. See [Configuration](./configuration.md) for more details on using the configuration object, and the [Architecture](./architecture.md) section on the implications of varying the number of workers and batch sizes in each of the stages. 
 
 Besides configuring the workers and batch sizes, you can also configure the extraction process with regard to chunking, proposition extraction and entity classification by passing an instance of `ExtractionConfig` to the `LexicalGraphIndex` constructor:
 
