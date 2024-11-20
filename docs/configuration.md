@@ -11,9 +11,8 @@ The
 | Parameter  | Description | Default Value | Environment Variable
 | ------------- | ------------- | ------------- | ------------- |
 | `extraction_llm` | LLM used to perform graph extraction (see [LLM configuration](#llm-configuration)) | `anthropic.claude-3-sonnet-20240229-v1:0` | `EXTRACTION_MODEL` |
-| `response_llm` | LLM used to generate responses (see [LLM configuration](#llm-configuration)) | `anthropic.claude-3-sonnet-20240229-v1:0` | `            self.response_llm = os.environ.get('RESPONSE_MODEL', DEFAULT_RESPONSE_MODEL)
-` |
-| `embed_model` | Embedding model used to generate embeddings for indexed data and queries (see [Embedding model configuration](#embedding-model-configuration)) | `EMBEDDINGS_MODEL` | `cohere.embed-english-v3` |
+| `response_llm` | LLM used to generate responses (see [LLM configuration](#llm-configuration)) | `anthropic.claude-3-sonnet-20240229-v1:0` | `RESPONSE_MODEL` |
+| `embed_model` | Embedding model used to generate embeddings for indexed data and queries (see [Embedding model configuration](#embedding-model-configuration)) | `cohere.embed-english-v3` | `EMBEDDINGS_MODEL` |
 | `embed_dimensions` | Number of dimensions in each vector | `1024` | `EMBEDDINGS_DIMENSIONS` |
 | `extraction_pipeline_num_workers` | The number of parallel processes to use when running the extract stage | `2` | `EXTRACTION_PIPELINE_NUM_WORKERS` |
 | `extraction_pipeline_batch_size` | The number of input nodes to be processed in parallel by *all workers* in the extract stage | `4` | `EXTRACTION_PIPELINE_BATCH_SIZE` |
