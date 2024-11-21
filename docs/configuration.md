@@ -10,7 +10,7 @@ The graphrag-toolkit also allows you to set the logging level and apply logging 
 
 `GraphRAGConfig` allows you to configure LLMs, embedding models, and the extract and build processes. The configuration includes the following parameters:
 
-| Parameter  | Description | Default Value | Environment Variable
+| Parameter  | Description | Default Value | Environment Variable |
 | ------------- | ------------- | ------------- | ------------- |
 | `extraction_llm` | LLM used to perform graph extraction (see [LLM configuration](#llm-configuration)) | `anthropic.claude-3-sonnet-20240229-v1:0` | `EXTRACTION_MODEL` |
 | `response_llm` | LLM used to generate responses (see [LLM configuration](#llm-configuration)) | `anthropic.claude-3-sonnet-20240229-v1:0` | `RESPONSE_MODEL` |
