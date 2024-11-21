@@ -8,6 +8,40 @@ The graphrag-toolkit contains two different retrievers: a `TraversalBasedRetriev
 
 ### TraversalBasedRetriever
 
+The following example uses a `TraversalBasedRetriever` with all its default settings to query the graph:
+```
+from graphrag_toolkit import LexicalGraphQueryEngine
+from graphrag_toolkit.storage import GraphStoreFactory
+from graphrag_toolkit.storage import VectorStoreFactory
+
+import nest_asyncio
+nest_asyncio.apply()
+
+graph_store = GraphStoreFactory.for_graph_store(
+    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
+)
+
+vector_store = VectorStoreFactory.for_vector_store(
+    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
+)
+
+query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
+    graph_store, 
+    vector_store
+)
+
+response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
+
+print(response.response)
+```
+
+By default, the `TraversalBasedRetriever` uses a composite search strategy using two subretrievers:
+
+  - `EntityBasedSearch` – This retriever extracts keywords from the query and then looks up entities in the graph based on these keywords. From the entities, the retriever traverses facts, statements and topics.
+  - `ChunkBasedSearch` – This retriever finds chunks using vector similarity search. From the chunks, the retriever traverses topics, statements, and facts.
+
+#### TraversalBasedRetriever results
+
 The `TraversalBasedRetriever` uses openCypher queries to explore the graph from entity- and chunk-based start nodes. The retriever returns one or more search results, each of which comprises a source, topic, a set of statements, and a score:
 
 ```
@@ -51,38 +85,6 @@ The `TraversalBasedRetriever` uses openCypher queries to explore the graph from 
   "score": 0.23
 }
 ```
-
-The following example uses a `TraversalBasedRetriever` with all its default settings to query the graph:
-```
-from graphrag_toolkit import LexicalGraphQueryEngine
-from graphrag_toolkit.storage import GraphStoreFactory
-from graphrag_toolkit.storage import VectorStoreFactory
-
-import nest_asyncio
-nest_asyncio.apply()
-
-graph_store = GraphStoreFactory.for_graph_store(
-    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
-)
-
-vector_store = VectorStoreFactory.for_vector_store(
-    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
-)
-
-query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
-    graph_store, 
-    vector_store
-)
-
-response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
-
-print(response.response)
-```
-
-By default, the `TraversalBasedRetriever` uses a composite search strategy using two subretrievers:
-
-  - `EntityBasedSearch` – This retriever extracts keywords from the query and then looks up entities in the graph based on these keywords. From the entities, the retriever traverses facts, statements and topics.
-  - `ChunkBasedSearch` – This retriever finds chunks using vector similarity search. From the chunks, the retriever traverses topics, statements, and facts.
 
 #### Configuring the TraversalBasedRetriever
 
