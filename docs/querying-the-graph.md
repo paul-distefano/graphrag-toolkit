@@ -10,52 +10,55 @@ The graphrag-toolkit contains two different retrievers: a `TraversalBasedRetriev
 
 ```
 {
-  "source": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-vs-neptune-database.html",
-  "topics": [
-    {
-      "topic": "Neptune Analytics",
-      "statements": [
-        "Processing thousands of analytic queries per second using popular graph analytics algorithms becomes possible with Neptune Analytics",
-        "Neptune Analytics uses popular graph analytic algorithms",
-        "You can use Neptune Analytics to analyze and query graphs in data science workflows that build targeted content recommendations",
-        "Neptune Analytics uses low-latency analytic queries",
-        "Neptune Analytics makes it easy to apply powerful algorithms to the data in your Neptune Database"
-      ]
-    }
-  ],
-  "score": 0.61
-}
-{
-  "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
-  "topics": [
-    {
-      "topic": "Neptune and Neptune Analytics",
-      "statements": [
-        "Neptune Analytics uses popular graph analytic algorithms.",
-        "Neptune Analytics uses low-latency analytic queries.",
-        "Neptune Analytics complements Neptune database.",
-        "Neptune Analytics is an analytics database engine.",
-        "Neptune Analytics can find trends in graph data."
-      ]
-    }
-  ],
-  "score": 0.56
-}
-{
   "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
   "topics": [
     {
       "topic": "Amazon Neptune",
       "statements": [
-        "Amazon Neptune uses popular graph analytic algorithms",
-        "Amazon Neptune uses low-latency analytic queries",
-        "Neptune powers recommendation engines use case",
-        "Before designing a database, consult the GitHub repository \"AWS Reference Architectures for Using Graph Databases\" to inform choices about graph data models and query languages, and browse examples of reference deployment architectures",
-        "The Neptune database is highly available"
+        "You can access Resource Description Framework model in Amazon Neptune using SPARQL query language",
+        "Amazon Neptune provides high performance for Resource Description Framework (RDF) model",
+        "You can access Property Graph model in Amazon Neptune using openCypher query language",
+        "Amazon Neptune provides high performance for Property Graph (PG) model",
+        "You can access Property Graph model in Amazon Neptune using Gremlin query language"
       ]
     }
   ],
-  "score": 0.48
+  "score": 0.71
+}
+{
+  "source": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-features.html",
+  "topics": [
+    {
+      "topic": "Neptune Analytics and Neptune Database",
+      "statements": [
+        "Neptune Analytics and Neptune Database are related concepts",
+        "Neptune Analytics allows loading graph data from Amazon S3 or a Neptune Database endpoint",
+        "Neptune Analytics allows running graph analytics queries using pre-built or custom graph queries",
+        "Javascript must be enabled to use the Amazon Web Services Documentation",
+        "The document refers to conventions described at /general/latest/gr/docconventions.html"
+      ]
+    }
+  ],
+  "score": 0.44
+}
+
+...
+
+{
+  "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
+  "topics": [
+    {
+      "topic": "Neptune Failover and Replication",
+      "statements": [
+        "Amazon Neptune supports Gremlin for property graphs",
+        "Amazon Neptune provides high performance for property graphs",
+        "Amazon Neptune supports open graph APIs for property graphs",
+        "Amazon Neptune supports openCypher for property graphs",
+        "Amazon Neptune supports open graph APIs for RDF graphs"
+      ]
+    }
+  ],
+  "score": 0.24
 }
 ```
 
