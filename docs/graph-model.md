@@ -6,9 +6,9 @@ The graphrag-toolkit uses a form of hierarchical [lexical graph](https://graphr.
 
 The graph has three tiers:
 
-  - **Lineage** Sources, chunks, and the relations between them.
-  - **Summarisation** Hierarchical summarisations and lexical units at different levels of granularity.
-  - **Entity-Relationship** Individual entities and relations extracted from the underlying sources.
+  - [**Lineage**](#lineage-tier) Sources, chunks, and the relations between them.
+  - [**Summarisation**](#summarisation-tier) Hierarchical summarisations and lexical units at different levels of granularity.
+  - [**Entity-Relationship**](#entity-relationship-tier) Individual entities and relations extracted from the underlying sources.
   
 #### Units of context
 
