@@ -52,7 +52,7 @@ The `TraversalBasedRetriever` uses openCypher queries to explore the graph from 
 }
 ```
 
-The following example uses a `TraversalBasedRetriever` with all its default setting to query the graph:
+The following example uses a `TraversalBasedRetriever` with all its default settings to query the graph:
 ```
 from graphrag_toolkit import LexicalGraphQueryEngine
 from graphrag_toolkit.storage import GraphStoreFactory

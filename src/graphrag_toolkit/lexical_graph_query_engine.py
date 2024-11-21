@@ -14,6 +14,7 @@ from graphrag_toolkit.retrieval.prompts import ANSWER_QUESTION_SYSTEM_PROMPT, AN
 from graphrag_toolkit.retrieval.post_processors.enrich_source_details import EnrichSourceDetails, SourceInfoAccessorType
 from graphrag_toolkit.retrieval.post_processors.bedrock_context_format import BedrockContextFormat
 from graphrag_toolkit.retrieval.retrievers import TraversalBasedRetriever, VectorGuidedRetriever
+from graphrag_toolkit.retrieval.retrievers.traversal_based_retriever import DEFAULT_TRAVERSAL_BASED_RETRIEVERS
 from graphrag_toolkit.retrieval.retrievers import StatementCosineSimilaritySearch, KeywordRankingSearch, SemanticBeamGraphSearch
 from graphrag_toolkit.storage import GraphStoreFactory, GraphStoreType
 from graphrag_toolkit.storage import VectorStoreFactory, VectorStoreType
@@ -44,15 +45,25 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
 
     @staticmethod
     def for_traversal_based_search(graph_store:GraphStoreType, vector_store:VectorStoreType, post_processors:Optional[PostProcessorsType]=None, **kwargs):
+        
+        retriever = TraversalBasedRetriever(
+            graph_store, 
+            vector_store, 
+            retrievers = DEFAULT_TRAVERSAL_BASED_RETRIEVERS,
+            **kwargs
+        )
+        
         return LexicalGraphQueryEngine(
             graph_store, 
             vector_store,
+            retriever=retriever,
             post_processors=post_processors,
             **kwargs
         )
     
     @staticmethod
     def for_vector_guided_search(graph_store:GraphStoreType, vector_store:VectorStoreType, post_processors:Optional[PostProcessorsType]=None, **kwargs):
+        
         retriever = VectorGuidedRetriever(
             vector_store=vector_store,
             graph_store=graph_store,
@@ -76,6 +87,7 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
             ],
             share_results=True
         ) 
+        
         return LexicalGraphQueryEngine(
             graph_store, 
             vector_store,
@@ -209,22 +221,6 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
                 'context': context,
                 'num_source_nodes': len(results)
             }
-
-            # Add retrieval statistics
-            # statement_ids = list()
-            # chunk_ids = set()
-            # source_ids = set()
-                
-            # for node in results:
-            #     statement_ids.append(node.node.metadata['statement']['statementId'])
-            #     chunk_ids.add(node.node.metadata['chunk']['chunkId'])
-            #     source_ids.add(node.node.metadata['source']['sourceId'])
-                
-            # metadata.update({
-            #     'num_statements': len(statement_ids),
-            #     'num_chunks': len(chunk_ids),
-            #     'num_sources': len(source_ids)
-            # })
 
             return Response(
                 response=answer,

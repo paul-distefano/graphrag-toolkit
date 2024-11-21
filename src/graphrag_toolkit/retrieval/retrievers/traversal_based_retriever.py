@@ -39,7 +39,7 @@ class TraversalBasedRetriever(TraversalBasedBaseRetriever):
     def __init__(self, 
                  graph_store:GraphStore, 
                  vector_store:VectorStore,
-                 traversal_based_retrievers:Optional[List[WeightedTraversalBasedRetrieverType]]=None,
+                 sub_retrievers:Optional[List[WeightedTraversalBasedRetrieverType]]=None,
                  query_decomposition:Optional[QueryDecomposition]=None,
                  **kwargs): 
 
@@ -50,7 +50,7 @@ class TraversalBasedRetriever(TraversalBasedBaseRetriever):
         )
 
         self.query_decomposition = query_decomposition or QueryDecomposition(max_subqueries=self.args.max_subqueries)
-        self.weighted_retrievers:List[WeightedTraversalBasedRetrieverType] = traversal_based_retrievers or DEFAULT_TRAVERSAL_BASED_RETRIEVERS
+        self.weighted_retrievers:List[WeightedTraversalBasedRetrieverType] = sub_retrievers or DEFAULT_TRAVERSAL_BASED_RETRIEVERS
 
     def get_start_node_ids(self, query_bundle: QueryBundle) -> List[str]:
         return []
