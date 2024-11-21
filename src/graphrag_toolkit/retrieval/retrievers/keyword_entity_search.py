@@ -202,13 +202,13 @@ class KeywordEntitySearch(BaseRetriever):
         return scored_entities
 
         
-    async def _extract_keywords(self, s:str, max_keywords:int, prompt_template:str):
+    async def _extract_keywords(self, s:str, num_keywords:int, prompt_template:str):
 
         def blocking_llm_call():
             return self.llm.predict(
                 PromptTemplate(template=prompt_template),
                 text=s,
-                max_keywords=max_keywords
+                max_keywords=num_keywords
             )
         
         coro = asyncio.to_thread(blocking_llm_call)
@@ -219,13 +219,13 @@ class KeywordEntitySearch(BaseRetriever):
 
         return keywords
 
-    async def _get_simple_keywords(self, query, max_keywords):
-        simple_keywords = await self._extract_keywords(query, max_keywords, self.simple_extract_keywords_template)
+    async def _get_simple_keywords(self, query, num_keywords):
+        simple_keywords = await self._extract_keywords(query, num_keywords, self.simple_extract_keywords_template)
         logger.debug(f'Simple keywords: {simple_keywords}')
         return simple_keywords
     
-    async def _get_enriched_keywords(self, query, max_keywords):
-        enriched_keywords = await self._extract_keywords(query, max_keywords, self.extended_extract_keywords_template)
+    async def _get_enriched_keywords(self, query, num_keywords):
+        enriched_keywords = await self._extract_keywords(query, num_keywords, self.extended_extract_keywords_template)
         logger.debug(f'Enriched keywords: {enriched_keywords}')
         return enriched_keywords
 
@@ -237,9 +237,11 @@ class KeywordEntitySearch(BaseRetriever):
         
         keywords = [] 
 
+        num_keywords = max(int(max_keywords/2), 1)
+
         tasks = [
-            self._get_simple_keywords(query, max_keywords),
-            self._get_enriched_keywords(query, max_keywords),
+            self._get_simple_keywords(query, num_keywords),
+            self._get_enriched_keywords(query, num_keywords),
         ]
 
         task_results = run_async_tasks(tasks)
