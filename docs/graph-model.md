@@ -10,6 +10,8 @@ The graph has three tiers:
   - **Summarisation** Hierarchical summarisations and lexical units at different levels of granularity.
   - **Entity-Relationship** Individual entities and relations extracted from the underlying sources.
   
+#### Units of context
+
 When using a lexical graph in a RAG application, the question arises: what size lexical unit should form the basis of the context?
 
 For many RAG applications, the primary unit of context is the *chunk*: that is, the context window is formed of one or more chunks retrieved from the corpus. Different chunking startegies produce different sized chunks: there's no one-size-fits-all definition of a chunk. For the purpose of this documentation, however, we take a chunk to be something larger than an individual sentence, smaller than an entire document.
