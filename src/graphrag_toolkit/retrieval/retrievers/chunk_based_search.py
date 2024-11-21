@@ -34,10 +34,9 @@ class ChunkBasedSearch(TraversalBasedBaseRetriever):
 
     def _get_diverse_chunks(self, query_bundle: QueryBundle):
         
-        query = query_bundle.query_str
         num_chunks = self.args.vss_top_k * self.args.vss_diversity_factor
         
-        chunks = self.vector_store.get_index('chunk').top_k(query, top_k=num_chunks)
+        chunks = self.vector_store.get_index('chunk').top_k(query_bundle, top_k=num_chunks)
         
         source_map = {}
         

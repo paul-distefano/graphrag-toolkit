@@ -196,7 +196,7 @@ class RerankBeamSearchRetriever(BaseRetriever):
             else:
                 # Fallback to vector similarity if no initial nodes
                 results = self.vector_store.get_index('statement').top_k(
-                    query_bundle.query_str,
+                    query_bundle,
                     top_k=self.beam_width * 2
                 )
                 initial_statement_ids = {

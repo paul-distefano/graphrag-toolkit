@@ -12,8 +12,10 @@ from graphrag_toolkit.storage.constants import EMBEDDING_INDEXES
 
 logger = logging.getLogger(__name__)
 
-def to_embedded_query(query:str, embed_model:EmbedType) -> QueryBundle:
-    query_bundle = QueryBundle(query_str=query)
+def to_embedded_query(query_bundle:QueryBundle, embed_model:EmbedType) -> QueryBundle:
+    if query_bundle.embedding:
+        return query_bundle
+    
     query_bundle.embedding = (
         embed_model.get_agg_embedding_from_queries(
             query_bundle.embedding_strs
@@ -35,7 +37,7 @@ class VectorIndex(BaseModel):
         raise NotImplementedError
     
     @abc.abstractmethod
-    def top_k(self, query:str, top_k:int=5) -> Sequence[Dict[str, Any]]:
+    def top_k(self, query_bundle:QueryBundle, top_k:int=5) -> Sequence[Dict[str, Any]]:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -47,8 +49,8 @@ class DummyVectorIndex(VectorIndex):
     def add_embeddings(self, nodes):
         logger.debug(f'nodes: {nodes}')
     
-    def top_k(self, query:str, top_k:int=5) -> Sequence[Any]:
-        logger.debug(f'query: {query}, top_k: {top_k}')
+    def top_k(self, query_bundle:QueryBundle, top_k:int=5) -> Sequence[Any]:
+        logger.debug(f'query: {query_bundle.query_str}, top_k: {top_k}')
         return []
 
     def get_embeddings(self, ids:List[str]=[]) -> Sequence[Any]:

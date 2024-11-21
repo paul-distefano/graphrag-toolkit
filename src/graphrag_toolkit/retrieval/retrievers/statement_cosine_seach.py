@@ -34,7 +34,7 @@ class StatementCosineSimilaritySearch(BaseRetriever):
         try:
             # 1. Get initial candidates from vector store via L2 Norm
             statement_results = self.vector_store.get_index('statement').top_k(
-                query_bundle.query_str, 
+                query_bundle, 
                 top_k=500
             )
             

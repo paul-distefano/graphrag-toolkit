@@ -20,7 +20,7 @@ from llama_index.core.callbacks.token_counting import TokenCountingEvent
 
 logger = logging.getLogger(__name__)
 
-_fm_observability_queue = Queue()
+_fm_observability_queue = None
 
 class FMObservabilityQueuePoller(threading.Thread):
 
@@ -195,6 +195,9 @@ class StatPrintingSubscriber(FMObservabilitySubscriber):
 class FMObservabilityPublisher():
 
     def __init__(self, subscribers: List[FMObservabilitySubscriber]=[], interval_seconds=15.0):
+
+        global _fm_observability_queue
+        _fm_observability_queue = Queue()
 
         Settings.callback_manager.add_handler(BedrockEnabledTokenCountingHandler())
         Settings.callback_manager.add_handler(FMObservabilityHandler())

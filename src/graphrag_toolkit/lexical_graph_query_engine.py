@@ -17,6 +17,7 @@ from graphrag_toolkit.retrieval.retrievers import TraversalBasedRetriever, Vecto
 from graphrag_toolkit.retrieval.retrievers import StatementCosineSimilaritySearch, KeywordRankingSearch, SemanticBeamGraphSearch
 from graphrag_toolkit.storage import GraphStoreFactory, GraphStoreType
 from graphrag_toolkit.storage import VectorStoreFactory, VectorStoreType
+from graphrag_toolkit.storage.vector_index import to_embedded_query
 
 from llama_index.core import ChatPromptTemplate
 from llama_index.core.llms import ChatMessage, MessageRole
@@ -175,10 +176,8 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
         
             start = time.time()
 
-            if query_bundle.embedding is None:
-                embed_model = GraphRAGConfig.embed_model
-                query_bundle.embedding = embed_model.get_text_embedding(query_bundle.query_str)
-
+            query_bundle = to_embedded_query(query_bundle, GraphRAGConfig.embed_model)
+                
             results = self.retriever.retrieve(query_bundle)
 
             end_retrieve = time.time()

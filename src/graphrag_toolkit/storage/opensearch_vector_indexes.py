@@ -240,9 +240,9 @@ class OpenSearchIndex(VectorIndex):
         
         return nodes
     
-    def top_k(self, query:str, top_k:int=5):
+    def top_k(self, query_bundle:QueryBundle, top_k:int=5):
 
-        query_bundle:QueryBundle = to_embedded_query(query, self.embed_model)
+        query_bundle = to_embedded_query(query_bundle, self.embed_model)
         
         results:VectorStoreQueryResult = asyncio_run(
             self.client.aquery(
