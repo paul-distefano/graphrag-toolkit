@@ -43,6 +43,8 @@ class SearchResult(BaseModel):
 
     source:SourceType
     topics:List[Topic]=[]
+    topic:Optional[str]=None
+    statements:List[StatementType]=[]
     score:Optional[float]=None
 
 class Entity(BaseModel):

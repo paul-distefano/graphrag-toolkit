@@ -11,6 +11,7 @@ from .prune_results import PruneResults
 from .prune_statements import PruneStatements
 from .rerank_statements import RerankStatements
 from .rescore_results import RescoreResults
+from .simplify_single_topic_results import SimplifySingleTopicResults
 from .sort_results import SortResults
 from .statements_to_strings import StatementsToStrings
 from .truncate_results import TruncateResults

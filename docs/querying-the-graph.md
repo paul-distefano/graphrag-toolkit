@@ -8,36 +8,30 @@ The graphrag-toolkit contains two different retrievers: a `TraversalBasedRetriev
 
 ### TraversalBasedRetriever
 
+The `TraversalBasedRetriever` uses openCypher queries to explore the graph from entity- and chunk-based start nodes. The retriever returns one or more search results, each of which comprises a source, topic, a set of statements, and a score:
+
 ```
 {
   "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
-  "topics": [
-    {
-      "topic": "Amazon Neptune",
-      "statements": [
-        "You can access Resource Description Framework model in Amazon Neptune using SPARQL query language",
-        "Amazon Neptune provides high performance for Resource Description Framework (RDF) model",
-        "You can access Property Graph model in Amazon Neptune using openCypher query language",
-        "Amazon Neptune provides high performance for Property Graph (PG) model",
-        "You can access Property Graph model in Amazon Neptune using Gremlin query language"
-      ]
-    }
+  "topic": "Amazon Neptune",
+  "statements": [
+    "Amazon Neptune provides high performance for Resource Description Framework (RDF) model",
+    "You can access Resource Description Framework model in Amazon Neptune using SPARQL query language",
+    "You can access Property Graph model in Amazon Neptune using openCypher query language",
+    "Amazon Neptune provides high performance for Property Graph (PG) model",
+    "You can access Property Graph model in Amazon Neptune using Gremlin query language"
   ],
-  "score": 0.71
+  "score": 0.7
 }
 {
   "source": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-features.html",
-  "topics": [
-    {
-      "topic": "Neptune Analytics and Neptune Database",
-      "statements": [
-        "Neptune Analytics and Neptune Database are related concepts",
-        "Neptune Analytics allows loading graph data from Amazon S3 or a Neptune Database endpoint",
-        "Neptune Analytics allows running graph analytics queries using pre-built or custom graph queries",
-        "Javascript must be enabled to use the Amazon Web Services Documentation",
-        "The document refers to conventions described at /general/latest/gr/docconventions.html"
-      ]
-    }
+  "topic": "Neptune Analytics and Neptune Database",
+  "statements": [
+    "Neptune Analytics and Neptune Database are related concepts",
+    "Neptune Analytics allows loading graph data from Amazon S3 or a Neptune Database endpoint",
+    "Neptune Analytics allows running graph analytics queries using pre-built or custom graph queries",
+    "Javascript must be enabled to use the Amazon Web Services Documentation",
+    "The document refers to conventions described at /general/latest/gr/docconventions.html"
   ],
   "score": 0.44
 }
@@ -46,21 +40,51 @@ The graphrag-toolkit contains two different retrievers: a `TraversalBasedRetriev
 
 {
   "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
-  "topics": [
-    {
-      "topic": "Neptune Failover and Replication",
-      "statements": [
-        "Amazon Neptune supports Gremlin for property graphs",
-        "Amazon Neptune provides high performance for property graphs",
-        "Amazon Neptune supports open graph APIs for property graphs",
-        "Amazon Neptune supports openCypher for property graphs",
-        "Amazon Neptune supports open graph APIs for RDF graphs"
-      ]
-    }
+  "topic": "Neptune Failover and Replication",
+  "statements": [
+    "Amazon Neptune supports Gremlin for property graphs",
+    "Amazon Neptune provides high performance for property graphs",
+    "Amazon Neptune supports open graph APIs for property graphs",
+    "Amazon Neptune supports openCypher for property graphs",
+    "Amazon Neptune provides high performance for RDF graphs"
   ],
-  "score": 0.24
+  "score": 0.23
 }
 ```
+
+The following example uses a `TraversalBasedRetriever` with all its default setting to query the graph:
+```
+from graphrag_toolkit import LexicalGraphQueryEngine
+from graphrag_toolkit.storage import GraphStoreFactory
+from graphrag_toolkit.storage import VectorStoreFactory
+
+import nest_asyncio
+nest_asyncio.apply()
+
+graph_store = GraphStoreFactory.for_graph_store(
+    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
+)
+
+vector_store = VectorStoreFactory.for_vector_store(
+    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
+)
+
+query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
+    graph_store, 
+    vector_store
+)
+
+response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
+
+print(response.response)
+```
+
+By default, the `TraversalBasedRetriever` uses a composite search strategy using two subretrievers:
+
+  - `EntityBasedSearch` – This retriever extracts keywords from the query and then looks up entities in the graph based on these keywords. From the entities, the retriever traverses facts, statements and topics.
+  - `ChunkBasedSearch` – This retriever finds chunks using vector similarity search. From the chunks, the retriever traverses topics, statements, and facts.
+
+#### Configuring the TraversalBasedRetriever
 
 | Parameter  | Description | Default Value |
 | ------------- | ------------- | ------------- | 

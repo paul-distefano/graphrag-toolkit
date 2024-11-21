@@ -26,7 +26,8 @@ DEFAULT_PROCESSORS = [
     TruncateResults,
     TruncateStatements,
     ClearChunks,
-    StatementsToStrings
+    StatementsToStrings,
+    SimplifySingleTopicResults
 ]
 
 class TraversalBasedBaseRetriever(BaseRetriever):
