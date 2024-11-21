@@ -61,7 +61,7 @@ graph_index.extract_and_build(docs)
 ### Querying the graph
 
 ```
-from graphrag_toolkit import LexicalGraphQueryEngine, format_source
+from graphrag_toolkit import LexicalGraphQueryEngine
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
 
@@ -78,8 +78,7 @@ vector_store = VectorStoreFactory.for_vector_store(
 
 query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
     graph_store, 
-    vector_store,
-    post_processors=format_source('url')
+    vector_store
 )
 
 response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
@@ -96,10 +95,6 @@ print(response.response)
   - [Architecture](./docs/architecture.md)
   - [Graph Model](./docs/graph-model.md)
 
-
-### Supported Python versions
-
-The graphrag-toolkit requires Python 3.10 or greater.
 
 ## Security
 

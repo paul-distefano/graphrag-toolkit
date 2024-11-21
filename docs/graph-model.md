@@ -50,7 +50,7 @@ Facts can, optionally, be embedded – and so as well as enhancing connectivity,
 
 #### Statements
 
-A statement or assertion extracted from the underlying sources. Statements are the *primary unit of context returned to the question answering LLM in the context window* – that is, the context comprises collections of statements grouped by source and topic.
+A statement or assertion extracted from the underlying sources. Statements are the *primary unit of context returned to the question-answering LLM in the context window* – that is, the context comprises collections of statements grouped by source and topic.
 
 Statements are typically associated with one or more facts (both SPO and SPC facts). For example:
 
@@ -73,7 +73,7 @@ In some circumstances a statement may include one or more contextual *details* i
 
 Statements are grouped beneath topics (see below). Within a particular topic, statements are also joined in a linked list via `PREVIOUS` relationships, making it easy to retrieve previous (and subsequent) statements belonging to the same underlying source.
 
-Statements act as the primary unit of context for question-answering. They are connected transitively to other statements via both facts and topics.
+Statements act as the primary unit of context for question answering. They are connected transitively to other statements via both facts and topics.
 
 Statements can, optionally, be embedded, and so can act as higher-level entry points in the graph based on a vector search. The vector-guided retriever uses statement embeddings to guide its search strategies. Statement embeddings also allow statements to be used in a 'baseline RAG' manner to retrieve relatively small pieces of context for answering simple questions.
 
