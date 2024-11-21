@@ -7,8 +7,18 @@ The graphrag-toolkit uses a form of hierarchical [lexical graph](https://graphr.
 The graph has three tiers:
 
   - **Lineage** Sources, chunks, and the relations between them.
-  - **Summarisation** Hierarchical summarisations and semantic units at different levels of granularity.
+  - **Summarisation** Hierarchical summarisations and lexical units at different levels of granularity.
   - **Entity-Relationship** Individual entities and relations extracted from the underlying sources.
+  
+When using a lexical graph in a RAG application, the question arises: what size lexical unit should form the basis of the context?
+
+For many RAG applications, the primary unit of context is the *chunk*: that is, the context window is formed of one or more chunks retrieved from the corpus. Different chunking startegies produce different sized chunks: there's no one-size-fits-all definition of a chunk. For the purpose of this documentation, however, we take a chunk to be something larger than an individual sentence, smaller than an entire document.
+
+For the graphrag-toolkit, the primary unit of context is not the chunk, but the *statement*, which is a standalone assertion or proposition. Source documents are broken into chunks, and from these chunks are extracted statements. In the [graph model](./graph-model.md), statements are thematically grouped by topic, and supported by facts. At question-answering time, the graphrag-toolkit retrieves groups of statements, and presents them in the context window to the LLM.
+
+Graphs can help question-answering systems retrieve information which is semantically dissimilar from the question, but nonetheless relevant to the answer. Retrieval through semantic similarity remains an important strategy, and context that is semantically similar to the question will often comprise the foundation of a good answer. But similarity-based retrieval is not always sufficient for generating a nuanced response, and in many circumstances it will also be necessary to find and return information that cannot be found by vector similarity search alone, in order to present the LLM with a more differentiated context that can help it develop comparisons, arguments, and summaries. The relationships in a graph provide a means by which a retrieval process can find this additional relevant information.
+
+Graph topology and the degree of connectivity in the graph play an important role in finding relevant information. If everything is linked to everything else, it becomes difficult to discern what may be a very few relevant units of context from within a sea of irrelevancy. If, on the other hand, linking between elements in the graph is low, there are relatively few opportunities for discovering golden nuggets of relevant but nonetheless semantically dissimilar information. The graphrag-toolkit's graph model assigns local and global connectivity roles to different elemnst in the graph: topics provide thematic connectivity between statements derived from the same source; facts provide connectivity between statements derived from different sources.
   
 ### Lineage tier
 
