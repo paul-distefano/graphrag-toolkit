@@ -47,7 +47,7 @@ class VectorIndexing(NodeHandler):
 
         logger.debug(f'Batch config: [batch_writes_enabled: {batch_writes_enabled}, batch_size: {batch_size}]')
         
-        with VectorBatchClient(vector_store=self.vector_store, batch_writes_enabled=batch_writes_enabled, batch_size=batch_size) as indexes:
+        with VectorBatchClient(vector_store=self.vector_store, batch_writes_enabled=batch_writes_enabled, batch_size=batch_size) as batch_client:
 
             node_iterable = nodes if not self.show_progress else tqdm(nodes, desc='Building vector index')
 
@@ -56,10 +56,15 @@ class VectorIndexing(NodeHandler):
                     try:
                         index_name = node.metadata[INDEX_KEY]['index']
                         if index_name in EMBEDDING_INDEXES:
-                            index = indexes.get_index(index_name)
+                            index = batch_client.get_index(index_name)
                             index.add_embeddings([node])
                     except Exception as e:
                         logger.exception('An error occurred while indexing vectors')
                         raise e
+                if batch_client.allow_yield(node):
+                    yield node
+
+            batch_nodes = batch_client.apply_batch_operations()
+            for node in batch_nodes:
                 yield node
         

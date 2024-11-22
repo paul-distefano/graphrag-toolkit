@@ -27,11 +27,11 @@ class BatchVectorIndex():
             self.index.add_embeddings(nodes)
 
 
-
 class VectorBatchClient():
     def __init__(self, vector_store:VectorStore, batch_writes_enabled:bool, batch_size:int):
         self.indexes = {i.index_name: BatchVectorIndex(i, batch_size) for i in vector_store.indexes.values()}
         self.batch_writes_enabled = batch_writes_enabled
+        self.all_nodes = []
 
     def get_index(self, index_name):
 
@@ -45,13 +45,23 @@ class VectorBatchClient():
         else:
             return self.indexes[index_name]
 
+    def allow_yield(self, node):
+        if self.batch_writes_enabled:
+            self.all_nodes.append(node)
+            return False
+        else:
+            return True
+
+    def apply_batch_operations(self):
+        for index in self.indexes.values():
+            index.write_embeddings_to_index()
+        return self.all_nodes
     
     def __enter__(self):
         return self
 
     def __exit__(self, exception_type, exception_value, exception_traceback):
-        for index in self.indexes.values():
-            index.write_embeddings_to_index()
+        pass
 
 
     

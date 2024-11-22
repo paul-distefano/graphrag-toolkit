@@ -87,7 +87,7 @@ class GraphConstruction(NodeHandler):
 
         logger.debug(f'Batch config: [batch_writes_enabled: {batch_writes_enabled}, batch_size: {batch_size}]')
 
-        with GraphBatchClient(self.graph_client, batch_writes_enabled=batch_writes_enabled, batch_size=batch_size) as graph_client:
+        with GraphBatchClient(self.graph_client, batch_writes_enabled=batch_writes_enabled, batch_size=batch_size) as batch_client:
         
             node_iterable = nodes if not self.show_progress else tqdm(nodes, desc='Building graph')
 
@@ -106,7 +106,7 @@ class GraphConstruction(NodeHandler):
                         builders = builders_dict.get(index, None)
 
                         if builders:
-                            [builder.build(node, graph_client, self.node_ids) for builder in builders]
+                            [builder.build(node, batch_client, self.node_ids) for builder in builders]
                             self.node_ids[node_id] = None
                         else:
                             logger.debug(f'No builders for node [index: {index}]')
@@ -118,6 +118,11 @@ class GraphConstruction(NodeHandler):
                 else:
                     logger.debug(f'Ignoring node [node_id: {node_id}]')
                     
+                if batch_client.allow_yield(node):
+                    yield node
+
+            batch_nodes = batch_client.apply_batch_operations()
+            for node in batch_nodes:
                 yield node
 
         

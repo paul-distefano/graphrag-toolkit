@@ -274,8 +274,24 @@
                     "s3:ListBucket"
                   ],
                   "Resource": [
-                    "arn:aws:s3:::aws-neptune-notebook",
-                    "arn:aws:s3:::aws-neptune-notebook/*"
+                    {
+                      "Fn::If": [
+                        "IsIadRegion",
+                        "arn:aws:s3:::aws-neptune-notebook",
+                        {
+                          "Fn::Sub": "arn:aws:s3:::aws-neptune-notebook-${AWS::Region}"
+                        }
+                      ]
+                    },
+                    {
+                      "Fn::If": [
+                        "IsIadRegion",
+                        "arn:aws:s3:::aws-neptune-notebook/*",
+                        {
+                          "Fn::Sub": "arn:aws:s3:::aws-neptune-notebook-${AWS::Region}/*"
+                        }
+                      ]
+                    }
                   ]
                 },
                 {

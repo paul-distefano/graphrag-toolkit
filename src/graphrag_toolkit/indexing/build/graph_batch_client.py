@@ -10,6 +10,7 @@ class GraphBatchClient():
         self.batch_writes_enabled = batch_writes_enabled
         self.batch_size = batch_size
         self.batches = {}
+        self.all_nodes = []
 
     def node_id(self, id_name:str):
         return self.graph_client.node_id(id_name)
@@ -21,17 +22,15 @@ class GraphBatchClient():
             if query not in self.batches:
                 self.batches[query] = []
             self.batches[query].extend(properties['params'])
-  
-    def _dedup(self, parameters:List):
-        params_map = {}
-        for p in parameters:
-            params_map[str(p)] = p
-        return list(params_map.values())
-    
-    def __enter__(self):
-        return self
 
-    def __exit__(self, exception_type, exception_value, exception_traceback):
+    def allow_yield(self, node):
+        if self.batch_writes_enabled:
+            self.all_nodes.append(node)
+            return False
+        else:
+            return True
+        
+    def apply_batch_operations(self):
         for query, parameters in self.batches.items():
 
             deduped_parameters = self._dedup(parameters)
@@ -45,5 +44,19 @@ class GraphBatchClient():
                     'params': p
                 }
                 self.graph_client.execute_query_with_retry(query, params, max_attempts=5, max_wait=7)
+
+        return self.all_nodes
+  
+    def _dedup(self, parameters:List):
+        params_map = {}
+        for p in parameters:
+            params_map[str(p)] = p
+        return list(params_map.values())
+    
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, exception_value, exception_traceback):
+        pass
 
     
