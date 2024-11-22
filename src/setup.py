@@ -13,7 +13,7 @@ with open('./requirements.txt') as f:
 setuptools.setup(
     name='graphrag-toolkit',
     description="AWS GraphRAG Toolkit",
-    packages=["graphrag_toolkit"],
+    packages=setuptools.find_packages(where="."),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",

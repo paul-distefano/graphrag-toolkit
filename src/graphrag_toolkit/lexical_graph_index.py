@@ -218,7 +218,7 @@ class LexicalGraphIndex():
             show_progress:Optional[bool]=False
         ) -> None:
         """
-        Extract graph elements from a set of nodes and then ubild a graph and vector index.
+        Extract graph elements from a set of nodes and then build a graph and vector index.
 
         Args:
             nodes (List[BaseNode], optional): Set of nodes from which graph elements are to be extracted.
