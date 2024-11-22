@@ -9,4 +9,4 @@ from .keyword_entity_search import KeywordEntitySearch
 from .rerank_beam_search import RerankBeamSearchRetriever
 from .semantic_beam_search import SemanticBeamGraphSearch
 from .statement_cosine_seach import StatementCosineSimilaritySearch
-from .vector_guided_retriever import VectorGuidedRetriever
+from .semantic_guided_retriever import SemanticGuidedRetriever

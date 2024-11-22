@@ -20,7 +20,7 @@ from graphrag_toolkit.retrieval.utils.statement_utils import get_statements_quer
 
 logger = logging.getLogger(__name__)
 
-class VectorGuidedRetriever(BaseRetriever):
+class SemanticGuidedRetriever(BaseRetriever):
     def __init__(
         self,
         vector_store: VectorStore,

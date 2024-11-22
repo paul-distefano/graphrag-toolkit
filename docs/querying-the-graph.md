@@ -4,7 +4,11 @@
 
 For the graphrag-toolkit, the primary unit of context presented to the LLM is the *statement*, which is a standalone assertion or proposition. Source documents are broken into chunks, and from these chunks are extracted statements. In the graphrag-toolkit's [graph model](./graph-model.md), statements are thematically grouped by topic, and supported by facts. At question-answering time, the graphrag-toolkit retrieves groups of statements, and presents them in the context window to the LLM.
 
-The graphrag-toolkit contains two different retrievers: a `TraversalBasedRetriever`, and a `VectorGuidedRetriever`. The `TraversalBasedRetriever` uses a combination of 'top down' search – finding chunks through vector similarity search, and then traversing from these chunks through topics to statements and facts – and 'bottom up' search, which performs keyword-based lookups of entities, and proceeds through facts to statements and topics. The `VectorGuidedRetriever`... TODO
+The graphrag-toolkit contains two different retrievers: a `TraversalBasedRetriever`, and a `SemanticGuidedRetriever`. The `TraversalBasedRetriever` uses a combination of 'top down' search – finding chunks through vector similarity search, and then traversing from these chunks through topics to statements and facts – and 'bottom up' search, which performs keyword-based lookups of entities, and proceeds through facts to statements and topics. The `SemanticGuidedRetriever` integrates vector-based semantic search with structured graph traversal. It uses semantic and keyword-based searches to identify entry points, then intelligently explores the graph through beam search and path analysis, while employing reranking and diversity filtering to ensure quality results. This hybrid approach enables both precise matching and contextual exploration.
+
+The `SemanticGuidedRetriever` tends to output slightly higher-quality results than the `TraversalBasedRetriever`, but at the expense of longer retrieval times. The `SemanticGuidedRetriever` uses a *statement* vector index, whereas the `TraversalBasedRetriever` uses a *chunk* vector index. The chunk vector index is much smaller than the statement index.
+
+In the current release the output formats of the two retrievers are different. Future releases of the graphrag-toolkit will seek to align the outputs.
 
 ### TraversalBasedRetriever
 
@@ -37,8 +41,10 @@ print(response.response)
 
 By default, the `TraversalBasedRetriever` uses a composite search strategy using two subretrievers:
 
-  - `EntityBasedSearch` – This retriever extracts keywords from the query and then looks up entities in the graph based on these keywords. From the entities, the retriever traverses facts, statements and topics.
-  - `ChunkBasedSearch` – This retriever finds chunks using vector similarity search. From the chunks, the retriever traverses topics, statements, and facts.
+  - `EntityBasedSearch` – This retriever extracts keywords from the query and then looks up entities in the graph based on these keywords. From the entities, the retriever traverses facts, statements and topics. Entity-based search tends to return a broadly-scoped set of results, based on the neighbourhoods of individual entities and the facts that connect entities.
+  - `ChunkBasedSearch` – This retriever finds chunks using vector similarity search. From the chunks, the retriever traverses topics, statements, and facts. Chunk-based search tends to return a narrowly-scoped set of results based on the statement and fact neighbourhoods of chunks that match the original query.
+  
+When combining these two retrievers, the `TraversalBasedRetriever` weights their contributions in favour of the chunk-based search: the chunk search provides a foundation of similarity-based results, which are then augmented by the broader entity-based results.
 
 #### TraversalBasedRetriever results
 

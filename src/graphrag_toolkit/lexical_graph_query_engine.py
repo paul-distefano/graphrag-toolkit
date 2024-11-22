@@ -13,7 +13,7 @@ from graphrag_toolkit.utils import LLMCache
 from graphrag_toolkit.retrieval.prompts import ANSWER_QUESTION_SYSTEM_PROMPT, ANSWER_QUESTION_USER_PROMPT
 from graphrag_toolkit.retrieval.post_processors.enrich_source_details import EnrichSourceDetails, SourceInfoAccessorType
 from graphrag_toolkit.retrieval.post_processors.bedrock_context_format import BedrockContextFormat
-from graphrag_toolkit.retrieval.retrievers import TraversalBasedRetriever, VectorGuidedRetriever
+from graphrag_toolkit.retrieval.retrievers import TraversalBasedRetriever, SemanticGuidedRetriever
 from graphrag_toolkit.retrieval.retrievers.traversal_based_retriever import DEFAULT_TRAVERSAL_BASED_RETRIEVERS
 from graphrag_toolkit.retrieval.retrievers import StatementCosineSimilaritySearch, KeywordRankingSearch, SemanticBeamGraphSearch
 from graphrag_toolkit.storage import GraphStoreFactory, GraphStoreType
@@ -62,9 +62,9 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
         )
     
     @staticmethod
-    def for_vector_guided_search(graph_store:GraphStoreType, vector_store:VectorStoreType, post_processors:Optional[PostProcessorsType]=None, **kwargs):
+    def for_semantic_guided_search(graph_store:GraphStoreType, vector_store:VectorStoreType, post_processors:Optional[PostProcessorsType]=None, **kwargs):
         
-        retriever = VectorGuidedRetriever(
+        retriever = SemanticGuidedRetriever(
             vector_store=vector_store,
             graph_store=graph_store,
             retrievers=[

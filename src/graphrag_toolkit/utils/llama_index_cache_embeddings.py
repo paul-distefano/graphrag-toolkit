@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import ast
 from hashlib import sha256
 from typing import Literal
 import logging
@@ -36,7 +37,7 @@ class CacheBedrockEmbedding(BedrockEmbedding):
             if os.path.exists(cache_file):
                 vector = read_text(cache_file)
                 logger.debug('%sCached embeddings %s%s', c_red, cache_file, c_norm)
-                return eval(vector)
+                return ast.literal_eval(vector)
 
 
         vector = super()._get_embedding(payload=payload,type=type)
