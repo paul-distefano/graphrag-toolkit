@@ -2,10 +2,13 @@
   "Description": "Creates a graphrag-toolkit environment (VPC, Neptune Database, OpenSearch Serverless collection, and SageMaker notebook)",
   "Parameters": {
     "ApplicationId": {
-      "Description": "Application id",
+      "Description": "Application id (used to name all resources in the environment)",
       "Type": "String",
       "Default": "graphrag-toolkit",
-      "AllowedPattern": "[a-zA-Z0-9-]*"
+      "AllowedPattern": "[a-z][a-z0-9-]*",
+      "MaxLength": 16,
+      "MinLength": 3,
+      "ConstraintDescription": "Must start with a lowercase letter, contain between 3 and 16 characters, and contain only lowercase letters, numbers and the hyphen"
     },
     "DbInstanceType": {
       "Description": "Neptune DB instance type (use db.serverless to provision a Neptune Serverless cluster)",
@@ -169,7 +172,7 @@
           },
           {
             "Key": "Application",
-            "Value": "NeptuneCloudformation"
+            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
           }
         ]
       }
@@ -222,6 +225,10 @@
             "Value": {
               "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
             }
+          },
+          {
+            "Key": "Application",
+            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
           }
         ]
       }
@@ -509,6 +516,10 @@
             "Value": {
               "Fn::Sub": "${AWS::Region}-${AWS::StackId}"
             }
+          },
+          {
+            "Key": "Application",
+            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
           }
         ]
       }
@@ -544,6 +555,10 @@
             "Value": {
               "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
             }
+          },
+          {
+            "Key": "Application",
+            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
           }
         ]
       }
@@ -603,6 +618,10 @@
             "Value": {
               "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
             }
+          },
+          {
+            "Key": "Application",
+            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
           }
         ]
       },
@@ -644,6 +663,10 @@
             "Value": {
               "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
             }
+          },
+          {
+            "Key": "Application",
+            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
           }
         ]
       },
@@ -678,6 +701,10 @@
             "Value": {
               "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
             }
+          },
+          {
+            "Key": "Application",
+            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
           }
         ],
         "Type": "VECTORSEARCH"
@@ -864,7 +891,7 @@
           },
           {
             "Key": "Application",
-            "Value": "NeptuneCloudformation"
+            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
           }
         ]
       }
@@ -1101,7 +1128,7 @@
           },
           {
             "Key": "Application",
-            "Value": "NeptuneCloudformation"
+            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
           }
         ]
       }
