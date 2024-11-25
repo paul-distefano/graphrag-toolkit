@@ -10,6 +10,8 @@ The graph has three tiers:
   - [**Summarisation**](#summarisation-tier) Hierarchical summarisations and lexical units at different levels of granularity.
   - [**Entity-Relationship**](#entity-relationship-tier) Individual entities and relations extracted from the underlying sources.
   
+![Lexical graph](../iamges/lexical-graph.png)
+  
 #### Units of context
 
 When using a lexical graph in a RAG application, the question arises: what size lexical unit should form the basis of the context?
