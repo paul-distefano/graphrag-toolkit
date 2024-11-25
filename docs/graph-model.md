@@ -10,7 +10,7 @@ The graph has three tiers:
   - [**Summarisation**](#summarisation-tier) Hierarchical summarisations and lexical units at different levels of granularity.
   - [**Entity-Relationship**](#entity-relationship-tier) Individual entities and relations extracted from the underlying sources.
   
-![Lexical graph](../iamges/lexical-graph.png)
+![Lexical graph](../images/lexical-graph.png)
   
 #### Units of context
 
