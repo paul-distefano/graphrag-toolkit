@@ -36,3 +36,13 @@ You must run the CloudFormation stack in a region containing these models, and m
 #### Adding additional IAM permissions
 
 The CloudFormation stack includes an input parameter, `IamPolicyArn`, that allows you to add an additional IAM policy to the GraphRAG client IAM role created by the stack. Use this parameter to add a custom policy containing permissions to additional resources that you want to use, such as specific Amazon S3 buckets, or additional Amazon Bedrock foundation models.
+
+#### Installing example notebooks
+
+The CloudFormation stack includes an input parameter, `ExampleNotebooksURL` that specifies the URL of a zip file containing the graphrag-toolkit example notebooks. By default this parameter is set to:
+
+```
+https://github.com/awslabs/graphrag-toolkit/releases/latest/download/graphrag-toolkit-examples.zip
+```
+
+Set this parameter blank if you do not want to install the notebooks in your environment.

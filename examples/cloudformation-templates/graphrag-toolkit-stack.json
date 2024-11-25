@@ -68,9 +68,26 @@
       "Type": "String",
       "Description": "ARN of an additional IAM policy to be attached to the GraphRAG client IAM role (optional)",
       "Default": ""
+    },
+    "ExampleNotebooksURL": {
+      "Type": "String",
+      "Description": "URL of a zip file containing example notebooks to be installed on SageMaker instance (optional)",
+      "Default": "https://github.com/awslabs/graphrag-toolkit/releases/latest/download/graphrag-toolkit-examples.zip"
     }
   },
   "Conditions": {
+    "ExampleNotebooksURLIsNotBlank": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "ExampleNotebooksURL"
+            },
+            ""
+          ]
+        }
+      ]
+    },
     "IsIadRegion": {
       "Fn::Equals": [
         {
@@ -172,7 +189,9 @@
           },
           {
             "Key": "Application",
-            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
+            "Value": {
+              "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"
+            }
           }
         ]
       }
@@ -228,7 +247,9 @@
           },
           {
             "Key": "Application",
-            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
+            "Value": {
+              "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"
+            }
           }
         ]
       }
@@ -519,7 +540,9 @@
           },
           {
             "Key": "Application",
-            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
+            "Value": {
+              "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"
+            }
           }
         ]
       }
@@ -558,7 +581,9 @@
           },
           {
             "Key": "Application",
-            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
+            "Value": {
+              "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"
+            }
           }
         ]
       }
@@ -621,7 +646,9 @@
           },
           {
             "Key": "Application",
-            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
+            "Value": {
+              "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"
+            }
           }
         ]
       },
@@ -666,7 +693,9 @@
           },
           {
             "Key": "Application",
-            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
+            "Value": {
+              "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"
+            }
           }
         ]
       },
@@ -704,7 +733,9 @@
           },
           {
             "Key": "Application",
-            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
+            "Value": {
+              "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"
+            }
           }
         ],
         "Type": "VECTORSEARCH"
@@ -891,7 +922,9 @@
           },
           {
             "Key": "Application",
-            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
+            "Value": {
+              "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"
+            }
           }
         ]
       }
@@ -988,6 +1021,28 @@
                     "cd /home/ec2-user/SageMaker\n",
                     "mkdir graphrag-toolkit\n",
                     "chmod -R 777 graphrag-toolkit\n",
+                    {
+                      "Fn::If": [
+                        "ExampleNotebooksURLIsNotBlank",
+                        {
+                          "Fn::Join": [
+                            "",
+                            [
+                              "curl -LO \"",
+                              {
+                                "Ref": "ExampleNotebooksURL"
+                              },
+                              "\" -o graphrag-toolkit-examples.zip\n",
+                              "unzip graphrag-toolkit-examples.zip -d graphrag-toolkit\n",
+                              "rm -rf graphrag-toolkit-examples.zip\n"
+                            ]
+                          ]
+                        },
+                        {
+                          "Ref": "AWS::NoValue"
+                        }
+                      ]
+                    },
                     "cd graphrag-toolkit\n",
                     "echo \"export GRAPH_STORE=",
                     {
@@ -1128,7 +1183,9 @@
           },
           {
             "Key": "Application",
-            "Value": { "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"}
+            "Value": {
+              "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"
+            }
           }
         ]
       }
