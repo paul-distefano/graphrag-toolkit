@@ -18,7 +18,7 @@ from llama_index.core.schema import NodeWithScore, QueryBundle
 
 logger = logging.getLogger(__name__)
 
-class StatementDiverisityPostProcessor(BaseNodePostprocessor):
+class StatementDiversityPostProcessor(BaseNodePostprocessor):
     """Removes similar statements using TF-IDF similarity."""
     
     similarity_threshold: float = Field(default=0.975)

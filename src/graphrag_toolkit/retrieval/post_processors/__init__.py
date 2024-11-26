@@ -4,5 +4,5 @@
 from .bge_reranker import BGEReranker
 from .enrich_source_details import EnrichSourceDetails
 from .bedrock_context_format import BedrockContextFormat
-from .statement_diversity import StatementDiverisityPostProcessor
+from .statement_diversity import StatementDiversityPostProcessor
 from .statement_enhancement import StatementEnhancementPostProcessor

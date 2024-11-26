@@ -13,6 +13,7 @@ In the current release the output formats of the two retrievers are different. F
 ### TraversalBasedRetriever
 
 The following example uses a `TraversalBasedRetriever` with all its default settings to query the graph:
+
 ```
 from graphrag_toolkit import LexicalGraphQueryEngine
 from graphrag_toolkit.storage import GraphStoreFactory
@@ -46,7 +47,7 @@ By default, the `TraversalBasedRetriever` uses a composite search strategy using
   
 When combining these two retrievers, the `TraversalBasedRetriever` weights their contributions in favour of the chunk-based search: the chunk search provides a foundation of similarity-based results, which are then augmented by the broader-ranging entity-based results.
 
-To configure the `TraversalBasedRetriever` with one or other of these subetrievers, you can pass an instance of the subretriever, or the type of subretriver, to the factory method:
+To configure the `TraversalBasedRetriever` with just one or other of these subretrievers, you can pass an instance of the subretriever, or the type of subretriever, to the factory method:
 
 ```
 from graphrag_toolkit.retrieval.retrievers import ChunkBasedSearch
@@ -62,47 +63,45 @@ query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
 
 #### TraversalBasedRetriever results
 
-The `TraversalBasedRetriever` uses openCypher queries to explore the graph from entity- and chunk-based start nodes. The retriever returns one or more search results, each of which comprises a source, topic, a set of statements, and a score:
+The `TraversalBasedRetriever` returns one or more search results, each of which comprises a source, topic, a set of statements, and a score:
 
 ```
 {
   "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
   "topic": "Amazon Neptune",
   "statements": [
-    "Amazon Neptune provides high performance for Resource Description Framework (RDF) model",
-    "You can access Resource Description Framework model in Amazon Neptune using SPARQL query language",
-    "You can access Property Graph model in Amazon Neptune using openCypher query language",
     "Amazon Neptune provides high performance for Property Graph (PG) model",
-    "You can access Property Graph model in Amazon Neptune using Gremlin query language"
+    "You can access Property Graph model in Amazon Neptune using openCypher query language",
+    "You can access Property Graph model in Amazon Neptune using Gremlin query language",
+    "Amazon Neptune provides high performance for Resource Description Framework (RDF) model",
+    "Amazon Neptune is a fully managed graph database service",
+    "Before designing a database, consult the GitHub repository \"AWS Reference Architectures for Using Graph Databases\" to inform choices about graph data models and query languages and browse examples of reference deployment architectures",
+    "With Amazon Neptune, you can use graph query languages Gremlin, openCypher, and SPARQL",
+    "You can access Resource Description Framework model in Amazon Neptune using SPARQL query language",
+    "Neptune supports the Neo4j's openCypher property-graph query language",
+    "To learn more about using Amazon Neptune, start with the section \"Overview of Amazon Neptune features\""
   ],
-  "score": 0.7
-}
-{
-  "source": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-features.html",
-  "topic": "Neptune Analytics and Neptune Database",
-  "statements": [
-    "Neptune Analytics and Neptune Database are related concepts",
-    "Neptune Analytics allows loading graph data from Amazon S3 or a Neptune Database endpoint",
-    "Neptune Analytics allows running graph analytics queries using pre-built or custom graph queries",
-    "Javascript must be enabled to use the Amazon Web Services Documentation",
-    "The document refers to conventions described at /general/latest/gr/docconventions.html"
-  ],
-  "score": 0.44
+  "score": 0.53
 }
 
 ...
 
 {
-  "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
-  "topic": "Neptune Failover and Replication",
+  "source": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-vs-neptune-database.html",
+  "topic": "Neptune Analytics",
   "statements": [
-    "Amazon Neptune supports Gremlin for property graphs",
-    "Amazon Neptune provides high performance for property graphs",
-    "Amazon Neptune supports open graph APIs for property graphs",
-    "Amazon Neptune supports openCypher for property graphs",
-    "Amazon Neptune provides high performance for RDF graphs"
+    "Neptune Analytics is a solution for quickly analyzing existing graph databases",
+    "Neptune Analytics is a solution for quickly analyzing graph datasets stored in a data lake",
+    "Neptune Analytics uses popular graph analytic algorithms",
+    "Processing thousands of analytic queries per second using popular graph analytics algorithms becomes possible with Neptune Analytics",
+    "Neptune Analytics makes it easy to apply powerful algorithms to the data in your Neptune Database",
+    "Neptune Analytics provides a simple API for analyzing graph data",
+    "You can use Neptune Analytics to analyze and query graphs in data science workflows that assist with fraud investigations",
+    "You can use Neptune Analytics to analyze and query graphs in data science workflows that detect network threats",
+    "Neptune Analytics uses low-latency analytic queries",
+    "Neptune Analytics provides a simple API for loading graph data"
   ],
-  "score": 0.23
+  "score": 0.22
 }
 ```
 
@@ -143,4 +142,95 @@ Besides reranking statements, you can also specify the `max_statements` to be re
 This traversal-based reranking is performed on a per-statement basis. To facilitate the reranking, each statement is enriched with its topic and source metadata. This composite lexical unit is then reranked against a composite of the original query plus any entity names found in the keyword lookup step. 
 
 You can use the traversal-based reranking *in combination* with any reranking applied during post-processing. Reranking in the post-processing stage will rerank *results* (i.e. collections of statements), whereas traversal-based reranking reranks individual *statements*. 
+
+### SemanticGuidedRetriever
+
+The following example uses a `SemanticGuidedRetriever` with all its default settings to query the graph:
+
+```
+from graphrag_toolkit import LexicalGraphQueryEngine
+from graphrag_toolkit.storage import GraphStoreFactory
+from graphrag_toolkit.storage import VectorStoreFactory
+
+import nest_asyncio
+nest_asyncio.apply()
+
+graph_store = GraphStoreFactory.for_graph_store(
+    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
+)
+
+vector_store = VectorStoreFactory.for_vector_store(
+    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
+)
+
+query_engine = LexicalGraphQueryEngine.for_semantic_guided_search(
+    graph_store, 
+    vector_store
+)
+
+response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
+
+print(response.response)
+```
+
+#### SemanticGuidedRetriever results
+
+The `SemanticGuidedRetriever` returns one or more search results, each of which comprises a source, and a set of statements:
+
+```
+<source_1>
+<source_1_metadata>
+	<url>https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-vs-neptune-database.html</url>
+</source_1_metadata>
+<statement_1.1>Neptune Database is a serverless graph database</statement_1.1>
+<statement_1.2>Neptune Analytics is an analytics database engine</statement_1.2>
+<statement_1.3>Neptune Analytics is a solution for quickly analyzing existing graph databases</statement_1.3>
+<statement_1.4>Neptune Database provides a solution for graph database workloads that need Multi-AZ high availability</statement_1.4>
+<statement_1.5>Neptune Analytics is a solution for quickly analyzing graph datasets stored in a data lake (details: Graph datasets LOCATION data lake)</statement_1.5>
+<statement_1.6>Neptune Database provides a solution for graph database workloads that need to scale to 100,000 queries per second</statement_1.6>
+<statement_1.7>Neptune Database is designed for optimal scalability</statement_1.7>
+<statement_1.8>Neptune Database provides a solution for graph database workloads that need multi-Region deployments</statement_1.8>
+<statement_1.9>Neptune Analytics removes the overhead of managing complex data-analytics pipelines (details: Overhead CONTEXT managing complex data-analytics pipelines)</statement_1.9>
+...
+</source_1>
+
+...
+
+<source_4>
+<source_4_metadata>
+	<url>https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-features.html</url>
+</source_4_metadata>
+<statement_4.1>Neptune Analytics allows performing business intelligence queries using openCypher language</statement_4.1>
+<statement_4.2>The text distinguishes between Neptune Analytics and Neptune Database</statement_4.2>
+<statement_4.3>Neptune Analytics allows performing custom analytical queries using openCypher language</statement_4.3>
+<statement_4.4>Neptune Analytics allows performing in-database analytics on large graphs</statement_4.4>
+<statement_4.5>Neptune Analytics allows focusing on queries and workflows to solve problems</statement_4.5>
+<statement_4.6>Neptune Analytics can load data extremely fast into memory</statement_4.6>
+<statement_4.7>Neptune Analytics allows running graph analytics queries using pre-built or custom graph queries</statement_4.7>
+<statement_4.8>Neptune Analytics manages graphs instead of infrastructure</statement_4.8>
+<statement_4.9>Neptune Analytics allows loading graph data from Amazon S3 or a Neptune Database endpoint</statement_4.9>
+...
+</source_4>
+```
+
+StatementCosineSimilaritySearch
+
+Gets top_k statements using cosine similarity of statement embeddings to query embedding.
+
+top_k Number of statements to include in the results
+
+KeywordRankingSearch
+
+Gets top_k statements based on the number of matches to max_keywords keywords and synonyms extracted from the query. Statements with more keyword matches rank higher in the results.
+
+top_k Number of statements to include in the results
+ma_keywords The maximum numb erof keywords to extract from the query
+
+SemanticBeamGraphSearch
+
+
+Statement-based search that finds a statement's neighbouring statements based on shared entities, and retains the most promising based on the cosine similarity of the candidate statements' embeddings to the query embedding. The search is seeded with statements from other retrievers (e.g. StatementCosineSimilaritySearch and/or KeywordRankingSearch), or from an initial vector similarity search against the statement index.
+
+max_depth The maximum depth to follow promising candidates from the starting statements
+beam_width The number of most promoising candidates to return for each statement that is expanded
 

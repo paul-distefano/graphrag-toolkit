@@ -72,7 +72,7 @@ class BGEReranker(BaseNodePostprocessor):
                     sentence_pairs=pairs,
                     batch_size=batch_size,
                     cutoff_layers=[28]
-                )[0]
+                )
                 return scores
         except Exception as e:
             logger.error(f"Error in rerank_pairs: {str(e)}")
