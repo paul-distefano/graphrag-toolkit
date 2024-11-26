@@ -8,6 +8,7 @@ from typing import List, Dict, Set, Tuple, Optional, Any, Union, Type
 from graphrag_toolkit.storage import GraphStore
 from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.retrieval.utils.statement_utils import get_statements_query
+from graphrag_toolkit.retrieval.retrievers.semantic_guided_base_retriever import SemanticGuidedBaseRetriever
 from graphrag_toolkit.retrieval.post_processors import BGEReranker
 
 from llama_index.core.base.base_retriever import BaseRetriever
@@ -15,7 +16,7 @@ from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 
 logger = logging.getLogger(__name__)
 
-class RerankBeamSearchRetriever(BaseRetriever):
+class RerankBeamSearchRetriever(SemanticGuidedBaseRetriever):
     def __init__(
         self,
         vector_store: VectorStore,
@@ -27,9 +28,7 @@ class RerankBeamSearchRetriever(BaseRetriever):
         beam_width: int = 10,
         **kwargs: Any,
     ) -> None:
-        super().__init__()
-        self.vector_store = vector_store
-        self.graph_store = graph_store
+        super().__init__(vector_store, graph_store, **kwargs)
         self.reranker = reranker 
         self.max_depth = max_depth
         self.beam_width = beam_width

@@ -10,6 +10,7 @@ from graphrag_toolkit.storage import GraphStore
 from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.retrieval.utils.statement_utils import get_top_k, SharedEmbeddingCache
 from graphrag_toolkit.retrieval.prompts import EXTRACT_KEYWORDS_PROMPT, EXTRACT_SYNONYMS_PROMPT
+from graphrag_toolkit.retrieval.retrievers.semantic_guided_base_retriever import SemanticGuidedBaseRetriever
 
 from llama_index.core.base.base_retriever import BaseRetriever
 from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
@@ -18,7 +19,7 @@ from llama_index.core.async_utils import run_async_tasks
 
 logger = logging.getLogger(__name__)
 
-class KeywordRankingSearch(BaseRetriever):
+class KeywordRankingSearch(SemanticGuidedBaseRetriever):
     def __init__(
         self,
         vector_store: VectorStore,
@@ -31,9 +32,7 @@ class KeywordRankingSearch(BaseRetriever):
         top_k: int = 100,
         **kwargs: Any,
     ) -> None:
-        super().__init__()
-        self.vector_store = vector_store
-        self.graph_store = graph_store
+        super().__init__(vector_store, graph_store, **kwargs)
         self.embedding_cache = embedding_cache
         self.llm = llm or GraphRAGConfig.response_llm
         self.max_keywords = max_keywords

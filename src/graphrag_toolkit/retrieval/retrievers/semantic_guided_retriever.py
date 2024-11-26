@@ -12,6 +12,7 @@ from llama_index.core.async_utils import run_async_tasks
 from graphrag_toolkit.storage.graph_store import GraphStore
 from graphrag_toolkit.storage import VectorStore
 
+from graphrag_toolkit.retrieval.retrievers.semantic_guided_base_retriever import SemanticGuidedBaseRetriever
 from graphrag_toolkit.retrieval.retrievers.keyword_ranking_search import KeywordRankingSearch
 from graphrag_toolkit.retrieval.retrievers.statement_cosine_seach import StatementCosineSimilaritySearch
 from graphrag_toolkit.retrieval.retrievers.semantic_beam_search import SemanticBeamGraphSearch
@@ -20,18 +21,18 @@ from graphrag_toolkit.retrieval.utils.statement_utils import get_statements_quer
 
 logger = logging.getLogger(__name__)
 
-class SemanticGuidedRetriever(BaseRetriever):
+SemanticGuidedRetrieverType = Union[SemanticGuidedBaseRetriever, Type[SemanticGuidedBaseRetriever]]
+
+class SemanticGuidedRetriever(SemanticGuidedBaseRetriever):
     def __init__(
         self,
         vector_store: VectorStore,
         graph_store: GraphStore,
-        retrievers: Optional[List[Union[BaseRetriever, Type[BaseRetriever]]]] = None,
+        retrievers: Optional[List[Union[SemanticGuidedBaseRetriever, Type[SemanticGuidedBaseRetriever]]]] = None,
         share_results: bool = True,
         **kwargs: Any,
     ) -> None:
-        super().__init__()
-        self.vector_store = vector_store
-        self.graph_store = graph_store
+        super().__init__(vector_store, graph_store, **kwargs)
         self.share_results = share_results
         
         # Create shared embedding cache

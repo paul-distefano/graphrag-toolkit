@@ -22,9 +22,11 @@ from llama_index.core.async_utils import run_async_tasks
 
 logger = logging.getLogger(__name__)
 
+TraversalBasedRetrieverType = Union[TraversalBasedBaseRetriever, Type[TraversalBasedBaseRetriever]]
+
 @dataclass
 class WeightedTraversalBasedRetriever:
-    retriever:Type[TraversalBasedBaseRetriever]
+    retriever:TraversalBasedRetrieverType
     weight:float=1.0
 
 DEFAULT_TRAVERSAL_BASED_RETRIEVERS = [
@@ -32,7 +34,7 @@ DEFAULT_TRAVERSAL_BASED_RETRIEVERS = [
     WeightedTraversalBasedRetriever(retriever=EntityBasedSearch, weight=0.2)
 ]
 
-WeightedTraversalBasedRetrieverType = Union[WeightedTraversalBasedRetriever, Type[TraversalBasedBaseRetriever]]
+WeightedTraversalBasedRetrieverType = Union[WeightedTraversalBasedRetriever, TraversalBasedBaseRetriever, Type[TraversalBasedBaseRetriever]]
 
 class TraversalBasedRetriever(TraversalBasedBaseRetriever):
 
@@ -95,16 +97,17 @@ class TraversalBasedRetriever(TraversalBasedBaseRetriever):
 
             sub_args['intermediate_limit'] = weighted_arg(self.args.intermediate_limit, wr.weight, 2)
             sub_args['limit_per_query'] = weighted_arg(self.args.query_limit, wr.weight, 1)
-            
-            retriever = wr.retriever(
-                self.graph_store, 
-                self.vector_store,
-                processors=[
-                    # No processing - just raw results
-                ],
-                entities=entities,
-                **sub_args
-            ) 
+
+            retriever = (wr.retriever if isinstance(wr.retriever, TraversalBasedBaseRetriever) 
+                         else wr.retriever(
+                            self.graph_store, 
+                            self.vector_store,
+                            processors=[
+                                # No processing - just raw results
+                            ],
+                            entities=entities,
+                            **sub_args
+                        ))
 
             retrievers.append(retriever)
 

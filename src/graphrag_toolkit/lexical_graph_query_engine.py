@@ -16,6 +16,7 @@ from graphrag_toolkit.retrieval.post_processors.bedrock_context_format import Be
 from graphrag_toolkit.retrieval.retrievers import TraversalBasedRetriever, SemanticGuidedRetriever
 from graphrag_toolkit.retrieval.retrievers.traversal_based_retriever import DEFAULT_TRAVERSAL_BASED_RETRIEVERS
 from graphrag_toolkit.retrieval.retrievers import StatementCosineSimilaritySearch, KeywordRankingSearch, SemanticBeamGraphSearch
+from graphrag_toolkit.retrieval.retrievers import WeightedTraversalBasedRetrieverType, SemanticGuidedRetrieverType
 from graphrag_toolkit.storage import GraphStoreFactory, GraphStoreType
 from graphrag_toolkit.storage import VectorStoreFactory, VectorStoreType
 from graphrag_toolkit.storage.vector_index import to_embedded_query
@@ -44,12 +45,16 @@ def format_source(source_info_accessor:SourceInfoAccessorType='source'):
 class LexicalGraphQueryEngine(BaseQueryEngine):
 
     @staticmethod
-    def for_traversal_based_search(graph_store:GraphStoreType, vector_store:VectorStoreType, post_processors:Optional[PostProcessorsType]=None, **kwargs):
+    def for_traversal_based_search(graph_store:GraphStoreType, 
+                                   vector_store:VectorStoreType, 
+                                   retrievers:Optional[List[WeightedTraversalBasedRetrieverType]]=None,
+                                   post_processors:Optional[PostProcessorsType]=None, 
+                                   **kwargs):
         
         retriever = TraversalBasedRetriever(
             graph_store, 
             vector_store, 
-            retrievers = DEFAULT_TRAVERSAL_BASED_RETRIEVERS,
+            retrievers=retrievers,
             **kwargs
         )
         
@@ -62,30 +67,37 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
         )
     
     @staticmethod
-    def for_semantic_guided_search(graph_store:GraphStoreType, vector_store:VectorStoreType, post_processors:Optional[PostProcessorsType]=None, **kwargs):
+    def for_semantic_guided_search(graph_store:GraphStoreType, 
+                                   vector_store:VectorStoreType, 
+                                   retrievers:Optional[List[SemanticGuidedRetrieverType]]=None,
+                                   post_processors:Optional[PostProcessorsType]=None, 
+                                   **kwargs):
+        
+        retrievers = retrievers or [
+            StatementCosineSimilaritySearch(
+                vector_store=vector_store,
+                graph_store=graph_store,
+                top_k=50
+            ),
+            KeywordRankingSearch(
+                vector_store=vector_store,
+                graph_store=graph_store,
+                max_keywords=10
+            ),
+            SemanticBeamGraphSearch(
+                vector_store=vector_store,
+                graph_store=graph_store,
+                max_depth=8,
+                beam_width=100
+            )
+        ]
         
         retriever = SemanticGuidedRetriever(
             vector_store=vector_store,
             graph_store=graph_store,
-            retrievers=[
-                StatementCosineSimilaritySearch(
-                    vector_store=vector_store,
-                    graph_store=graph_store,
-                    top_k=50
-                ),
-                KeywordRankingSearch(
-                    vector_store=vector_store,
-                    graph_store=graph_store,
-                    max_keywords=10
-                ),
-                SemanticBeamGraphSearch(
-                    vector_store=vector_store,
-                    graph_store=graph_store,
-                    max_depth=8,
-                    beam_width=100
-                )
-            ],
-            share_results=True
+            retrievers=retrievers,
+            share_results=True,
+            **kwargs
         ) 
         
         return LexicalGraphQueryEngine(

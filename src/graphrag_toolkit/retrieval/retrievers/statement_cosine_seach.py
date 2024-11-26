@@ -4,16 +4,16 @@
 import logging
 from typing import List, Any, Optional
 
-from llama_index.core.base.base_retriever import BaseRetriever
-from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
-
 from graphrag_toolkit.storage.graph_store import GraphStore
 from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.retrieval.utils.statement_utils import get_top_k, SharedEmbeddingCache
+from graphrag_toolkit.retrieval.retrievers.semantic_guided_base_retriever import SemanticGuidedBaseRetriever
+
+from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 
 logger = logging.getLogger(__name__)
 
-class StatementCosineSimilaritySearch(BaseRetriever):
+class StatementCosineSimilaritySearch(SemanticGuidedBaseRetriever):
     """Retrieves statements using cosine similarity of embeddings."""
 
     def __init__(
@@ -24,9 +24,7 @@ class StatementCosineSimilaritySearch(BaseRetriever):
         top_k: int = 100,
         **kwargs: Any,
     ) -> None:
-        super().__init__()
-        self.vector_store = vector_store
-        self.graph_store = graph_store
+        super().__init__(vector_store, graph_store)
         self.embedding_cache = embedding_cache
         self.top_k = top_k
 

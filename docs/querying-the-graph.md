@@ -46,6 +46,20 @@ By default, the `TraversalBasedRetriever` uses a composite search strategy using
   
 When combining these two retrievers, the `TraversalBasedRetriever` weights their contributions in favour of the chunk-based search: the chunk search provides a foundation of similarity-based results, which are then augmented by the broader-ranging entity-based results.
 
+To configure the `TraversalBasedRetriever` with one or other of these subetrievers, you can pass an instance of the subretriever, or the type of subretriver, to the factory method:
+
+```
+from graphrag_toolkit.retrieval.retrievers import ChunkBasedSearch
+
+...
+
+query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
+    graph_store, 
+    vector_store,
+    retrievers=[ChunkBasedSearch]
+)
+```
+
 #### TraversalBasedRetriever results
 
 The `TraversalBasedRetriever` uses openCypher queries to explore the graph from entity- and chunk-based start nodes. The retriever returns one or more search results, each of which comprises a source, topic, a set of statements, and a score:
@@ -94,6 +108,8 @@ The `TraversalBasedRetriever` uses openCypher queries to explore the graph from 
 
 #### Configuring the TraversalBasedRetriever
 
+You can configure the `TraversalBasedRetriever` by passing named arguments to the `LexicalGraphQueryEngine` factory method, or to the retriever constructor.
+
 | Parameter  | Description | Default Value |
 | ------------- | ------------- | ------------- | 
 | `max_search_results` | The maximum number of search results to return. A search result comprises one or more statements belonging to the same topic (and source). If set to `None`, all found search results will be returned. | `20` |
@@ -108,11 +124,23 @@ The `TraversalBasedRetriever` uses openCypher queries to explore the graph from 
 | `reranker` | Prior to returning the results to the query engine for post-processing, the retriever can rerank them based on a reranking of all statements in the results. Valid options here are `tfidf`, `model`, `none`, and the Python `None` keyword. See [Traversal-based reranking](#traversal-based-reranking) below for details. | `tfidf` |
 | `max_statements` | Used by the traversal-based reranking strategy. Limits the number of reranked statements across the entire resultset to `max_statements`. If set to `None`, *all* the statements in the resultset will be reranked and returned to the query engine. | `100` |
 
-At the end of the retrieval process, but prior to returning the results to the query engine for post-processing, the `TraversalBasedRetriever` can rerank all the statements in the results. There are two strategies available for doing this. If you set the `reranker` parameter to `model`, the retriever will use LlamaIndex's `SentenceTransformerRerank` to rank all the statements in the resultset. If you set the `reranker` parameter to `tfidf` (the default), the retriever uses a *term frequency-inverse document frequency* (TF-IDF) measure to rank all the statements in the resultset. `tfidf` tends to be faster than `model`. You can also turn off the reranking feature by setting `reranker` to `none`.
+The example below shows how to configure the `TraversalBasedRetriever` to return ten results:
+
+```
+query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
+    graph_store, 
+    vector_store,
+    max_search_results=10
+)
+```
+
+#### Statement reranking
+
+At the end of the retrieval process, but prior to returning the results to the query engine for post-processing, the `TraversalBasedRetriever` can rerank all the statements in the results. There are two strategies available for doing this. If you set the `reranker` parameter to `model`, the retriever will use LlamaIndex's `SentenceTransformerRerank` to rerank all the statements in the resultset. If you set the `reranker` parameter to `tfidf` (the default), the retriever uses a *term frequency-inverse document frequency* (TF-IDF) measure to rank all the statements in the resultset. `tfidf` tends to be faster than `model`. You can also turn off the reranking feature by setting `reranker` to `none`.
 
 Besides reranking statements, you can also specify the `max_statements` to be returned by the reranker. This will truncate the number of statements subsequently passed to the query engine for post-processsing. `max_statements` is only applied if `reranker` has been set to `model` or `tfidf`.
 
 This traversal-based reranking is performed on a per-statement basis. To facilitate the reranking, each statement is enriched with its topic and source metadata. This composite lexical unit is then reranked against a composite of the original query plus any entity names found in the keyword lookup step. 
 
-You can use the traversal-based reranking in combination with any reranking applied during post-processing. Reranking in the post-processing stage will rerank *results* (i.e. collections of statements), whereas traversal-based reranking reranks *statements*. 
+You can use the traversal-based reranking *in combination* with any reranking applied during post-processing. Reranking in the post-processing stage will rerank *results* (i.e. collections of statements), whereas traversal-based reranking reranks individual *statements*. 
 

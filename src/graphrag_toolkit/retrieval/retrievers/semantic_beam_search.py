@@ -6,16 +6,17 @@ from queue import PriorityQueue
 import numpy as np
 import logging
 
-from llama_index.core.base.base_retriever import BaseRetriever
-from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
-
 from graphrag_toolkit.storage.graph_store import GraphStore
 from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.retrieval.utils.statement_utils import get_top_k, SharedEmbeddingCache
+from graphrag_toolkit.retrieval.retrievers.semantic_guided_base_retriever import SemanticGuidedBaseRetriever
+
+from llama_index.core.base.base_retriever import BaseRetriever
+from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 
 logger = logging.getLogger(__name__)
 
-class SemanticBeamGraphSearch(BaseRetriever):
+class SemanticBeamGraphSearch(SemanticGuidedBaseRetriever):
     def __init__(
         self,
         vector_store: VectorStore,
@@ -26,9 +27,7 @@ class SemanticBeamGraphSearch(BaseRetriever):
         shared_nodes: Optional[List[NodeWithScore]] = None,
         **kwargs: Any,
     ) -> None:
-        super().__init__()
-        self.vector_store = vector_store
-        self.graph_store = graph_store
+        super().__init__(vector_store, graph_store, **kwargs)
         self.embedding_cache = embedding_cache
         self.max_depth = max_depth
         self.beam_width = beam_width

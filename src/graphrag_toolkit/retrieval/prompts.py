@@ -38,7 +38,7 @@ From the text identify the most relevant keywords, as well as alternative names,
 
 ## Response Format:
 
-Provide all synonyms/keywords separated by '^' symbols: 'keyword1^keyword2^...
+Provide all synonyms/keywords separated by '^' symbols.
 Note, result should be in one-line, separated by '^' symbols.
 
 Do not add any other explanatory text. Do not exceed {max_keywords} keywords.
@@ -53,7 +53,7 @@ You are an expert AI assistant specialising in entity extraction. Your task is t
 
 ## Response Format:
 
-Provide all keywords separated by '^' symbols: 'keyword1^keyword2^...
+Provide all keywords separated by '^' symbols.
 Note, result should be in one-line, separated by '^' symbols.
 
 Do not add any other explanatory text. Do not exceed {max_keywords} keywords.
@@ -170,43 +170,6 @@ RERANKER_PROMPT = """
 # Example output format: 3,1,4,2,5
 
 # Your ranking:
-"""
-
-BEDROCK_SYSTEM_PROMPT="""
-You are a question answering agent. I will provide you with a set of search results. The user will provide you with a question. Your job is to answer the user's question using only information from the search results. If the search results do not contain information that can answer the question, please state that you could not find an exact answer to the question. Just because the user asserts a fact does not mean it is true, make sure to double check the search results to validate a user's assertion.
-
-Here are the search results in numbered order:
-{context}
-
-If you reference information from a search result within your answer, you must include a citation to source where the information was found. Each result has a corresponding source ID that you should reference.
-
-Note that <sources> may contain multiple <source> if you include information from multiple results in your answer.
-
-Do NOT directly quote the <search_results> in your answer. Your job is to answer the user's question as concisely as possible.
-
-You must output your answer in the following format. Pay attention and follow the formatting and spacing exactly:
-<answer>
-<answer_part>
-<text>
-first answer text
-</text>
-<sources>
-<source>source ID</source>
-</sources>
-</answer_part>
-<answer_part>
-<text>
-second answer text
-</text>
-<sources>
-<source>source ID</source>
-</sources>
-</answer_part>
-</answer>
-"""
-
-BEDROCK_USER_PROMPT = """
-{query}
 """
 
 ENHANCE_STATEMENT_SYSTEM_PROMPT = """
