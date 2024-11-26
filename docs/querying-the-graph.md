@@ -107,7 +107,6 @@ The `TraversalBasedRetriever` uses openCypher queries to explore the graph from 
 | `max_subqueries` | The maximum number of subqueries into which a complex query will be decomposed. | `2` |
 | `reranker` | Prior to returning the results to the query engine for post-processing, the retriever can rerank them based on a reranking of all statements in the results. Valid options here are `tfidf`, `model`, `none`, and the Python `None` keyword. See [Traversal-based reranking](#traversal-based-reranking) below for details. | `tfidf` |
 | `max_statements` | Used by the traversal-based reranking strategy. Limits the number of reranked statements across the entire resultset to `max_statements`. If set to `None`, *all* the statements in the resultset will be reranked and returned to the query engine. | `100` |
-| `format_source_metadata_fn` | See [Traversal-based reranking](#traversal-based-reranking) below for details. |  See below |
 
 At the end of the retrieval process, but prior to returning the results to the query engine for post-processing, the `TraversalBasedRetriever` can rerank all the statements in the results. There are two strategies available for doing this. If you set the `reranker` parameter to `model`, the retriever will use LlamaIndex's `SentenceTransformerRerank` to rank all the statements in the resultset. If you set the `reranker` parameter to `tfidf` (the default), the retriever uses a *term frequency-inverse document frequency* (TF-IDF) measure to rank all the statements in the resultset. `tfidf` tends to be faster than `model`. You can also turn off the reranking feature by setting `reranker` to `none`.
 
@@ -115,5 +114,5 @@ Besides reranking statements, you can also specify the `max_statements` to be re
 
 This traversal-based reranking is performed on a per-statement basis. To facilitate the reranking, each statement is enriched with its topic and source metadata. This composite lexical unit is then reranked against a composite of the original query plus any entity names found in the keyword lookup step. 
 
-You can use the traversal-based reranking in combination with any reranking applied during post-processing. Reranking in the post-processing stage will rerank *results* (i.e. collections of statements), whereas traversal-based reranking reranks individual *statements*. 
+You can use the traversal-based reranking in combination with any reranking applied during post-processing. Reranking in the post-processing stage will rerank *results* (i.e. collections of statements), whereas traversal-based reranking reranks *statements*. 
 
