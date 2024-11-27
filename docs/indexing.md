@@ -145,7 +145,7 @@ graph_index.build(file_based_chunks)
 
 #### Configuring the extract and build stages
 
-You can configure the number of workers and batch sizes for extarct and build stages of the `LexicalGraphIndex` using the `GraphRAGConfig` object. See [Configuration](./configuration.md) for more details on using the configuration object, and the [Architecture](./architecture.md) section on the implications of varying the number of workers and batch sizes in each of the stages. 
+You can configure the number of workers and batch sizes for extarct and build stages of the `LexicalGraphIndex` using the `GraphRAGConfig` object. See [Configuration](./configuration.md) for more details on using the configuration object. 
 
 Besides configuring the workers and batch sizes, you can also configure the extraction process with regard to chunking, proposition extraction and entity classification by passing an instance of `ExtractionConfig` to the `LexicalGraphIndex` constructor:
 
