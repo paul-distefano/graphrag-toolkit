@@ -2,6 +2,16 @@
 
 ## Storage Model
 
+### Topics
+
+  - [Overview](#overview)
+  - [Graph store](#graph-store)
+    - [Neptune Database and Neptune Analytics graph stores](#neptune-database-and-neptune-analytics-graph-stores)
+  - [Vector store](#vector-store)
+    - [Amazon OpenSearch Serverless and Neptune Analytics vector stores](#amazon-opensearch-serverless-and-neptune-analytics-vector-stores)
+
+### Overview
+
 The graphrag-toolkit uses two separate stores: a `GraphStore` and a `VectorStore`. A `VectorStore` acts as a container for a collection of `VectorIndex`. When constructing or querying a graph, you must provide instances of both a graph store and vector store.
 
 The toolkit provides graph store implementations for both [Amazon Neptune Analytics](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html) and [Amazon Neptune Database](https://docs.aws.amazon.com/neptune/latest/userguide/intro.html), and vector store implementations for Neptune Analytics and [Amazon OpenSearch Serverless](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless.html). The graphrag-toolkit provides several convenient factory methods for creating instances of these stores. These factory methods accept connection string-like store identifiers, described below.
