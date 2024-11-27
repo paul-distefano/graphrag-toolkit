@@ -219,6 +219,14 @@ The `SemanticGuidedRetriever` returns one or more search results, each of which 
 </source_4>
 ```
 
+| Retriever  | Parameter  | Description | Default Value |
+| ------------- | ------------- | ------------- | ------------- | 
+| `StatementCosineSimilaritySearch` | `top_k` | Number of statements to include in the results | `100` |
+| `KeywordRankingSearch` | `top_k` | Number of statements to include in the results | `100` |
+|| `max_keywords` | The maximum number of keywords to extract from the query | `10` |
+| `SemanticBeamGraphSearch` | `max_depth` | The maximum depth to follow promising candidates from the starting statements | `3` |
+|| `beam_width` | The number of most promising candidates to return for each statement that is expanded | `10` |
+
 StatementCosineSimilaritySearch
 
 Gets top_k statements using cosine similarity of statement embeddings to query embedding.
@@ -230,7 +238,7 @@ KeywordRankingSearch
 Gets top_k statements based on the number of matches to max_keywords keywords and synonyms extracted from the query. Statements with more keyword matches rank higher in the results.
 
 top_k Number of statements to include in the results
-ma_keywords The maximum numb erof keywords to extract from the query
+max_keywords The maximum number of keywords to extract from the query
 
 SemanticBeamGraphSearch
 
@@ -241,13 +249,4 @@ max_depth The maximum depth to follow promising candidates from the starting sta
 beam_width The number of most promoising candidates to return for each statement that is expanded
 
 
-<table>
-  <tr>
-    <td>One</td>
-    <td>Two</td>
-  </tr>
-  <tr>
-    <td colspan="2">[Traversal-based reranking](#traversal-based-reranking)</td>
-  </tr>
-</table>
 
