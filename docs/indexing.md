@@ -8,7 +8,7 @@
     - [Extract](#extract)
     - [Build](#build)
   - [Using the LexicalGraphIndex to construct a graph](#using-the-lexicalgraphindex-to-construct-a-graph)
-    - [Continous ingest using extract_and_build](#continous-ingest-using-extract_and_build)
+    - [Continous ingest](#continous-ingest)
     - [Run the extract and build stages separately](#run-the-extract-and-build-stages-separately)
     - [Configuring the extract and build stages](#configuring-the-extract-and-build-stages)
     - [Checkpoints](#checkpoints)
@@ -50,7 +50,7 @@ The `LexicalGraphIndex` provides a convenient means of constructing a graph – 
 
 The `LexicalGraphIndex` constructor has an `extraction_dir` named argument. This is the path to a local directory to which intermediate artefacts (such as [checkpoints](#checkpoints)) will be written. By default, the vaue of `extraction_dir` is set to 'output'.
 
-#### Continous ingest using extract_and_build
+#### Continous ingest
 
 Use `LexicalGraphIndex.extract_and_build()` to extract and build a graph in a manner that supports continous ingest. 
 
