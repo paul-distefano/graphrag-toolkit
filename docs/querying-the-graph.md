@@ -303,7 +303,7 @@ print(response.response)
 
 The example below uses a `BGEReranker` with a `RerankingBeamGraphSearch` to rerank statements while conducting the beam search.
 
-There will be a delay the first time this runs while the reranker downloads tensors. You can also run this example on a CPU device (comment out the `gpu_id=0` parameter when initializing the `BGEReranker`).
+There will be a delay the first time this runs while the reranker downloads tensors.
 
 ```
 from graphrag_toolkit import LexicalGraphQueryEngine
