@@ -240,3 +240,8 @@ Statement-based search that finds a statement's neighbouring statements based on
 max_depth The maximum depth to follow promising candidates from the starting statements
 beam_width The number of most promoising candidates to return for each statement that is expanded
 
+
+| One    | Two | Three | Four    | Five  | Six 
+| -
+| Span <td colspan=3>triple  <td colspan=2>double
+
