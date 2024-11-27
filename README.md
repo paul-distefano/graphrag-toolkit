@@ -89,8 +89,8 @@ print(response.response)
 ## Documentation
 
   - [Storage Model](./docs/storage-model.md) 
-  - [Constructing a Graph](./docs/constructing-a-graph.md) 
-  - [Querying the Graph](./docs/querying-the-graph.md) 
+  - [Indexing](./docs/indexing.md) 
+  - [Querying](./docs/querying.md) 
   - [Configuration](./docs/configuration.md) 
   - [Architecture](./docs/architecture.md)
   - [Graph Model](./docs/graph-model.md)

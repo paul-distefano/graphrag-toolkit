@@ -11,7 +11,6 @@ from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.retrieval.utils.statement_utils import get_top_k, SharedEmbeddingCache
 from graphrag_toolkit.retrieval.retrievers.semantic_guided_base_retriever import SemanticGuidedBaseRetriever
 
-from llama_index.core.base.base_retriever import BaseRetriever
 from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 
 logger = logging.getLogger(__name__)
