@@ -4,7 +4,6 @@
 import boto3
 import json
 import logging
-import aiohttp
 from typing import List
 
 from llama_index.core.bridge.pydantic import PrivateAttr
@@ -25,13 +24,6 @@ from graphrag_toolkit.storage.constants import INDEX_KEY, EMBEDDING_INDEXES
 
 logger = logging.getLogger(__name__)
     
-def try_close_session():
-    try:
-        client_session = aiohttp.ClientSession()
-        if client_session:
-            asyncio_run(client_session.close())
-    except Exception as err:
-        logger.warning(f'Error while trying to close session [error: {err}]')
 
 def create_index_if_not_exists(endpoint, index_name, dimensions):
 
@@ -121,7 +113,6 @@ def create_opensearch_vector_client(endpoint, index_name, dimensions, embed_mode
         except NotFoundError as err:
             retry_count += 1
             logger.warning(f'Error while creating OpenSearch vector client [retry_count: {retry_count}, error: {err}]')
-            try_close_session()
             if retry_count > 3:
                 raise err
                 
@@ -161,12 +152,7 @@ class OpenSearchIndex(VectorIndex):
                 self.embed_model
             )
         return self._client
-
-    def __enter__(self):
-        return self
-    
-    def __exit__(self, exc_type, exc_value, traceback):
-        try_close_session()           
+        
               
     def _clean_id(self, s):
         return ''.join(c for c in s if c.isalnum())
@@ -208,55 +194,62 @@ class OpenSearchIndex(VectorIndex):
 
     def add_embeddings(self, nodes):
         
-        id_to_embed_map = embed_nodes(
-            nodes, self.embed_model
-        )
-        
-        docs = []
-        
-        for node in nodes:
+        async def aadd_embeddings(nodes):
+                    
+            id_to_embed_map = embed_nodes(
+                nodes, self.embed_model
+            )
 
-            index_metadata = node.metadata[INDEX_KEY]
-            
-            doc:BaseNode = node.copy()
-            
-            metadata = {
-                INDEX_KEY: index_metadata
-            }
-            
-            metadata = self._add_metadata(node.metadata, metadata, 'source')  
-            
-            for i in EMBEDDING_INDEXES:
-                metadata = self._add_metadata(node.metadata, metadata, i)  
+            docs = []
 
-            doc.metadata = metadata
+            for node in nodes:
 
-            doc.embedding = id_to_embed_map[node.node_id]
-                
-            docs.append(doc)
-        
-        if docs:
-            asyncio_run(self.client.index_results(docs))
+                index_metadata = node.metadata[INDEX_KEY]
+
+                doc:BaseNode = node.copy()
+
+                metadata = {
+                    INDEX_KEY: index_metadata
+                }
+
+                metadata = self._add_metadata(node.metadata, metadata, 'source')  
+
+                for i in EMBEDDING_INDEXES:
+                    metadata = self._add_metadata(node.metadata, metadata, i)  
+
+                doc.metadata = metadata
+                doc.embedding = id_to_embed_map[node.node_id]
+
+                docs.append(doc)
+
+            if docs:
+                await self.client.index_results(docs)
+            
+        asyncio_run(aadd_embeddings(nodes))
         
         return nodes
     
     def top_k(self, query_bundle:QueryBundle, top_k:int=5):
-
-        query_bundle = to_embedded_query(query_bundle, self.embed_model)
         
-        results:VectorStoreQueryResult = asyncio_run(
-            self.client.aquery(
+        async def atop_k(query_bundle, top_k):
+        
+            query_bundle = to_embedded_query(query_bundle, self.embed_model)
+
+            results:VectorStoreQueryResult = await self.client.aquery(
                 VectorStoreQueryMode.DEFAULT, 
                 query_str=query_bundle.query_str, 
                 query_embedding=query_bundle.embedding, 
                 k=top_k
             )
-        )
+                
+            scored_nodes = [
+                NodeWithScore(node=node, score=score) 
+                for node, score in zip(results.nodes, results.similarities)
+            ]
+            
+            return scored_nodes
 
-        scored_nodes = [
-            NodeWithScore(node=node, score=score) 
-            for node, score in zip(results.nodes, results.similarities)
-        ]
+        scored_nodes = asyncio_run(atop_k(query_bundle, top_k))
 
         return [self._to_top_k_result(node) for node in scored_nodes]
 
@@ -295,18 +288,23 @@ class OpenSearchIndex(VectorIndex):
 
     async def get_all_embeddings(self, query:str, max_results=None):
         all_results = []
+        
         async for page in self.paginated_search(query, page_size=10000):
             all_results.extend(self._to_get_embedding_result(hit) for hit in page)
             if max_results and len(all_results) >= max_results:
                 all_results = all_results[:max_results]
                 break
+        
         return all_results
     
     def get_embeddings(self, ids:List[str]=[]):
+
         query = {
             "terms": {
                 f'metadata.{INDEX_KEY}.key': [self._clean_id(i) for i in ids]
             }
         }
+
+        results = asyncio_run(self.get_all_embeddings(query, max_results=len(ids) * 2))
         
-        return asyncio_run(self.get_all_embeddings(query, max_results=len(ids) * 2))
+        return results

@@ -9,7 +9,7 @@ from graphrag_toolkit.storage import GraphStore
 from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.retrieval.utils.statement_utils import get_statements_query
 from graphrag_toolkit.retrieval.retrievers.semantic_guided_base_retriever import SemanticGuidedBaseRetriever
-from graphrag_toolkit.retrieval.post_processors import BGEReranker
+from graphrag_toolkit.retrieval.post_processors import RerankerMixin
 
 from llama_index.core.base.base_retriever import BaseRetriever
 from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
@@ -21,7 +21,7 @@ class RerankBeamSearchRetriever(SemanticGuidedBaseRetriever):
         self,
         vector_store: VectorStore,
         graph_store: GraphStore,
-        reranker: BGEReranker,
+        reranker: RerankerMixin,
         initial_retrievers: Optional[List[Union[BaseRetriever, Type[BaseRetriever]]]] = None,
         shared_nodes: Optional[List[NodeWithScore]] = None,
         max_depth: int = 3,

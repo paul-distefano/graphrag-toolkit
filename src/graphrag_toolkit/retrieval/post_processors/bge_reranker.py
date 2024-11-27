@@ -3,22 +3,24 @@
 
 import torch
 import logging
-from pydantic import Field
 from typing import List, Optional, Any, Tuple
 
+from graphrag_toolkit.retrieval.post_processors.reranker_mixin import RerankerMixin
+
+from llama_index.core.bridge.pydantic import Field
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import NodeWithScore, QueryBundle
 
 logger = logging.getLogger(__name__)
 
-class BGEReranker(BaseNodePostprocessor):
+class BGEReranker(BaseNodePostprocessor, RerankerMixin):
     """Reranks statements using the BGE reranker model."""
     
     model_name: str = Field(default='BAAI/bge-reranker-v2-minicpm-layerwise')
     gpu_id: Optional[int] = Field(default=None)
-    batch_size: int = Field(default=128)
     reranker: Any = Field(default=None)
-    device: Any = Field(default=None)  
+    device: Any = Field(default=None) 
+    batch_size_internal: int = Field(default=128) 
 
     def __init__(
         self, 
@@ -35,7 +37,7 @@ class BGEReranker(BaseNodePostprocessor):
                 "pip install git+https://github.com/FlagOpen/FlagEmbedding.git",
             )
         self.model_name = model_name
-        self.batch_size = batch_size
+        self.batch_size_internal = batch_size
         self.gpu_id = gpu_id
         
         try:
@@ -60,6 +62,10 @@ class BGEReranker(BaseNodePostprocessor):
             logger.error(f"Failed to initialize reranker: {str(e)}")
             raise
     
+    @property
+    def batch_size(self):
+        return self.batch_size_internal
+    
     def rerank_pairs(
         self,
         pairs: List[Tuple[str, str]],
@@ -68,7 +74,7 @@ class BGEReranker(BaseNodePostprocessor):
         """Rerank pairs without creating nodes."""
         try:
             with torch.cuda.device(self.device):
-                scores = self.reranker.compute_score(
+                scores = self.reranker.compute_score_single_gpu(
                     sentence_pairs=pairs,
                     batch_size=batch_size,
                     cutoff_layers=[28]
@@ -89,7 +95,7 @@ class BGEReranker(BaseNodePostprocessor):
         try:
             pairs = [(query_bundle.query_str, node.node.text) for node in nodes]
 
-            scores = self.rerank_pairs(pairs, self.batch_size)
+            scores = self.rerank_pairs(pairs, self.batch_size_internal)
             
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()

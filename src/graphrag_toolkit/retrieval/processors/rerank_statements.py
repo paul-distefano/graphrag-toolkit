@@ -8,10 +8,10 @@ from typing import List, Dict
 
 from graphrag_toolkit import GraphRAGConfig
 from graphrag_toolkit.retrieval.processors import ProcessorBase, ProcessorArgs
+from graphrag_toolkit.retrieval.post_processors import SentenceReranker
 from graphrag_toolkit.retrieval.model import SearchResultCollection, SearchResult, Topic, ScoredEntity
 
 from llama_index.core.schema import QueryBundle, NodeWithScore, TextNode
-from llama_index.core.postprocessor import SentenceTransformerRerank
 from llama_index.core.node_parser import TokenTextSplitter
 
 logger = logging.getLogger(__name__)
@@ -68,9 +68,9 @@ class RerankStatements(ProcessorBase):
 
     def _score_values(self, values:List[str], query:QueryBundle, entities:List[ScoredEntity]) -> Dict[str, float]:
             
-        logger.debug('Reranking with SentenceTransformerRerank')
+        logger.debug('Reranking with SentenceReranker')
 
-        reranker = SentenceTransformerRerank(model=self.reranking_model, top_n=self.args.max_statements or len(values))
+        reranker = SentenceReranker(model=self.reranking_model, top_n=self.args.max_statements or len(values))
 
         rank_query = (
             query 

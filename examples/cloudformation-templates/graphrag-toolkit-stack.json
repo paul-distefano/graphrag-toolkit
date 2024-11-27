@@ -69,6 +69,16 @@
       "Description": "ARN of an additional IAM policy to be attached to the GraphRAG client IAM role (optional)",
       "Default": ""
     },
+    "NotebookInstanceType": {
+      "Description": "SageMaker notebook instance type (use ml.p3.2xlarge to provision a GPU instance)",
+      "Type": "String",
+      "Default": "ml.m5.xlarge",
+      "AllowedValues": [
+        "ml.m5.xlarge",
+        "ml.p3.2xlarge"
+      ],
+      "ConstraintDescription": "Must be a valid SageMaker instance type."
+    },
     "ExampleNotebooksURL": {
       "Type": "String",
       "Description": "URL of a zip file containing example notebooks to be installed on SageMaker instance (optional)",
@@ -882,7 +892,9 @@
     "NeptuneNotebookInstance": {
       "Type": "AWS::SageMaker::NotebookInstance",
       "Properties": {
-        "InstanceType": "ml.m5.xlarge",
+        "InstanceType": {
+          "Ref": "NotebookInstanceType"
+        },
         "PlatformIdentifier": "notebook-al2-v2",
         "NotebookInstanceName": {
           "Fn::Sub": "aws-neptune-${ApplicationId}"

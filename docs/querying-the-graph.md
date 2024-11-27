@@ -175,7 +175,7 @@ print(response.response)
 
 By default, the `SemanticGuidedRetriever` uses a composite search strategy using three subretrievers:
 
-  - `StatementCosineSimilaritySearch` – Gets the top k statements using cosine similarity of statement embeddings to query embedding.
+  - `StatementCosineSimilaritySearch` – Gets the top k statements using cosine similarity of statement embeddings to the query embedding.
   - `KeywordRankingSearch` – Gets the top k statements based on the number of matches to a specified number of keywords and synonyms extracted from the query. Statements with more keyword matches rank higher in the results.
   - `SemanticBeamGraphSearch` – A statement-based search that finds a statement's neighbouring statements based on shared entities, and retains the most promising based on the cosine similarity of the candidate statements' embeddings to the query embedding. The search is seeded with statements from other retrievers (e.g. `StatementCosineSimilaritySearch` and/or `KeywordRankingSearch`), or from an initial vector similarity search against the statement index.
 
