@@ -224,7 +224,7 @@ The `SemanticGuidedRetriever` returns one or more search results, each of which 
 | `StatementCosineSimilaritySearch` | `top_k` | Number of statements to include in the results | `100` |
 | `KeywordRankingSearch` | `top_k` | Number of statements to include in the results | `100` |
 || `max_keywords` | The maximum number of keywords to extract from the query | `10` |
-| <sup>`SemanticBeamGraphSearch`</sup> | `max_depth` | The maximum depth to follow promising candidates from the starting statements | `3` |
+| <td valign="top">`SemanticBeamGraphSearch`</td> | `max_depth` | The maximum depth to follow promising candidates from the starting statements | `3` |
 || `beam_width` | The number of most promising candidates to return for each statement that is expanded | `10` |
 
 StatementCosineSimilaritySearch
