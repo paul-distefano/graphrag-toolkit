@@ -2,6 +2,21 @@
 
 ## Querying
 
+### Topics
+
+  - [Overview](#overview)
+  - [TraversalBasedRetriever](#traversalbasedretriever)
+    - [TraversalBasedRetriever results](#traversalbasedretriever-results)
+    - [Configuring the TraversalBasedRetriever](#configuring-the-traversalbasedretriever)
+    - [Statement reranking](#statement-reranking) 
+  - [SemanticGuidedRetriever](#semanticguidedretriever)
+   - [SemanticGuidedRetriever results](#semanticguidedretriever-results)
+   - [Configuring the SemanticGuidedRetriever](#configuring-the-semanticguidedretriever)
+   - [SemanticGuidedRetriever with a reranking beam search](#semanticguidedretriever-with-a-reranking-beam-search)
+  - [Postprocessors](#postprocessors)
+  
+### Overview   
+
 For the graphrag-toolkit, the primary unit of context presented to the LLM is the *statement*, which is a standalone assertion or proposition. Source documents are broken into chunks, and from these chunks are extracted statements. In the graphrag-toolkit's [graph model](./graph-model.md), statements are thematically grouped by topic, and supported by facts. At question-answering time, the graphrag-toolkit retrieves groups of statements, and presents them in the context window to the LLM.
 
 The graphrag-toolkit contains two different retrievers: a `TraversalBasedRetriever`, and a `SemanticGuidedRetriever`. The `TraversalBasedRetriever` uses a combination of 'top down' search – finding chunks through vector similarity search, and then traversing from these chunks through topics to statements and facts – and 'bottom up' search, which performs keyword-based lookups of entities, and proceeds through facts to statements and topics. The `SemanticGuidedRetriever` integrates vector-based semantic search with structured graph traversal. It uses semantic and keyword-based searches to identify entry points, then intelligently explores the graph through beam search and path analysis, while employing reranking and diversity filtering to ensure quality results. This hybrid approach enables both precise matching and contextual exploration.
