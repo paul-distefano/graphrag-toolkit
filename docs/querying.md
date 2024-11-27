@@ -10,9 +10,9 @@
     - [Configuring the TraversalBasedRetriever](#configuring-the-traversalbasedretriever)
     - [Statement reranking](#statement-reranking) 
   - [SemanticGuidedRetriever](#semanticguidedretriever)
-   - [SemanticGuidedRetriever results](#semanticguidedretriever-results)
-   - [Configuring the SemanticGuidedRetriever](#configuring-the-semanticguidedretriever)
-   - [SemanticGuidedRetriever with a reranking beam search](#semanticguidedretriever-with-a-reranking-beam-search)
+    - [SemanticGuidedRetriever results](#semanticguidedretriever-results)
+    - [Configuring the SemanticGuidedRetriever](#configuring-the-semanticguidedretriever)
+    - [SemanticGuidedRetriever with a reranking beam search](#semanticguidedretriever-with-a-reranking-beam-search)
   - [Postprocessors](#postprocessors)
   
 ### Overview   
