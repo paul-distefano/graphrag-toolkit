@@ -370,9 +370,8 @@ There are a number of postprocessors you can use to further improve and format r
 
 | Postprocessor  | Use With  | Description |
 | ------------- | ------------- | ------------- |
-| `BGEReranker` | `TraversalBasedRetriever` \n `SemanticGuidedRetriever` | Rerank (and limit) results before returning them to the query engine. Use only if you have a GPU device. |
-| `SentenceReranker` | `TraversalBasedRetriever` \n `SemanticGuidedRetriever` | Rerank (and limit) results before returning them to the query engine. |
-
-| `StatementDiversityPostProcessor` | `TraversalBasedRetriever` \n `SemanticGuidedRetriever` | Removes similar statements from the results using TF-IDF similarity. |
+| `BGEReranker` | `TraversalBasedRetriever` or `SemanticGuidedRetriever` | Rerank (and limit) results before returning them to the query engine. Use only if you have a GPU device. |
+| `SentenceReranker` | `TraversalBasedRetriever` or `SemanticGuidedRetriever` | Rerank (and limit) results before returning them to the query engine. |
+| `StatementDiversityPostProcessor` | `TraversalBasedRetriever` or `SemanticGuidedRetriever` | Removes similar statements from the results using TF-IDF similarity. |
 | `EnrichSourceDetails` | `TraversalBasedRetriever` | Replace the `sourceId` in the results with a string composed from source metadata. |
 | `StatementEnhancementPostProcessor` | `SemanticGuidedRetriever` | Enrich each statement with addiitonal context from the chunk from which the statement was extracted. (Requires an LLM call per statement.) |
