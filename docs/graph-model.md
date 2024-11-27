@@ -2,6 +2,19 @@
 
 ## Graph Model
 
+### Topics
+
+  - [Overview](#overview)
+    - [Units of context](#units-of-context)
+  - [Lineage tier](#lineage-tier)
+  - [Entity-Relationship tier](#entity-relationship-tier)
+  - [Summarisation tier](#summarisation-tier)
+    - [Facts](#facts)
+    - [Statements](#statements)
+    - [Topics](#topics)
+
+### Overview
+
 The graphrag-toolkit uses a form of hierarchical [lexical graph](https://graphr.ag/reference/knowledge-graph/lexical-graph-hierarchical-structure/), auto-generated from unstructured sources, whose job is to help question-answering systems retrieve information which is *semantically dissimilar from the question*, but nonetheless *relevant to the answer*.
 
 The graph has three tiers:
