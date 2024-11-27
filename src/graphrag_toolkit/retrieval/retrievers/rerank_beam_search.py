@@ -11,18 +11,17 @@ from graphrag_toolkit.retrieval.utils.statement_utils import get_statements_quer
 from graphrag_toolkit.retrieval.retrievers.semantic_guided_base_retriever import SemanticGuidedBaseRetriever
 from graphrag_toolkit.retrieval.post_processors import RerankerMixin
 
-from llama_index.core.base.base_retriever import BaseRetriever
 from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 
 logger = logging.getLogger(__name__)
 
-class RerankBeamSearchRetriever(SemanticGuidedBaseRetriever):
+class RerankingBeamGraphSearch(SemanticGuidedBaseRetriever):
     def __init__(
         self,
         vector_store: VectorStore,
         graph_store: GraphStore,
         reranker: RerankerMixin,
-        initial_retrievers: Optional[List[Union[BaseRetriever, Type[BaseRetriever]]]] = None,
+        initial_retrievers: Optional[List[Union[SemanticGuidedBaseRetriever, Type[SemanticGuidedBaseRetriever]]]] = None,
         shared_nodes: Optional[List[NodeWithScore]] = None,
         max_depth: int = 3,
         beam_width: int = 10,

@@ -219,34 +219,148 @@ The `SemanticGuidedRetriever` returns one or more search results, each of which 
 </source_4>
 ```
 
+#### Configuring the SemanticGuidedRetriever
+
+The `SemanticGuidedRetriever` behaviour can be configured by copnfiguring individual subretrievers:
+
 | Retriever  | Parameter  | Description | Default Value |
 | ------------- | ------------- | ------------- | ------------- | 
 | `StatementCosineSimilaritySearch` | `top_k` | Number of statements to include in the results | `100` |
 | `KeywordRankingSearch` | `top_k` | Number of statements to include in the results | `100` |
 || `max_keywords` | The maximum number of keywords to extract from the query | `10` |
-| `SemanticBeamGraphSearch`<br> | `max_depth` | The maximum depth to follow promising candidates from the starting statements | `3` |
+| `SemanticBeamGraphSearch` | `max_depth` | The maximum depth to follow promising candidates from the starting statements | `3` |
 || `beam_width` | The number of most promising candidates to return for each statement that is expanded | `10` |
+| `RerankingBeamGraphSearch` | `max_depth` | The maximum depth to follow promising candidates from the starting statements | `3` |
+|| `beam_width` | The number of most promising candidates to return for each statement that is expanded | `10` |
+|| `reranker` | Reranker instance that will be used to rerank statements (see below) | `None` 
+|| `initial_retrievers` | List of retrievers used to see the starting statements (see below) | `None` |
 
-StatementCosineSimilaritySearch
+#### SemanticGuidedRetriever with a reranking beam search
 
-Gets top_k statements using cosine similarity of statement embeddings to query embedding.
+Instead of using a `SemanticBeamGraphSearch` with the `SemanticGuidedRetriever`, you can use a `RerankingBeamGraphSearch` instead. Instead of using cosine similarity to determine which candidate statements to pursue, the `RerankingBeamGraphSearch` uses a reranker.
 
-top_k Number of statements to include in the results
+You must initialize a `RerankingBeamGraphSearch` instance with a reranker. The toolkit includes two different rerankers: `BGEReranker`, and `SentenceReranker`. If you're running on a CPU device, we recommend using the `SentenceReranker`. If you're running on a GPU device, you can choose either the `BGEReranker` or `SentenceReranker`.
 
-KeywordRankingSearch
+The example below uses a `SentenceReranker` with a `RerankingBeamGraphSearch` to rerank statements while conducting the beam search:
 
-Gets top_k statements based on the number of matches to max_keywords keywords and synonyms extracted from the query. Statements with more keyword matches rank higher in the results.
+```
+from graphrag_toolkit import LexicalGraphQueryEngine
+from graphrag_toolkit.storage import GraphStoreFactory
+from graphrag_toolkit.storage import VectorStoreFactory
+from graphrag_toolkit.retrieval.retrievers import RerankingBeamGraphSearch, StatementCosineSimilaritySearch, KeywordRankingSearch
+from graphrag_toolkit.retrieval.post_processors import SentenceReranker
 
-top_k Number of statements to include in the results
-max_keywords The maximum number of keywords to extract from the query
+import nest_asyncio
+nest_asyncio.apply()
 
-SemanticBeamGraphSearch
+graph_store = GraphStoreFactory.for_graph_store(
+    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
+)
 
+vector_store = VectorStoreFactory.for_vector_store(
+    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
+)
 
-Statement-based search that finds a statement's neighbouring statements based on shared entities, and retains the most promising based on the cosine similarity of the candidate statements' embeddings to the query embedding. The search is seeded with statements from other retrievers (e.g. StatementCosineSimilaritySearch and/or KeywordRankingSearch), or from an initial vector similarity search against the statement index.
+cosine_retriever = StatementCosineSimilaritySearch(
+    vector_store=vector_store,
+    graph_store=graph_store,
+    top_k=50
+)
 
-max_depth The maximum depth to follow promising candidates from the starting statements
-beam_width The number of most promoising candidates to return for each statement that is expanded
+keyword_retriever = KeywordRankingSearch(
+    vector_store=vector_store,
+    graph_store=graph_store,
+    max_keywords=10
+)
 
+reranker = SentenceReranker(
+    batch_size=128
+)
 
+beam_retriever = RerankingBeamGraphSearch(
+    vector_store=vector_store,
+    graph_store=graph_store,
+    reranker=reranker,
+    initial_retrievers=[cosine_retriever, keyword_retriever],
+    max_depth=8,
+    beam_width=100
+)
+
+query_engine = LexicalGraphQueryEngine.for_semantic_guided_search(
+    graph_store, 
+    vector_store,
+    retrievers=[
+        cosine_retriever,
+        keyword_retriever,
+        beam_retriever
+    ]
+)
+
+response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
+
+print(response.response)
+```
+
+The example below uses a `BGEReranker` with a `RerankingBeamGraphSearch` to rerank statements while conducting the beam search.
+
+There will be a delay the first time this runs while the reranker downloads tensors. You can also run this example on a CPU device (comment out the `gpu_id=0` parameter when initializing the `BGEReranker`).
+
+```
+from graphrag_toolkit import LexicalGraphQueryEngine
+from graphrag_toolkit.storage import GraphStoreFactory
+from graphrag_toolkit.storage import VectorStoreFactory
+from graphrag_toolkit.retrieval.retrievers import RerankingBeamGraphSearch, StatementCosineSimilaritySearch, KeywordRankingSearch
+from graphrag_toolkit.retrieval.post_processors import BGEReranker
+
+import nest_asyncio
+nest_asyncio.apply()
+
+graph_store = GraphStoreFactory.for_graph_store(
+    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
+)
+
+vector_store = VectorStoreFactory.for_vector_store(
+    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
+)
+
+cosine_retriever = StatementCosineSimilaritySearch(
+    vector_store=vector_store,
+    graph_store=graph_store,
+    top_k=50
+)
+
+keyword_retriever = KeywordRankingSearch(
+    vector_store=vector_store,
+    graph_store=graph_store,
+    max_keywords=10
+)
+
+reranker = BGEReranker(
+    gpu_id=0, # Remove if running on CPU device,
+    batch_size=128
+)
+
+beam_retriever = RerankingBeamGraphSearch(
+    vector_store=vector_store,
+    graph_store=graph_store,
+    reranker=reranker,
+    initial_retrievers=[cosine_retriever, keyword_retriever],
+    max_depth=8,
+    beam_width=100
+)
+
+query_engine = LexicalGraphQueryEngine.for_semantic_guided_search(
+    graph_store, 
+    vector_store,
+    retrievers=[
+        cosine_retriever,
+        keyword_retriever,
+        beam_retriever
+    ]
+)
+
+response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
+
+print(response.response)
+```
 

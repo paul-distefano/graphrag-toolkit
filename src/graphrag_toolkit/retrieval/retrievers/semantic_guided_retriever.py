@@ -16,7 +16,7 @@ from graphrag_toolkit.retrieval.retrievers.semantic_guided_base_retriever import
 from graphrag_toolkit.retrieval.retrievers.keyword_ranking_search import KeywordRankingSearch
 from graphrag_toolkit.retrieval.retrievers.statement_cosine_seach import StatementCosineSimilaritySearch
 from graphrag_toolkit.retrieval.retrievers.semantic_beam_search import SemanticBeamGraphSearch
-from graphrag_toolkit.retrieval.retrievers.rerank_beam_search import RerankBeamSearchRetriever
+from graphrag_toolkit.retrieval.retrievers.rerank_beam_search import RerankingBeamGraphSearch
 from graphrag_toolkit.retrieval.utils.statement_utils import get_statements_query, SharedEmbeddingCache
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class SemanticGuidedRetriever(SemanticGuidedBaseRetriever):
                 if hasattr(instance, 'embedding_cache') and instance.embedding_cache is None:
                     instance.embedding_cache = self.shared_embedding_cache
                 
-                if isinstance(instance, (SemanticBeamGraphSearch, RerankBeamSearchRetriever)):
+                if isinstance(instance, (SemanticBeamGraphSearch, RerankingBeamGraphSearch)):
                     self.graph_retrievers.append(instance)
                 else:
                     self.initial_retrievers.append(instance)
