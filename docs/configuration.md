@@ -2,6 +2,18 @@
 
 ## Configuration
 
+### Topics
+
+  - [Overview](#overview)
+  - [GraphRAGConfig](#graphragconfig)
+    - [LLM configuration](#llm-configuration)
+    - [Embedding model configuration](#embedding-model-configuration)
+    - [Batch writes](#batch-writes)
+    - [Caching Amazon Bedrock LLM responses](#caching-amazon-bedrock-llm-responses)
+  - [Logging configuration](#logging-configuration)
+
+### Overview
+
 The graphrag-toolkit provides a `GraphRAGConfig` object that allows you to configure the LLMs and embedding models used by the indexing and retrieval processes, as well as the parallel and batch processing behaviours of the indexing pipelines. (The graphrag-toolkit doesn't use the LlamaINdex `Settings` object: attributes configured in `Settings` will have no impact in the graphrag-toolkit.)
 
 The graphrag-toolkit also allows you to set the logging level and apply logging filters from within your application.
