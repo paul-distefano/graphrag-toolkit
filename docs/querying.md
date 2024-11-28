@@ -385,8 +385,43 @@ There are a number of postprocessors you can use to further improve and format r
 
 | Postprocessor  | Use With  | Description |
 | ------------- | ------------- | ------------- |
-| `BGEReranker` | `TraversalBasedRetriever` or `SemanticGuidedRetriever` | Rerank (and limit) results before returning them to the query engine. Use only if you have a GPU device. |
-| `SentenceReranker` | `TraversalBasedRetriever` or `SemanticGuidedRetriever` | Rerank (and limit) results before returning them to the query engine. |
-| `StatementDiversityPostProcessor` | `TraversalBasedRetriever` or `SemanticGuidedRetriever` | Removes similar statements from the results using TF-IDF similarity. |
-| `EnrichSourceDetails` | `TraversalBasedRetriever` | Replace the `sourceId` in the results with a string composed from source metadata. |
-| `StatementEnhancementPostProcessor` | `SemanticGuidedRetriever` | Enrich each statement with addiitonal context from the chunk from which the statement was extracted. (Requires an LLM call per statement.) |
+| `BGEReranker` | `TraversalBasedRetriever` or `SemanticGuidedRetriever` | Reranks (and limits) results using the `BAAI/bge-reranker-v2-minicpm-layerwise` model before returning them to the query engine. Use only if you have a GPU device. |
+| `SentenceReranker` | `TraversalBasedRetriever` or `SemanticGuidedRetriever` | Reranks (and limits) results using the `mixedbread-ai/mxbai-rerank-xsmall-v1`. model before returning them to the query engine. |
+| `StatementDiversityPostProcessor` | `TraversalBasedRetriever` or `SemanticGuidedRetriever` | Removes similar statements from the results using TF-IDF similarity. Before running `StatementDiversityPostProcessor` for the first time, load the following package: `python -m spacy download en_core_web_sm` |
+| `EnrichSourceDetails` | `TraversalBasedRetriever` | Replaces the `sourceId` in the results with a string composed from source metadata. |
+| `StatementEnhancementPostProcessor` | `SemanticGuidedRetriever` | Enhances statements by using chunk context and an LLM to improve content while preserving original metadata. (Requires an LLM call per statement.) |
+
+The example below uses a `StatementDiversityPostProcessor`, `SentenceReranker` and `StatementEnhancementPostProcessor`. If you're running on a GPU device, you can replace the `SentenceReranker` with a `BGEReranker`.
+
+```
+from graphrag_toolkit import LexicalGraphQueryEngine
+from graphrag_toolkit.storage import GraphStoreFactory
+from graphrag_toolkit.storage import VectorStoreFactory
+from graphrag_toolkit.retrieval.post_processors import SentenceReranker, SentenceReranker, StatementDiversityPostProcessor, StatementEnhancementPostProcessor
+import os
+
+import nest_asyncio
+nest_asyncio.apply()
+
+graph_store = GraphStoreFactory.for_graph_store(
+    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
+)
+
+vector_store = VectorStoreFactory.for_vector_store(
+    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
+)
+
+query_engine = LexicalGraphQueryEngine.for_semantic_guided_search(
+    graph_store, 
+    vector_store,
+    post_processors=[
+        SentenceReranker(), 
+        StatementDiversityPostProcessor(), 
+        StatementEnhancementPostProcessor()
+    ]
+)
+
+response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
+
+print(response.response)
+```
