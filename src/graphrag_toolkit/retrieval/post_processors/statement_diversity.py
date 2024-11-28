@@ -27,8 +27,11 @@ class StatementDiversityPostProcessor(BaseNodePostprocessor):
     def __init__(self, similarity_threshold: float = 0.975):
         super().__init__()
         self.similarity_threshold = similarity_threshold
-        self.nlp = spacy.load("en_core_web_sm", disable=['ner', 'parser'])
-        self.nlp.add_pipe('sentencizer')
+        try:
+            self.nlp = spacy.load("en_core_web_sm", disable=['ner', 'parser'])
+            self.nlp.add_pipe('sentencizer')
+        except OSError:
+            raise OSError("Please install the spaCy model using: python -m spacy download en_core_web_sm")
 
     def preprocess_texts(self, texts: List[str]) -> List[str]:
         """Preprocess texts using optimized spaCy configuration."""

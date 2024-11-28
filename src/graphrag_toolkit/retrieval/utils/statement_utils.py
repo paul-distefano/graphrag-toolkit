@@ -2,30 +2,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import numpy as np
-from graphrag_toolkit.storage.graph_utils import node_result
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 import torch
-import logging
 import pynvml
-
 import threading
+import logging
 from typing import Dict, List
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+from graphrag_toolkit.storage.graph_utils import node_result
 
 logger = logging.getLogger(__name__)
-
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10), retry=retry_if_exception_type((Exception,)))
-def get_embeddings_with_retry(index, statement_ids):
-    return index.get_embeddings(statement_ids)
-
-def get_cached_embeddings(index, embedding_cache, statement_ids):
-    uncached_ids = [sid for sid in statement_ids if sid not in embedding_cache]
-    if uncached_ids:
-        try:
-            new_embeddings = get_embeddings_with_retry(index, uncached_ids)
-            embedding_cache.update({e['statement']['statementId']: np.array(e['embedding']) for e in new_embeddings})
-        except Exception as e:
-            logger.error(f"Failed to get embeddings after multiple attempts: {str(e)}")
-    return {sid: embedding_cache[sid] for sid in statement_ids if sid in embedding_cache}
 
 def cosine_similarity(query_embedding, statement_embeddings):
     if not statement_embeddings:
