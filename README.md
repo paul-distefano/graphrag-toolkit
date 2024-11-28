@@ -18,7 +18,7 @@ The graphrag-toolkit requires Python 3.10 or greater.
 
 ## Example of use
 
-### Constructing a graph
+### Indexing
 
 ```
 from graphrag_toolkit import LexicalGraphIndex
@@ -58,7 +58,7 @@ graph_index = LexicalGraphIndex(
 graph_index.extract_and_build(docs)
 ```
 
-### Querying the graph
+### Querying
 
 ```
 from graphrag_toolkit import LexicalGraphQueryEngine
