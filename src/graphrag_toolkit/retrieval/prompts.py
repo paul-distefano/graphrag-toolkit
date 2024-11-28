@@ -18,11 +18,13 @@ You are a question answering agent. I will provide you with a set of search resu
 Based on the search results, answer the following question as concisely as possible:
 """
 
+
 ANSWER_QUESTION_USER_PROMPT = """
 <question>
 {query}
 </question>
 """
+
 
 EXTENDED_EXTRACT_KEYWORDS_PROMPT = """
 You are an expert AI assistant specialising in entity extraction. Your task is to identify the most relevant keywords from a text supplied by the user, up to {max_keywords} in total.
@@ -48,6 +50,7 @@ Do not add any other explanatory text. Do not exceed {max_keywords} keywords.
 </text>
 """
 
+
 SIMPLE_EXTRACT_KEYWORDS_PROMPT = """
 You are an expert AI assistant specialising in entity extraction. Your task is to identify the most relevant keywords from a text supplied by the user, up to {max_keywords} in total. Preserve proper names and titles as-is, including determiners such as 'The'.
 
@@ -63,6 +66,7 @@ Do not add any other explanatory text. Do not exceed {max_keywords} keywords.
 </text>
 """
 
+
 IDENTIFY_MULTIPART_QUESTION_PROMPT = """
 Can the following question potentially be answered with details of a single entity? Answer YES if, in the simplest case, a single entity might suffice. Otherwise, answer NO.
 
@@ -73,6 +77,7 @@ Here is the question:
 Do not provide any other explanatory text.
 """
 
+
 EXTRACT_SUBQUERIES_PROMPT = """
 Decompose the following question into at most {max_subqueries} simpler, standalone questions - fewer, if possible. Each question must be self-contained, and MUST NOT depend on the answer to any of the other questions. Avoid generalized questions that do not preserve relevant details from the original question. If the original question cannot be broken down into anything simpler, simply respond with the original question:
 
@@ -82,7 +87,6 @@ Here is the question:
 
 Put the questions on separate lines. Do not provide any other explanatory text. Do not surround the output with tags.
 """
-
 
 
 EXTRACT_KEYWORDS_PROMPT = """
@@ -104,6 +108,7 @@ Do not add any other explanatory text. Do not exceed {max_keywords} keywords.
 </text>
 """
 
+
 EXTRACT_SYNONYMS_PROMPT = """
 Given some initial query, generate synonyms or related keywords up to {max_keywords} in total, considering possible cases of capitalization, pluralization, common expressions, etc.
 Provide all synonyms/keywords separated by '^' symbols: 'keyword1^keyword2^...'
@@ -114,63 +119,6 @@ QUERY: {text}\n
 KEYWORDS: 
 """
 
-PATH_SEARCH_PROMPT = """
-Given the following information: 
-        
-Query: {query}
-
-Current path: {current_path}
-
-Candidate sentences to continue the path:
-{candidates}
-
-Select the sentence that best continues the path and is most relevant to the query. 
-Respond with only the number of the best sentence.
-Answer:
-"""
-
-BEAM_SEARCH_PROMPT = """
-# Task: Rank the top {num_candidates} sentences based on their relevance to the query and their complementarity to the current sentences in the subgraph.
-
-# Query: {query}
-
-# Current Sentences in subgraph:
-{current_subgraph}
-
-# Candidate sentences to rank:
-{candidates}
-
-# Instructions:
-1. Analyze each candidate sentence for its relevance to the query and how well it complements the current sentences in the subgraph, without introducing significant redundancy or overlap.
-2. Rank the top {num_candidates} sentences from most relevant/useful and complementary to least.
-3. Provide ONLY a comma-separated list of numbers representing the ranking.
-4. Use the sentence numbers (1, 2, 3, etc.) in your ranking.
-5. Do not include any explanations or additional text.
-
-# Example output format: 3,1,4,2,5
-
-# Your ranking:
-"""
-
-RERANKER_PROMPT = """
-# Task: Rank the top {num_candidates} sentences based on their relevance to the query.
-
-# Query: {query}
-
-# Candidate sentences to rank:
-{candidates}
-
-# Instructions:
-1. Analyze each candidate sentence for its relevance to the query.
-2. Rank the top {num_candidates} sentences from most relevant to least.
-3. Provide ONLY a comma-separated list of numbers representing the ranking.
-4. Use the sentence numbers (1, 2, 3, etc.) in your ranking.
-5. Do not include any explanations or additional text.
-
-# Example output format: 3,1,4,2,5
-
-# Your ranking:
-"""
 
 ENHANCE_STATEMENT_SYSTEM_PROMPT = """
 # Instructions:

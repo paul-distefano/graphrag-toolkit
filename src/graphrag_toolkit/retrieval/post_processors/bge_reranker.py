@@ -6,7 +6,7 @@ import logging
 from typing import List, Optional, Any, Tuple
 
 from graphrag_toolkit.retrieval.post_processors.reranker_mixin import RerankerMixin
-
+from graphrag_toolkit.retrieval.utils.statement_utils import get_top_free_gpus
 from llama_index.core.bridge.pydantic import Field
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import NodeWithScore, QueryBundle
@@ -42,6 +42,11 @@ class BGEReranker(BaseNodePostprocessor, RerankerMixin):
         
         try:
             if torch.cuda.is_available() and gpu_id is not None:
+                self.device = torch.device(f'cuda:{gpu_id}')
+                torch.cuda.set_device(self.device)
+                torch.cuda.empty_cache()
+            elif torch.cuda.is_available():
+                gpu_id = get_top_free_gpus(n=1)[0]
                 self.device = torch.device(f'cuda:{gpu_id}')
                 torch.cuda.set_device(self.device)
                 torch.cuda.empty_cache()
