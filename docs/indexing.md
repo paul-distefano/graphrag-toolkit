@@ -32,11 +32,11 @@ The extraction stage is, by default, a three-step process:
   2. For each chunk, an LLM extracts a set of propositions from the unstructured content. This proposition extraction helps 'clean' the content and improve the subsequent entity/topic/statement/fact extraction by breaking complex sentences into simpler sentences, replacing pronouns with specific names, and replacing acronyms where possible. These propositions are added to the chunk's metadata under the `aws::graph::propositions` key.
   3. Following the proposition extraction, a second LLM call extracts entities, relations, topics, statements and facts from the set of extracted propositions. These details are added to the chunk's metadata under the `aws::graph::topics` key.
   
-Only the third step here is mandatory. If your source data has already been chunked (you're importing from an Amazon Bedrock Knowledge Base, for example), you can omit step 1. If you're willing to trade a reduction in LLM calls and improved performance for a reduction in the quality of the entity/topic/statement/fact extraction, you can omit step 2.
+Only the third step here is mandatory. If your source data has already been chunked, you can omit step 1. If you're willing to trade a reduction in LLM calls and improved performance for a reduction in the quality of the entity/topic/statement/fact extraction, you can omit step 2.
 
 Extraction uses a lightly guided strategy whereby the extraction process is seeded with a list of preferred entity classifications. The LLM is instructed to use an existing classification from the list before creating new ones. Any new classifications introduced by the LLM are then carried forward to subsequent invocations. This approach reduces but doesn't eliminate unwanted variations in entity classification.
 
-The list of `DEFAULT_ENTITY_CLASSIFICATIONS` used to seed the extraction process can be found [here](https://github.com/awslabs/graphrag-toolkit/blob/main/src/graphrag_toolkit/indexing/extract/constants.py). If these classifications are not appropriate to your worklaod you can replace them (see the [Configuring the extract and build stages](#configuring-the-extract-and-build-stages) and [Advanced graph construction](#advanced-graph-construction) sections below).
+The list of `DEFAULT_ENTITY_CLASSIFICATIONS` used to seed the extraction process can be found [here](https://github.com/awslabs/graphrag-toolkit/blob/main/src/graphrag_toolkit/indexing/constants.py). If these classifications are not appropriate to your workload you can replace them (see the [Configuring the extract and build stages](#configuring-the-extract-and-build-stages) and [Advanced graph construction](#advanced-graph-construction) sections below).
 
 Relationship values are currently unguided (though relatively concise).
 
@@ -95,7 +95,7 @@ graph_index.extract_and_build(docs)
 
 Using the `LexicalGraphIndex` you can perform the extract and build stages separately. This is useful if you want to extract the graph once, and then build it multiple times (in different environments, for example.)
 
-When you run the extract and build stages separately, you can persist the extracted chunks to the filesystem in at the end of the extract stage, and then consume these same chunks in the build stage. Use the graphrag_toolkit's `FileBasedChunks` class to persist and then retrieve JSON-serialized LlamaIndex nodes.
+When you run the extract and build stages separately, you can persist the extracted chunks to the filesystem at the end of the extract stage, and then consume these same chunks in the build stage. Use the graphrag-toolkit's `FileBasedChunks` class to persist and then retrieve JSON-serialized LlamaIndex nodes.
 
 The following example shows how to use a `FileBaseChunks` handler to persist extracted chunks to the filesystem at the end of the extract stage:
 
@@ -161,7 +161,7 @@ graph_index.build(file_based_chunks)
 
 #### Configuring the extract and build stages
 
-You can configure the number of workers and batch sizes for extarct and build stages of the `LexicalGraphIndex` using the `GraphRAGConfig` object. See [Configuration](./configuration.md) for more details on using the configuration object. 
+You can configure the number of workers and batch sizes for the extract and build stages of the `LexicalGraphIndex` using the `GraphRAGConfig` object. See [Configuration](./configuration.md) for more details on using the configuration object. 
 
 Besides configuring the workers and batch sizes, you can also configure the extraction process with regard to chunking, proposition extraction and entity classification by passing an instance of `ExtractionConfig` to the `LexicalGraphIndex` constructor:
 

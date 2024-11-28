@@ -85,15 +85,15 @@ When configuring an embedding model, you must also set the `embed_dimensions` co
 The graphrag-toolkit use microbatching to progress source data through the extract and build stages.
 
   - In the extract stage a batch of source nodes is processed in parallel by one or more workers, with each worker performing chunking, proposition extraction and topic/statement/fact/entity extraction over its allocated source nodes. For a given batch of source nodes, the extract stage emits a batch of chunks derived from those source nodes.
-  - In the build stage, a batch of chunks from the extract stage are broken down into smaller *indexable* nodes representing sources, chunks, topics, statements and facts. These indexable nodes are then processed by graph construction and vector indexing handlers.
+  - In the build stage, chunks from the extract stage are broken down into smaller *indexable* nodes representing sources, chunks, topics, statements and facts. These indexable nodes are then processed by the graph construction and vector indexing handlers.
 
 The `batch_writes_enabled` configuration parameter determines whether all of the indexable nodes derived from a batch of incoming chunks are written to the graph and vector stores singly, or as a bulk operation. Bulk/batch operations tend to improve the throughput of the build stage, at the expense of some additonal latency with regard to this data becoming available to query.
 
 #### Caching Amazon Bedrock LLM responses
 
-If you're using Amazon Bedrock, you can use the local filesystem to cache and reuse LLM responses. Set `enable_cache` to `True`. LLM responses will then be saved in clear text to a `cache` directory. Subsequent invocations of the same model with the exact same prompt will return the cached response.
+If you're using Amazon Bedrock, you can use the local filesystem to cache and reuse LLM responses. Set `GraphRAGoOnfig.enable_cache` to `True`. LLM responses will then be saved in clear text to a `cache` directory. Subsequent invocations of the same model with the exact same prompt will return the cached response.
 
-The `cache` directory can grow very large, particularly if you are caching extarction responses for a very large ingest. The graphrag-toolkit will not manage the size of this directory or delete old entries. If you enable the cache, ensure you clear or prune th ecache directory regularly.
+The `cache` directory can grow very large, particularly if you are caching extraction responses for a very large ingest. The graphrag-toolkit will not manage the size of this directory or delete old entries. If you enable the cache, ensure you clear or prune the cache directory regularly.
 
 ### Logging configuration
 
