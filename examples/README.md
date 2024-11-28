@@ -2,7 +2,7 @@
 
 ### Notebooks
 
-  - [**01-Combined Extract and Build**](./notebooks/01-Combined-Extract-and-Build.ipynb) – An example of [performing continuous ingest](https://github.com/awslabs/graphrag-toolkit/blob/main/docs/indexing.md#continous-ingest-using-extract_and_build) using the `LexicalGraphIndex.extract_and_build()` method.
+  - [**01-Combined Extract and Build**](./notebooks/01-Combined-Extract-and-Build.ipynb) – An example of [performing continuous ingest](https://github.com/awslabs/graphrag-toolkit/blob/main/docs/indexing.md#continous-ingest) using the `LexicalGraphIndex.extract_and_build()` method.
   - [**02-Separate Extract and Build**](./notebooks/02-Separate-Extract-and-Build.ipynb) – An example of [running the extract and build stages separately](https://github.com/awslabs/graphrag-toolkit/blob/main/docs/indexing.md#run-the-extract-and-build-stages-separately), with intermediate chunks persisted to the local filesystem using a `FileBasedChunks` object.
   - [**03-Advanced Construction**](./notebooks/03-Advanced-Construction.ipynb) – An example of [advanced graph construction](https://github.com/awslabs/graphrag-toolkit/blob/main/docs/indexing.md#advanced-graph-construction).
   - [**04-Querying**](./notebooks/04-Querying.ipynb) – Examples of [querying the graph](https://github.com/awslabs/graphrag-toolkit/blob/main/docs/querying.md) using the `LexicalGraphQueryEngine` with either the `TraversalBasedRetriever` or `SemanticGuidedRetriever`.
