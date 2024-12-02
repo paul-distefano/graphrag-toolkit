@@ -81,7 +81,8 @@ query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
     vector_store
 )
 
-response = query_engine.query("What are the differences between Neptune Database and Neptune Analytics?")
+response = query_engine.query('''What are the differences between Neptune Database 
+                                 and Neptune Analytics?''')
 
 print(response.response)
 ```
