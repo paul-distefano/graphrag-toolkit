@@ -170,7 +170,7 @@ class LexicalGraphIndex():
         )
 
         if handler:
-            nodes | extraction_pipeline | Pipe(handler) | build_pipeline | sink
+            nodes | extraction_pipeline | Pipe(handler.accept) | build_pipeline | sink
         else:
             nodes | extraction_pipeline | build_pipeline | sink
 
@@ -207,7 +207,7 @@ class LexicalGraphIndex():
             checkpoint=checkpoint
         )
 
-        sink_fn = sink if not handler else Pipe(handler)
+        sink_fn = sink if not handler else Pipe(handler.accept)
         nodes | build_pipeline | sink_fn
         
     def extract_and_build(
@@ -247,5 +247,5 @@ class LexicalGraphIndex():
             checkpoint=checkpoint
         )
 
-        sink_fn = sink if not handler else Pipe(handler)
+        sink_fn = sink if not handler else Pipe(handler.accept)
         nodes | extraction_pipeline | build_pipeline | sink_fn
