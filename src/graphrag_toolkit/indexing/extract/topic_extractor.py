@@ -6,7 +6,7 @@ import asyncio
 from typing import Tuple, List, Optional, Sequence, Dict
 
 from graphrag_toolkit.config import GraphRAGConfig
-from graphrag_toolkit.utils import LLMCache
+from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.indexing.utils.topic_utils import parse_extracted_topics, format_list, format_text
 from graphrag_toolkit.indexing.extract.scoped_value_provider import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.indexing.model import TopicCollection
@@ -49,7 +49,7 @@ class TopicExtractor(BaseExtractor):
         return 'TopicExtractor'
 
     def __init__(self, 
-                 llm=None,
+                 llm:LLMCacheType=None,
                  prompt_template=EXTRACT_TOPICS_PROMPT,
                  source_metadata_field=None,
                  num_workers=DEFAULT_NUM_WORKERS,
@@ -58,7 +58,7 @@ class TopicExtractor(BaseExtractor):
                  ):
                  
         super().__init__(
-            llm = LLMCache(
+            llm = llm if llm and isinstance(llm, LLMCache) else LLMCache(
                 llm=llm or GraphRAGConfig.extraction_llm,
                 enable_cache=GraphRAGConfig.enable_cache
             ),

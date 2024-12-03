@@ -9,7 +9,7 @@ from json2xml import json2xml
 from typing import Optional, List, Type, Union
 
 from graphrag_toolkit.config import GraphRAGConfig
-from graphrag_toolkit.utils import LLMCache
+from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.retrieval.prompts import ANSWER_QUESTION_SYSTEM_PROMPT, ANSWER_QUESTION_USER_PROMPT
 from graphrag_toolkit.retrieval.post_processors.enrich_source_details import EnrichSourceDetails, SourceInfoAccessorType
 from graphrag_toolkit.retrieval.post_processors.bedrock_context_format import BedrockContextFormat
@@ -112,7 +112,7 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
     def __init__(self, 
                  graph_store:GraphStoreType,
                  vector_store:VectorStoreType,
-                 llm=None,
+                 llm:LLMCacheType=None,
                  system_prompt:Optional[str]=ANSWER_QUESTION_SYSTEM_PROMPT,
                  user_prompt:Optional[str]=ANSWER_QUESTION_USER_PROMPT,
                  retriever:Optional[RetrieverType]=None,
@@ -125,7 +125,7 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
         
         self.context_format = kwargs.get('context_format', 'json')
         
-        self.llm = LLMCache(
+        self.llm = llm if llm and isinstance(llm, LLMCache) else LLMCache(
             llm=llm or GraphRAGConfig.response_llm,
             enable_cache=GraphRAGConfig.enable_cache
         )

@@ -4,9 +4,9 @@
 import logging
 import os
 from hashlib import sha256
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
-from graphrag_toolkit import LLMError
+from graphrag_toolkit import ModelError
 
 from llama_index.core.llms.llm import LLM
 from llama_index.core.bridge.pydantic import BaseModel, Field
@@ -38,7 +38,7 @@ class LLMCache(BaseModel):
             try:
                 response = self.llm.predict(prompt, **prompt_args)
             except Exception as e:
-                raise LLMError(f'{e!s} Model config: {self.llm.to_json()}') from e
+                raise ModelError(f'{e!s} Model config: {self.llm.to_json()}') from e
         else:
             
             cache_key = f'{self.llm.to_json()},{prompt.format(**prompt_args)}'
@@ -53,7 +53,7 @@ class LLMCache(BaseModel):
                 try:
                     response = self.llm.predict(prompt, **prompt_args)
                 except Exception as e:
-                    raise LLMError(f'{e!s} Model config: {self.llm.to_json()}') from e
+                    raise ModelError(f'{e!s} Model config: {self.llm.to_json()}') from e
                 os.makedirs(os.path.dirname(os.path.realpath(cache_file)), exist_ok=True)
                 with open(cache_file, 'w') as f:
                     f.write(response)
@@ -62,6 +62,8 @@ class LLMCache(BaseModel):
             logger.info('%s%s%s', c_green, response, c_norm)
             
         return response
+    
+LLMCacheType = Union[LLM, LLMCache]
     
 
 

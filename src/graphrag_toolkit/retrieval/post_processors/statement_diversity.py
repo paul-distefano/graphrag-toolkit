@@ -13,6 +13,8 @@ from typing import Optional
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+from graphrag_toolkit import ModelError
+
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import NodeWithScore, QueryBundle
 
@@ -31,7 +33,7 @@ class StatementDiversityPostProcessor(BaseNodePostprocessor):
             self.nlp = spacy.load("en_core_web_sm", disable=['ner', 'parser'])
             self.nlp.add_pipe('sentencizer')
         except OSError:
-            raise OSError("Please install the spaCy model using: python -m spacy download en_core_web_sm")
+            raise ModelError("Please install the spaCy model using: python -m spacy download en_core_web_sm")
 
     def preprocess_texts(self, texts: List[str]) -> List[str]:
         """Preprocess texts using optimized spaCy configuration."""

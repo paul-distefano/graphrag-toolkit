@@ -8,7 +8,7 @@ from typing import List
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.storage.graph_store import GraphStore
 from graphrag_toolkit.storage.graph_utils import node_result, search_string_from
-from graphrag_toolkit.utils import LLMCache
+from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.retrieval.model import ScoredEntity
 from graphrag_toolkit.retrieval.prompts import SIMPLE_EXTRACT_KEYWORDS_PROMPT, EXTENDED_EXTRACT_KEYWORDS_PROMPT
 
@@ -22,14 +22,14 @@ logger = logging.getLogger(__name__)
 class KeywordEntitySearch(BaseRetriever):
     def __init__(self,
                  graph_store:GraphStore,
-                 llm=None, 
+                 llm:LLMCacheType=None, 
                  simple_extract_keywords_template=SIMPLE_EXTRACT_KEYWORDS_PROMPT,
                  extended_extract_keywords_template=EXTENDED_EXTRACT_KEYWORDS_PROMPT,
                  max_keywords=10,
                  expand_entities=False):
         
         self.graph_store = graph_store
-        self.llm = LLMCache(
+        self.llm = llm if llm and isinstance(llm, LLMCache) else LLMCache(
             llm=llm or GraphRAGConfig.response_llm,
             enable_cache=GraphRAGConfig.enable_cache
         )

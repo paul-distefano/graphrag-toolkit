@@ -5,7 +5,7 @@ import logging
 import asyncio
 from typing import List, Optional, Sequence, Dict
 
-from graphrag_toolkit.utils import LLMCache
+from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.indexing.model import Propositions
 from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY
@@ -40,13 +40,13 @@ class LLMPropositionExtractor(BaseExtractor):
         return 'LLMPropositionExtractor'
 
     def __init__(self, 
-                 llm=None,
+                 llm:LLMCacheType=None,
                  prompt_template=EXTRACT_PROPOSITIONS_PROMPT,
                  source_metadata_field=None,
                  num_workers=DEFAULT_NUM_WORKERS):
                  
         super().__init__(
-            llm = LLMCache(
+            llm = llm if llm and isinstance(llm, LLMCache) else LLMCache(
                 llm=llm or GraphRAGConfig.extraction_llm,
                 enable_cache=GraphRAGConfig.enable_cache
             ),

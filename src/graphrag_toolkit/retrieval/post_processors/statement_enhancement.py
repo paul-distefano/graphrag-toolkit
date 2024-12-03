@@ -15,6 +15,7 @@ from llama_index.core.llms import LLM, ChatMessage, MessageRole
 from llama_index.core.async_utils import run_async_tasks
 
 from graphrag_toolkit import GraphRAGConfig
+from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.retrieval.prompts import ENHANCE_STATEMENT_SYSTEM_PROMPT, ENHANCE_STATEMENT_USER_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 class StatementEnhancementPostProcessor(BaseNodePostprocessor):
     """Enhances statements using chunk context while preserving original values."""
 
-    llm: Optional[LLM] = Field(default=None)
+    llm: Optional[LLMCache] = Field(default=None)
     max_concurrent: int = Field(default=10)
     system_prompt: str = Field(default=ENHANCE_STATEMENT_SYSTEM_PROMPT)
     user_prompt: str = Field(default=ENHANCE_STATEMENT_USER_PROMPT)
@@ -30,13 +31,16 @@ class StatementEnhancementPostProcessor(BaseNodePostprocessor):
 
     def __init__(
         self,
-        llm=None,
+        llm:LLMCacheType=None,
         system_prompt: str = ENHANCE_STATEMENT_SYSTEM_PROMPT,
         user_prompt: str = ENHANCE_STATEMENT_USER_PROMPT,
         max_concurrent: int = 10
     ) -> None:
         super().__init__()
-        self.llm = llm or GraphRAGConfig.response_llm
+        self.llm = llm if llm and isinstance(llm, LLMCache) else LLMCache(
+            llm=llm or GraphRAGConfig.response_llm,
+            enable_cache=GraphRAGConfig.enable_cache
+        )
         self.max_concurrent = max_concurrent
         self.system_prompt = system_prompt
         self.user_prompt = user_prompt

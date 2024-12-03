@@ -5,7 +5,7 @@ import logging
 from typing import List
 
 from graphrag_toolkit.config import GraphRAGConfig
-from graphrag_toolkit.utils import LLMCache
+from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.retrieval.prompts import EXTRACT_SUBQUERIES_PROMPT, IDENTIFY_MULTIPART_QUESTION_PROMPT
 
 from llama_index.core.prompts import PromptTemplate
@@ -17,11 +17,11 @@ SINGLE_QUESTION_THRESHOLD = 25
 
 class QueryDecomposition():
     def __init__(self,
-                 llm=None, 
+                 llm:LLMCacheType=None, 
                  identify_multipart_question_template=IDENTIFY_MULTIPART_QUESTION_PROMPT,
                  extract_subqueries_template=EXTRACT_SUBQUERIES_PROMPT,
                  max_subqueries=2):
-        self.llm = LLMCache(
+        self.llm = llm if llm and isinstance(llm, LLMCache) else LLMCache(
             llm=llm or GraphRAGConfig.response_llm,
             enable_cache=GraphRAGConfig.enable_cache
         )

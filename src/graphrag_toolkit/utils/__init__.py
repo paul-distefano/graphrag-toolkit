@@ -2,4 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from .fm_observability import FMObservabilityPublisher, ConsoleFMObservabilitySubscriber
-from .llm_cache import LLMCache
+from .llm_cache import LLMCache, LLMCacheType

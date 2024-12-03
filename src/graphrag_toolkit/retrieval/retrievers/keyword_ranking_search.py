@@ -6,6 +6,7 @@ import logging
 from typing import List, Dict, Set, Any, Optional, Tuple
 
 from graphrag_toolkit import GraphRAGConfig
+from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.storage import GraphStore
 from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.retrieval.utils.statement_utils import get_top_k, SharedEmbeddingCache
@@ -27,14 +28,17 @@ class KeywordRankingSearch(SemanticGuidedBaseRetriever):
         embedding_cache: Optional[SharedEmbeddingCache] = None,
         keywords_prompt: str = EXTRACT_KEYWORDS_PROMPT,
         synonyms_prompt: str = EXTRACT_SYNONYMS_PROMPT,
-        llm = None,
+        llm:LLMCacheType = None,
         max_keywords: int = 10,
         top_k: int = 100,
         **kwargs: Any,
     ) -> None:
         super().__init__(vector_store, graph_store, **kwargs)
         self.embedding_cache = embedding_cache
-        self.llm = llm or GraphRAGConfig.response_llm
+        self.llm = llm if llm and isinstance(llm, LLMCache) else LLMCache(
+            llm=llm or GraphRAGConfig.response_llm,
+            enable_cache=GraphRAGConfig.enable_cache
+        )
         self.max_keywords = max_keywords
         self.keywords_prompt = keywords_prompt
         self.synonyms_prompt = synonyms_prompt
