@@ -6,13 +6,14 @@ import abc
 
 from typing import Sequence, Any, List, Dict
 from llama_index.core.schema import QueryBundle, BaseNode
-from llama_index.core.embeddings.utils import EmbedType
-from llama_index.core.bridge.pydantic import BaseModel, validator
+from llama_index.core.bridge.pydantic import BaseModel, field_validator
+
+from graphrag_toolkit import EmbeddingType
 from graphrag_toolkit.storage.constants import EMBEDDING_INDEXES
 
 logger = logging.getLogger(__name__)
 
-def to_embedded_query(query_bundle:QueryBundle, embed_model:EmbedType) -> QueryBundle:
+def to_embedded_query(query_bundle:QueryBundle, embed_model:EmbeddingType) -> QueryBundle:
     if query_bundle.embedding:
         return query_bundle
     
@@ -26,7 +27,7 @@ def to_embedded_query(query_bundle:QueryBundle, embed_model:EmbedType) -> QueryB
 class VectorIndex(BaseModel):
     index_name: str
     
-    @validator('index_name')
+    @field_validator('index_name')
     def validate_option(cls, v):
         if v not in EMBEDDING_INDEXES:
             raise ValueError(f'Invalid index_name: must be one of {EMBEDDING_INDEXES}')

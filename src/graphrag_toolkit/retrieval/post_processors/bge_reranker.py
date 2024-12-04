@@ -4,6 +4,7 @@
 import torch
 import logging
 from typing import List, Optional, Any, Tuple
+from pydantic import ConfigDict, Field
 
 from graphrag_toolkit.retrieval.post_processors.reranker_mixin import RerankerMixin
 from graphrag_toolkit.retrieval.utils.statement_utils import get_top_free_gpus
@@ -15,6 +16,13 @@ logger = logging.getLogger(__name__)
 
 class BGEReranker(BaseNodePostprocessor, RerankerMixin):
     """Reranks statements using the BGE reranker model."""
+
+    model_config = ConfigDict(
+        protected_namespaces=(
+            'model_validate', 
+            'model_dump'
+        )
+    )
     
     model_name: str = Field(default='BAAI/bge-reranker-v2-minicpm-layerwise')
     gpu_id: Optional[int] = Field(default=None)

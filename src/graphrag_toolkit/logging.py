@@ -6,6 +6,10 @@ import logging
 import logging.config
 from typing import List, Dict, Optional
 
+EXCLUDED_WARNINGS = [
+    'Removing unpickleable private attribute'
+]
+
 class CustomFormatter(logging.Formatter):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -28,7 +32,6 @@ class ModuleFilter(logging.Filter):
         self.debug_exclude_modules = debug.get('exclude_modules', [])
         
     def filter(self, record):
-        
         if record.levelno == logging.INFO:
             name = record.name
             if any(name.startswith(x) for x in self.info_exclude_modules):
@@ -51,6 +54,10 @@ class ModuleFilter(logging.Filter):
             if '*' in self.debug_include_modules:
                 return True
             return False
+        elif record.levelno == logging.WARNING:
+            message = record.getMessage()
+            if any(message.startswith(x) for x in EXCLUDED_WARNINGS):
+                return False
         return True
 
 LOGGING = {
@@ -94,13 +101,6 @@ LOGGING = {
     },
     'loggers': {'': {'handlers': ['stdout'], 'level': 'INFO'}},
 }
-
-logging_level = os.environ.get('LOGGING_LEVEL', None)
-
-if logging_level:
-    LOGGING['loggers']['']['level'] = logging_level.upper()
-
-logging.config.dictConfig(LOGGING)
 
 def set_logging_config(logging_level:str, 
                        debug_include_modules:Optional[List[str]]=['graphrag_toolkit'],

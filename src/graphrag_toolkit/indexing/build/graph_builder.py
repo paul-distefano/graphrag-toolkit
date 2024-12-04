@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import abc
-import six
 import logging
 from typing import Dict
 from lru import LRU
@@ -13,7 +12,6 @@ from llama_index.core.schema import BaseComponent, BaseNode
 
 logger = logging.getLogger(__name__)
 
-@six.add_metaclass(abc.ABCMeta)
 class GraphBuilder(BaseComponent):
 
     def _to_params(self, p:Dict):

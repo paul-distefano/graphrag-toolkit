@@ -9,11 +9,11 @@ from typing import Optional, Union
 from llama_index.llms.bedrock import Bedrock
 from llama_index.embeddings.bedrock import BedrockEmbedding
 from llama_index.core.settings import Settings
-from llama_index.core.embeddings.utils import EmbedType
 from llama_index.core.llms import LLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 
 LLMType = Union[LLM, str]
+EmbeddingType = Union[BaseEmbedding, str]
 
 DEFAULT_EXTRACTION_MODEL = 'anthropic.claude-3-sonnet-20240229-v1:0'
 DEFAULT_RESPONSE_MODEL = 'anthropic.claude-3-sonnet-20240229-v1:0'
@@ -175,7 +175,7 @@ class _GraphRAGConfig:
         return self._embed_model
 
     @embed_model.setter
-    def embed_model(self, embed_model: EmbedType) -> None:
+    def embed_model(self, embed_model: EmbeddingType) -> None:
         if isinstance(embed_model, str):
             if _is_json_string(embed_model):
                 self._embed_model = BedrockEmbedding.from_json(embed_model) 

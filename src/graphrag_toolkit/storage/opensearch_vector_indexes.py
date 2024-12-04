@@ -4,29 +4,41 @@
 import boto3
 import json
 import logging
-from typing import List
+from typing import List, Any
+from dataclasses import dataclass
 
 from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.core.schema import BaseNode, NodeWithScore, QueryBundle
 from llama_index.core.async_utils import asyncio_run
 from llama_index.vector_stores.opensearch import OpensearchVectorClient
 from llama_index.core.vector_stores.types import  VectorStoreQueryResult, VectorStoreQueryMode
-from llama_index.core.embeddings.utils import EmbedType
 from llama_index.core.indices.utils import embed_nodes
 
 from opensearchpy.exceptions import NotFoundError, RequestError
 from opensearchpy import AWSV4SignerAsyncAuth, AsyncHttpConnection
-from opensearchpy import Urllib3AWSV4SignerAuth, OpenSearch, Urllib3HttpConnection
+from opensearchpy import Urllib3AWSV4SignerAuth, Urllib3HttpConnection
+from opensearchpy import OpenSearch, AsyncOpenSearch
 
-from graphrag_toolkit.config import GraphRAGConfig
+from graphrag_toolkit.config import GraphRAGConfig, EmbeddingType
 from graphrag_toolkit.storage.vector_index import VectorIndex, to_embedded_query
 from graphrag_toolkit.storage.constants import INDEX_KEY, EMBEDDING_INDEXES
 
 logger = logging.getLogger(__name__)
+
+def _get_opensearch_version(self) -> str:
+    #info = asyncio_run(self._os_async_client.info())
+    return '2.0.9'
+
+import llama_index.vector_stores.opensearch 
+llama_index.vector_stores.opensearch.OpensearchVectorClient._get_opensearch_version = _get_opensearch_version
+
+@dataclass
+class DummyAuth:
+    service:str
+
+
+def create_os_client(endpoint, **kwargs):
     
-
-def create_index_if_not_exists(endpoint, index_name, dimensions):
-
     session = boto3.Session()
     region = session.region_name
     credentials = session.get_credentials()
@@ -34,14 +46,43 @@ def create_index_if_not_exists(endpoint, index_name, dimensions):
         
     auth = Urllib3AWSV4SignerAuth(credentials, region, service)
 
-    client = OpenSearch(
+    return OpenSearch(
         hosts=[endpoint],
         http_auth=auth,
         use_ssl=True,
         verify_certs=True,
         connection_class=Urllib3HttpConnection,
-        pool_maxsize = 1
+        timeout=300,
+        max_retries=10,
+        retry_on_timeout=True,
+        **kwargs
     )
+
+def create_os_async_client(endpoint, **kwargs):
+    
+    session = boto3.Session()
+    region = session.region_name
+    credentials = session.get_credentials()
+    service = 'aoss'
+        
+    auth = AWSV4SignerAsyncAuth(credentials, region, service)
+
+    return AsyncOpenSearch(
+        hosts=[endpoint],
+        http_auth=auth,
+        use_ssl=True,
+        verify_certs=True,
+        connection_class=AsyncHttpConnection,
+        timeout=300,
+        max_retries=10,
+        retry_on_timeout=True,
+        **kwargs
+    )
+    
+
+def create_index_if_not_exists(endpoint, index_name, dimensions):
+
+    client = create_os_client(endpoint, pool_maxsize=1)
 
     embedding_field = 'embedding'
     method = {
@@ -75,17 +116,9 @@ def create_index_if_not_exists(endpoint, index_name, dimensions):
             logger.exception('Error creating an OpenSearch index')
     finally:
         client.close()
-
-
+        
     
 def create_opensearch_vector_client(endpoint, index_name, dimensions, embed_model):
-    
-    session = boto3.Session()
-    region = session.region_name
-    credentials = session.get_credentials()
-    service = 'aoss'
-        
-    auth = AWSV4SignerAsyncAuth(credentials, region, service)
         
     text_field = 'value'
     embedding_field = 'embedding'
@@ -101,14 +134,10 @@ def create_opensearch_vector_client(endpoint, index_name, dimensions, embed_mode
                 index_name, 
                 dimensions, 
                 embedding_field=embedding_field, 
-                text_field=text_field,  
-                use_ssl=True, 
-                verify_certs=True,
-                http_auth=auth,
-                connection_class=AsyncHttpConnection,
-                timeout=300,
-                max_retries=10,
-                retry_on_timeout=True,
+                text_field=text_field, 
+                os_client=create_os_client(endpoint),
+                os_async_client=create_os_async_client(endpoint),
+                http_auth=DummyAuth(service='aoss')
             )
         except NotFoundError as err:
             retry_count += 1
@@ -135,10 +164,10 @@ class OpenSearchIndex(VectorIndex):
     class Config:
         arbitrary_types_allowed = True
 
-    endpoint: str
-    index_name: str
+    endpoint:str
+    index_name:str
     dimensions:int
-    embed_model:EmbedType
+    embed_model:EmbeddingType
 
     _client: OpensearchVectorClient = PrivateAttr(default=None)
         
@@ -223,7 +252,7 @@ class OpenSearchIndex(VectorIndex):
                 docs.append(doc)
 
             if docs:
-                await self.client.index_results(docs)
+                await self.client.aindex_results(docs)
             
         asyncio_run(aadd_embeddings(nodes))
         
@@ -255,7 +284,7 @@ class OpenSearchIndex(VectorIndex):
 
     # opensearch has a limit of 10,000 results per search, so we use this to paginate the search
     async def paginated_search(self, query, page_size=10000, max_pages=None):
-        client = self.client._os_client
+        client = self.client._os_async_client
         search_after = None
         page = 0
         
