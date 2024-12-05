@@ -85,6 +85,44 @@
       "Default": "https://github.com/awslabs/graphrag-toolkit/releases/latest/download/graphrag-toolkit-examples.zip"
     }
   },
+	"Metadata": {
+		"AWS::CloudFormation::Interface": {
+			"ParameterGroups": [
+				{
+					"Label": {
+						"default": "Setup"
+					},
+					"Parameters": [
+						"ApplicationId"
+					]
+				},
+				{
+					"Label": {
+						"default": "Neptune"
+					},
+					"Parameters": [
+						"DbInstanceType",
+						"MinNCU",
+						"MaxNCU",
+            "IamAuthEnabled",
+            "DBClusterPort",
+            "NeptuneQueryTimeout",
+            "NeptuneEnableAuditLog"
+					]
+				},
+				{
+					"Label": {
+						"default": "Notebook"
+					},
+					"Parameters": [
+						"NotebookInstanceType",
+						"ExampleNotebooksURL",
+						"IamPolicyArn"
+					]
+				}
+			]
+		}
+	},
   "Conditions": {
     "ExampleNotebooksURLIsNotBlank": {
       "Fn::Not": [
