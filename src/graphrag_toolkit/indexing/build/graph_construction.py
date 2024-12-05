@@ -89,7 +89,7 @@ class GraphConstruction(NodeHandler):
 
         with GraphBatchClient(self.graph_client, batch_writes_enabled=batch_writes_enabled, batch_size=batch_size) as batch_client:
         
-            node_iterable = nodes if not self.show_progress else tqdm(nodes, desc='Building graph')
+            node_iterable = nodes if not self.show_progress else tqdm(nodes, desc=f'Building graph [batch_writes_enabled: {batch_writes_enabled}]')
 
             for node in node_iterable:
 

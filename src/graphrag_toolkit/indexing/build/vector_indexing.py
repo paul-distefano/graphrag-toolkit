@@ -49,7 +49,7 @@ class VectorIndexing(NodeHandler):
         
         with VectorBatchClient(vector_store=self.vector_store, batch_writes_enabled=batch_writes_enabled, batch_size=batch_size) as batch_client:
 
-            node_iterable = nodes if not self.show_progress else tqdm(nodes, desc='Building vector index')
+            node_iterable = nodes if not self.show_progress else tqdm(nodes, desc=f'Building vector index [batch_writes_enabled: {batch_writes_enabled}]')
 
             for node in node_iterable:
                 if [key for key in [INDEX_KEY] if key in node.metadata]:

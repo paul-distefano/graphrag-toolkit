@@ -38,7 +38,7 @@ class LLMCache(BaseModel):
             try:
                 response = self.llm.predict(prompt, **prompt_args)
             except Exception as e:
-                raise ModelError(f'{e!s} Model config: {self.llm.to_json()}') from e
+                raise ModelError(f'{e!s} [Model config: {self.llm.to_json()}]') from e
         else:
             
             cache_key = f'{self.llm.to_json()},{prompt.format(**prompt_args)}'
