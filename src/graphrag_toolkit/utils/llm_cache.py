@@ -7,6 +7,7 @@ from hashlib import sha256
 from typing import Optional, Any, Union
 
 from graphrag_toolkit import ModelError
+from graphrag_toolkit.utils.bedrock_utils import *
 
 from llama_index.core.llms.llm import LLM
 from llama_index.core.bridge.pydantic import BaseModel, Field
