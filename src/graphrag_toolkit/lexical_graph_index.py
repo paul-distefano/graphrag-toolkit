@@ -166,7 +166,9 @@ class LexicalGraphIndex():
                 NullBuilder()
             ],
             show_progress=show_progress,
-            checkpoint=checkpoint
+            checkpoint=checkpoint,
+            num_workers=1,
+            batch_size=5
         )
 
         if handler:
