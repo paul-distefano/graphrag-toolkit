@@ -22,6 +22,7 @@ DEFAULT_RERANKING_MODEL = 'mixedbread-ai/mxbai-rerank-xsmall-v1'
 DEFAULT_EMBEDDINGS_DIMENSIONS = 1024
 DEFAULT_EXTRACTION_NUM_WORKERS = 2
 DEFAULT_EXTRACTION_BATCH_SIZE = 4
+DEFAULT_EXTRACTION_NUM_THREADS_PER_WORKER = 4
 DEFAULT_BUILD_NUM_WORKERS = 2
 DEFAULT_BUILD_BATCH_SIZE = 25
 DEFAULT_BATCH_WRITES_ENABLED = True
@@ -49,6 +50,7 @@ class _GraphRAGConfig:
     _embed_dimensions: Optional[int] = None
     _reranking_model: Optional[str] = None
     _extraction_num_workers: Optional[int] = None
+    _extraction_num_threads_per_worker: Optional[int] = None
     _extraction_batch_size: Optional[int] = None
     _build_num_workers: Optional[int] = None
     _build_batch_size: Optional[int] = None
@@ -65,6 +67,17 @@ class _GraphRAGConfig:
     @extraction_num_workers.setter
     def extraction_num_workers(self, num_workers:int) -> None:
         self._extraction_num_workers = num_workers
+
+    @property
+    def extraction_num_threads_per_worker(self) -> int:
+        if self._extraction_num_threads_per_worker is None:
+            self.extraction_num_threads_per_worker = int(os.environ.get('EXTRACTION_NUM_THREADS_PER_WORKER', DEFAULT_EXTRACTION_NUM_THREADS_PER_WORKER)) 
+
+        return self._extraction_num_threads_per_worker
+
+    @extraction_num_threads_per_worker.setter
+    def extraction_num_threads_per_worker(self, num_threads:int) -> None:
+        self._extraction_num_threads_per_worker = num_threads
 
     @property
     def extraction_batch_size(self) -> int:

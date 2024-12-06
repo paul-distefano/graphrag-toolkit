@@ -15,7 +15,6 @@ from llama_index.core.schema import BaseNode
 from llama_index.core.bridge.pydantic import Field
 from llama_index.core.extractors.interface import BaseExtractor
 from llama_index.core.prompts import PromptTemplate
-from llama_index.core.async_utils import DEFAULT_NUM_WORKERS
 from llama_index.core.async_utils import run_jobs
 
 
@@ -43,7 +42,7 @@ class LLMPropositionExtractor(BaseExtractor):
                  llm:LLMCacheType=None,
                  prompt_template=EXTRACT_PROPOSITIONS_PROMPT,
                  source_metadata_field=None,
-                 num_workers=DEFAULT_NUM_WORKERS):
+                 num_workers:Optional[int]=None):
                  
         super().__init__(
             llm = llm if llm and isinstance(llm, LLMCache) else LLMCache(
@@ -52,7 +51,7 @@ class LLMPropositionExtractor(BaseExtractor):
             ),
             prompt_template=prompt_template, 
             source_metadata_field=source_metadata_field,
-            num_workers=num_workers
+            num_workers=num_workers or GraphRAGConfig.extraction_num_threads_per_worker
         )
 
     async def aextract(self, nodes: Sequence[BaseNode]) -> List[Dict]:

@@ -17,7 +17,6 @@ from llama_index.core.schema import BaseNode
 from llama_index.core.bridge.pydantic import Field
 from llama_index.core.extractors.interface import BaseExtractor
 from llama_index.core.prompts import PromptTemplate
-from llama_index.core.async_utils import DEFAULT_NUM_WORKERS
 from llama_index.core.async_utils import run_jobs
 
 logger = logging.getLogger(__name__)
@@ -52,7 +51,7 @@ class TopicExtractor(BaseExtractor):
                  llm:LLMCacheType=None,
                  prompt_template=EXTRACT_TOPICS_PROMPT,
                  source_metadata_field=None,
-                 num_workers=DEFAULT_NUM_WORKERS,
+                 num_workers:Optional[int]=None,
                  entity_classification_provider=None,
                  topic_provider=None
                  ):
@@ -64,7 +63,7 @@ class TopicExtractor(BaseExtractor):
             ),
             prompt_template=prompt_template, 
             source_metadata_field=source_metadata_field,
-            num_workers=num_workers,
+            num_workers=num_workers or GraphRAGConfig.extraction_num_threads_per_worker,
             entity_classification_provider=entity_classification_provider or FixedScopedValueProvider(scoped_values={DEFAULT_SCOPE: DEFAULT_ENTITY_CLASSIFICATIONS}),
             topic_provider=topic_provider or FixedScopedValueProvider(scoped_values={DEFAULT_SCOPE: []})
         )
