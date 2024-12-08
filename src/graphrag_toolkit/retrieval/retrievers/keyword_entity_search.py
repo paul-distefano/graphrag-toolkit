@@ -54,12 +54,11 @@ class KeywordEntitySearch(BaseRetriever):
             cypher = f"""
             // expand entities
             MATCH (entity:Entity)
-            -[:SUBJECT|OBJECT]->(:Fact)-[:SUPPORTS]->(:Statement)
-            <-[:SUPPORTS]-(:Fact)<-[:SUBJECT|OBJECT]-
-            (other:Entity)
+            -[:SUBJECT|OBJECT]->(:Fact)<-[:SUBJECT|OBJECT]-
+            (other:Entity)-[r:SUBJECT|OBJECT]->()
             WHERE  {self.graph_store.node_id('entity.entityId')} IN $entityIds
             AND NOT {self.graph_store.node_id('other.entityId')} IN $entityIds
-            WITH entity, other LIMIT $limit
+            WITH entity, other, count(r) AS score ORDER BY score DESC LIMIT $limit
             RETURN {{
                 {node_result('entity', self.graph_store.node_id('entity.entityId'), properties=['value', 'class'])},
                 others: collect(DISTINCT {self.graph_store.node_id('other.entityId')})
@@ -68,7 +67,7 @@ class KeywordEntitySearch(BaseRetriever):
 
             params = {
                 'entityIds': start_entity_ids,
-                'limit': limit
+                'limit': limit * len(start_entity_ids)
             }
         
             results = self.graph_store.execute_query(cypher, params)
