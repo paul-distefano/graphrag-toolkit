@@ -3,7 +3,7 @@
 
 from typing import List, Dict
 
-from llama_index.core.schema import BaseNode
+from llama_index.core.schema import BaseNode, TextNode
 
 from graphrag_toolkit.indexing.build.source_node_builder import SourceNodeBuilder
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
@@ -23,16 +23,15 @@ class ChunkNodeBuilder(NodeBuilder):
     def build_nodes(self, node:BaseNode, other_nodes:Dict[str, BaseNode]):
         
         chunk_id = node.node_id
-        
-        chunk_node = node.copy()
+        chunk_node = node.model_copy()
         
         topics = [topic['value'] for topic in node.metadata.get(TOPICS_KEY, {}).get('topics', [])]
 
         metadata = {
             'chunk': {
-                'chunkId': chunk_id,
-                'topics': topics
-            }  
+                'chunkId': chunk_id  
+            },
+            'topics': topics 
         }
 
         source_node = other_nodes.get(SourceNodeBuilder.name(), None)
@@ -44,10 +43,10 @@ class ChunkNodeBuilder(NodeBuilder):
             'index': 'chunk',
             'key': self._clean_id(chunk_id)
         }
-        
+
         chunk_node.metadata = metadata
-        chunk_node.excluded_embed_metadata_keys = [INDEX_KEY]
-        chunk_node.excluded_llm_metadata_keys = [INDEX_KEY]
+        chunk_node.excluded_embed_metadata_keys = [INDEX_KEY, 'chunk']
+        chunk_node.excluded_llm_metadata_keys = [INDEX_KEY, 'chunk']
         
         return [chunk_node]
     

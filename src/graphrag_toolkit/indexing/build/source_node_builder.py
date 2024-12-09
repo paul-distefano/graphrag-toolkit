@@ -49,7 +49,7 @@ class SourceNodeBuilder(NodeBuilder):
         }
         
         if source_info.metadata:
-            metadata['source']['metadata'] = source_info.metadata
+            metadata['metadata'] = source_info.metadata
             
         metadata[INDEX_KEY] = {
             'index': 'source',
@@ -59,8 +59,8 @@ class SourceNodeBuilder(NodeBuilder):
         return [TextNode(
             id_ = source_id,
             metadata = metadata,
-            excluded_embed_metadata_keys = [INDEX_KEY],
-            excluded_llm_metadata_keys = [INDEX_KEY]
+            excluded_embed_metadata_keys = [INDEX_KEY, 'source'],
+            excluded_llm_metadata_keys = [INDEX_KEY, 'source']
         )]
     
     def allow_emit_node(self, node:BaseNode) -> bool:

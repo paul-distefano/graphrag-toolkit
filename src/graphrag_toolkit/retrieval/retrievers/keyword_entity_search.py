@@ -89,10 +89,9 @@ class KeywordEntitySearch(BaseRetriever):
       
         cypher = f"""
         // expand entities: score entities by number of facts
-        MATCH (entity:Entity)-[:SUBJECT]->(f:Fact)
-        OPTIONAL MATCH (entity)-[r:RELATION]->(:Entity) 
+        MATCH (entity:Entity)-[r:SUBJECT]->(f:Fact)
         WHERE {self.graph_store.node_id('entity.entityId')} IN $entityIds
-        WITH entity, sum(r.count) AS score
+        WITH entity, count(r) AS score
         RETURN {{
             {node_result('entity', self.graph_store.node_id('entity.entityId'), properties=['value', 'class'])},
             score: score
@@ -108,7 +107,7 @@ class KeywordEntitySearch(BaseRetriever):
         neighbour_entities = [
             ScoredEntity.model_validate(result['result'])
             for result in results 
-            if result['result']['entity']['entityId'] not in original_entity_ids and result['result']['score'] <= upper_score_threshold   
+            if result['result']['entity']['entityId'] not in original_entity_ids and result['result']['score'] <= upper_score_threshold and result['result']['score'] > 0.0
         ]
         
         neighbour_entities.sort(key=lambda e:e.score, reverse=True)
@@ -135,10 +134,9 @@ class KeywordEntitySearch(BaseRetriever):
 
                 cypher = f"""
                 // get entities for keywords
-                MATCH (entity:Entity)
+                MATCH (entity:Entity)-[r:SUBJECT|OBJECT]->(:Fact)
                 WHERE entity.search_str = $keyword and entity.class STARTS WITH $classification
-                OPTIONAL MATCH (entity)-[r:RELATION]->(:Entity) 
-                WITH entity, sum(r.count) AS score ORDER BY score DESC
+                WITH entity, count(r) AS score ORDER BY score DESC
                 RETURN {{
                     {node_result('entity', self.graph_store.node_id('entity.entityId'), properties=['value', 'class'])},
                     score: score
@@ -151,10 +149,9 @@ class KeywordEntitySearch(BaseRetriever):
             else:
                 cypher = f"""
                 // get entities for keywords
-                MATCH (entity:Entity)
+                MATCH (entity:Entity)-[r:SUBJECT|OBJECT]->(:Fact)
                 WHERE entity.search_str = $keyword
-                OPTIONAL MATCH (entity)-[r:RELATION]->(:Entity) 
-                WITH entity, sum(r.count) AS score ORDER BY score DESC
+                WITH entity, count(r) AS score ORDER BY score DESC
                 RETURN {{
                     {node_result('entity', self.graph_store.node_id('entity.entityId'), properties=['value', 'class'])},
                     score: score

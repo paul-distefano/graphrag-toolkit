@@ -65,8 +65,8 @@ class TopicNodeBuilder(NodeBuilder):
                 topic_node = TextNode( # don't specify id here - each indexable topic node should be unique because topics can be associated with multiple chunks
                     text = topic.value,
                     metadata = topic_metadata,
-                    excluded_embed_metadata_keys = [INDEX_KEY],
-                    excluded_llm_metadata_keys = [INDEX_KEY]
+                    excluded_embed_metadata_keys = [INDEX_KEY, 'topic'],
+                    excluded_llm_metadata_keys = [INDEX_KEY, 'topic']
                 )
 
                 topic_node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
@@ -103,8 +103,8 @@ class TopicNodeBuilder(NodeBuilder):
                         id_ = statement_id,
                         text = f'{statement.value}\n\n{statement_details}' if statement_details else statement.value,
                         metadata = claim_metadata,
-                        excluded_embed_metadata_keys = [INDEX_KEY],
-                        excluded_llm_metadata_keys = [INDEX_KEY]
+                        excluded_embed_metadata_keys = [INDEX_KEY, 'statement'],
+                        excluded_llm_metadata_keys = [INDEX_KEY, 'statement']
                     )
 
                     statement_node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
@@ -158,8 +158,8 @@ class TopicNodeBuilder(NodeBuilder):
                         fact_node = TextNode( # don't specify id here - each indexable fact node should be unique because facts can be associated with multiple claims
                             text = fact_value,
                             metadata = fact_metadata,
-                            excluded_embed_metadata_keys = [INDEX_KEY],
-                            excluded_llm_metadata_keys = [INDEX_KEY]
+                            excluded_embed_metadata_keys = [INDEX_KEY, 'fact'],
+                            excluded_llm_metadata_keys = [INDEX_KEY, 'fact']
                         )
 
                         fact_node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
