@@ -47,7 +47,8 @@ class FactGraphBuilder(GraphBuilder):
             ])
 
             statements.extend([
-                f'MERGE (subject:Entity:{label_from(fact.subject.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.s_id}})',
+                #f'MERGE (subject:Entity:{label_from(fact.subject.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.s_id}})',
+                f'MERGE (subject:Entity{{{graph_client.node_id("entityId")}: params.s_id}})',
                 'ON CREATE SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc',
                 'ON MATCH SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc',
                 'MERGE (subject)-[:SUBJECT]->(fact)'
@@ -67,7 +68,8 @@ class FactGraphBuilder(GraphBuilder):
             if fact.object:
 
                 statements.extend([
-                    f'MERGE (object:Entity:{label_from(fact.object.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.o_id}})',
+                    #f'MERGE (object:Entity:{label_from(fact.object.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.o_id}})',
+                    f'MERGE (object:Entity{{{graph_client.node_id("entityId")}: params.o_id}})',
                     'ON CREATE SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc',
                     'ON MATCH SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc'    
                 ])

@@ -44,6 +44,8 @@ class KeywordEntitySearch(BaseRetriever):
         if not scored_entities or len(scored_entities) >= self.max_keywords:
             return scored_entities
         
+        upper_score_threshold = max(sc.score for sc in scored_entities) * 2
+        
         original_entity_ids = [entity.entity.entityId for entity in scored_entities if entity.score > 0]  
         neighbour_entity_ids = set()
         
@@ -55,9 +57,11 @@ class KeywordEntitySearch(BaseRetriever):
             // expand entities
             MATCH (entity:Entity)
             -[:SUBJECT|OBJECT]->(:Fact)<-[:SUBJECT|OBJECT]-
-            (other:Entity)-[r:SUBJECT|OBJECT]->()
+            (other:Entity)
             WHERE  {self.graph_store.node_id('entity.entityId')} IN $entityIds
             AND NOT {self.graph_store.node_id('other.entityId')} IN $entityIds
+            WITH entity, other
+            MATCH (other)-[r:SUBJECT|OBJECT]->()
             WITH entity, other, count(r) AS score ORDER BY score DESC LIMIT $limit
             RETURN {{
                 {node_result('entity', self.graph_store.node_id('entity.entityId'), properties=['value', 'class'])},
@@ -86,8 +90,9 @@ class KeywordEntitySearch(BaseRetriever):
         cypher = f"""
         // expand entities: score entities by number of facts
         MATCH (entity:Entity)-[:SUBJECT]->(f:Fact)
+        OPTIONAL MATCH (entity)-[r:RELATION]->(:Entity) 
         WHERE {self.graph_store.node_id('entity.entityId')} IN $entityIds
-        WITH entity, count(f) AS score
+        WITH entity, sum(r.count) AS score
         RETURN {{
             {node_result('entity', self.graph_store.node_id('entity.entityId'), properties=['value', 'class'])},
             score: score
@@ -103,12 +108,14 @@ class KeywordEntitySearch(BaseRetriever):
         neighbour_entities = [
             ScoredEntity.model_validate(result['result'])
             for result in results 
-            if result['result']['entity']['entityId'] not in original_entity_ids      
+            if result['result']['entity']['entityId'] not in original_entity_ids and result['result']['score'] <= upper_score_threshold   
         ]
         
         neighbour_entities.sort(key=lambda e:e.score, reverse=True)
 
-        scored_entities.extend(neighbour_entities[:5])        
+        num_addition_entities = self.max_keywords - len(scored_entities)
+
+        scored_entities.extend(neighbour_entities[:num_addition_entities])        
         scored_entities.sort(key=lambda e:e.score, reverse=True)
 
         logger.debug('Expanded entities:\n' + '\n'.join(
