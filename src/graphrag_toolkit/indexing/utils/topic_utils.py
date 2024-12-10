@@ -21,6 +21,9 @@ def clean(s):
     
 def format_value(s):
     return s.replace('_', ' ') if s else ''
+
+def format_classification(s):
+    return s.title() if s else ''
     
 def strip_full_stop(s):
     return s[:-1] if s and s.endswith('.') else s
@@ -92,7 +95,7 @@ def parse_extracted_topics(raw_text:str) -> Tuple[TopicCollection, List[str]]:
             if len(parts) == 2:
                 entity_raw_value = parts[0]
                 entity_clean_value = clean(entity_raw_value)
-                entity = Entity(value=entity_clean_value, classification=format_value(parts[1]))
+                entity = Entity(value=entity_clean_value, classification=format_classification(parts[1]))
                 if entity_clean_value not in current_entities:
                     current_entities[entity_clean_value] = entity
             else:
