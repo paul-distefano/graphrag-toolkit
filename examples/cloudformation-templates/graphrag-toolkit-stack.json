@@ -478,31 +478,6 @@
         "Path": "/"
       }
     },
-    "NeptuneAccessPolicy": {
-      "Type": "AWS::IAM::Policy",
-      "Properties": {
-        "PolicyName": "NeptuneAccessPolicy",
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Action": [
-                "rds:*",
-                "iam:GetAccountSummary",
-                "iam:ListAccountAliases",
-                "iam:PassRole"
-              ],
-              "Resource": "*"
-            }
-          ]
-        },
-        "Roles": [
-          {
-            "Ref": "GraphRAGClientRole"
-          }
-        ]
-      }
-    },
     "NeptuneIAMAuthPolicy": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
@@ -673,6 +648,7 @@
             "Ref": "MinNCU"
           }
         },
+        "StorageEncrypted": true,
         "Tags": [
           {
             "Key": "Name",
@@ -720,6 +696,7 @@
         "DBParameterGroupName": {
           "Ref": "NeptuneDBParameterGroup"
         },
+        "AutoMinorVersionUpgrade": true,
         "Tags": [
           {
             "Key": "Name",
