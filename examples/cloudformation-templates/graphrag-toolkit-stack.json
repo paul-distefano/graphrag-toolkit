@@ -622,12 +622,6 @@
         },
         "VpcSecurityGroupIds": [
           {
-            "Fn::GetAtt": [
-              "VPC",
-              "DefaultSecurityGroup"
-            ]
-          },
-          {
             "Ref": "GraphRAGSecurityGroup"
           }
         ],

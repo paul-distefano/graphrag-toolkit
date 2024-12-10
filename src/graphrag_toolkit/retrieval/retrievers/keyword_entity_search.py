@@ -49,7 +49,8 @@ class KeywordEntitySearch(BaseRetriever):
         original_entity_ids = [entity.entity.entityId for entity in scored_entities if entity.score > 0]  
         neighbour_entity_ids = set()
         
-        start_entity_ids = original_entity_ids.copy()     
+        start_entity_ids = set(original_entity_ids) 
+        exclude_entity_ids = set(start_entity_ids)
 
         for limit in range (3, 1, -1):
         
@@ -59,31 +60,33 @@ class KeywordEntitySearch(BaseRetriever):
             -[:SUBJECT|OBJECT]->(:Fact)<-[:SUBJECT|OBJECT]-
             (other:Entity)
             WHERE  {self.graph_store.node_id('entity.entityId')} IN $entityIds
-            AND NOT {self.graph_store.node_id('other.entityId')} IN $entityIds
+            AND NOT {self.graph_store.node_id('other.entityId')} IN $excludeEntityIds
             WITH entity, other
             MATCH (other)-[r:SUBJECT|OBJECT]->()
-            WITH entity, other, count(r) AS score ORDER BY score DESC LIMIT $limit
+            WITH entity, other, count(r) AS score ORDER BY score DESC
             RETURN {{
                 {node_result('entity', self.graph_store.node_id('entity.entityId'), properties=['value', 'class'])},
-                others: collect(DISTINCT {self.graph_store.node_id('other.entityId')})
+                others: collect(DISTINCT {self.graph_store.node_id('other.entityId')})[0..$limit]
             }} AS result    
             """
 
             params = {
-                'entityIds': start_entity_ids,
-                'limit': limit * len(start_entity_ids)
+                'entityIds': list(start_entity_ids),
+                'excludeEntityIds': list(exclude_entity_ids),
+                'limit': limit
             }
         
             results = self.graph_store.execute_query(cypher, params)
 
-            other_entity_ids = [
+            other_entity_ids = set([
                 other_id
                 for result in results
                 for other_id in result['result']['others'] 
-            ]
+            ])
             
-            neighbour_entity_ids.update(set(other_entity_ids))
-            
+            neighbour_entity_ids.update(other_entity_ids)
+
+            exclude_entity_ids.update(other_entity_ids)
             start_entity_ids = other_entity_ids
             
       
