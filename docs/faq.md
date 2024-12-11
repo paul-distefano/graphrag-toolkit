@@ -53,3 +53,25 @@ if __name__ == '__main__':
     run_extract_and_build()
 ```
 
+#### ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation
+
+If the AWS Identity and Access Management (IAM) identity under which your application is running does not have permission to invoke an Amazon Bedrock foundation model, you will get an error similar to the following:
+
+```
+graphrag_toolkit.errors.ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: <identity> is not authorized to perform: bedrock:InvokeModel on resource: arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0 because no identity-based policy allows the bedrock:InvokeModel action [Model config: {"system_prompt": null, "pydantic_program_mode": "default", "model": "anthropic.claude-3-5-haiku-20241022-v1:0", "temperature": 0.0, "max_tokens": 4096, "context_size": 200000, "profile_name": null, "max_retries": 10, "timeout": 60.0, "additional_kwargs": {}, "class_name": "Bedrock_LLM"}]
+```
+
+To fix, ensure you have [enabled access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) to the appropriate foundation models in Amazon Bedrock, and then update the IAM policy associated with the identity:
+
+```
+{
+    "Effect": "Allow",
+    "Action": [
+        "bedrock:InvokeModel"
+    ],
+    "Resource": [
+        "arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0"
+    ]
+}
+```
+
