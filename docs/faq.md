@@ -6,7 +6,7 @@
     - [RuntimeError: Please use nest_asyncio.apply() to allow nested event loops](#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops)
     - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: \<identity\> is not authorized to perform: bedrock:InvokeModel](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation-identity-is-not-authorized-to-perform-bedrockinvokemodel)
     - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: You don't have access to the model with the specified model ID](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation-you-dont-have-access-to-the-model-with-the-specified-model-id)
-    - [WARNING:graph_store:Retrying query in x seconds because it raised ConcurrentModificationException]
+    - [WARNING:graph_store:Retrying query in x seconds because it raised ConcurrentModificationException](#warninggraph_storeretrying-query-in-x-seconds-because-it-raised-concurrentmodificationexception)
 
 ### Errors and warnings
 
@@ -99,6 +99,6 @@ To fix,  [enable access](https://docs.aws.amazon.com/bedrock/latest/userguide/mo
 
 #### WARNING:graph_store:Retrying query in x seconds because it raised ConcurrentModificationException
 
-While indexing data in Amazon Neptune Database, Neptune can sometimes issue a `ConcurrentModificationException`. This occurs because multiple workers are attempting to [update the same set of vertices](https://docs.aws.amazon.com/neptune/latest/userguide/transactions-exceptions.html). The GraphRAG Toolkit automatically retries transactionsb that are cancelled because of a `ConcurrentModificationException`.
+While indexing data in Amazon Neptune Database, Neptune can sometimes issue a `ConcurrentModificationException`. This occurs because multiple workers are attempting to [update the same set of vertices](https://docs.aws.amazon.com/neptune/latest/userguide/transactions-exceptions.html). The GraphRAG Toolkit automatically retries transactionsb that are cancelled because of a `ConcurrentModificationException`. If the maximum number of retries is exceeded and the indexing fails, consider reducing the number of workers in the build stage using [`GraphRAGConfig.build_num_workers`](./configuration.md#graphragconfig).
 
 ---
