@@ -24,6 +24,10 @@ You can run the extract and build pipelines together, to provide for the continu
 
 The `LexicalGraphIndex` is a convenience class that allows you to run the extract and build pipelines together or separately. Alternatively, you can build your graph construction application using the underlying pipelines. This gives you more control over the configuration of each stage. We describe these two different approaches in the [Using the LexicalGraphIndex to construct a graph](#using-the-lexicalgraphindex-to-construct-a-graph) and [Advanced graph construction](#advanced-graph-construction) sections below.
 
+#### Code examples
+
+The code examples here are formatted to run in a Jupyter notebook. If you’re building an application with a main entry point, put your application logic inside a method, and add an [`if name == 'main' block`](./faq.md#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops).
+
 #### Extract
 
 The extraction stage is, by default, a three-step process: 
