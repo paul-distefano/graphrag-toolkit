@@ -4,7 +4,7 @@
 
   - [Errors and warnings](#errors-and-warnings)
     - [RuntimeError: Please use nest_asyncio.apply() to allow nested event loops](#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops)
-    - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: <<identity>> is not authorized to perform: bedrock:InvokeModel](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation--is-not-authorized-to-perform-bedrockinvokemodel)
+    - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: \<identity\> is not authorized to perform: bedrock:InvokeModel](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation--is-not-authorized-to-perform-bedrockinvokemodel)
     - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: You don't have access to the model with the specified model ID](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation-you-dont-have-access-to-the-model-with-the-specified-model-id)
 
 ### Errors and warnings
