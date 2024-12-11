@@ -181,8 +181,11 @@ class OpenSearchIndex(VectorIndex):
                 self.embed_model
             )
         return self._client
+    
+    def __del__(self):
+        if self._client:
+            asyncio_run(self._client._os_async_client.close())
         
-              
     def _clean_id(self, s):
         return ''.join(c for c in s if c.isalnum())
     
