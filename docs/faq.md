@@ -2,6 +2,10 @@
 
 ## FAQ
 
+  - [Errors and warnings](#errors-and-warnings)
+    - [RuntimeError: Please use nest_asyncio.apply() to allow nested event loops](#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops)
+    - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation)
+
 ### Errors and warnings
 
 #### RuntimeError: Please use nest_asyncio.apply() to allow nested event loops
