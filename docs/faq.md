@@ -6,6 +6,7 @@
     - [RuntimeError: Please use nest_asyncio.apply() to allow nested event loops](#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops)
     - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: \<identity\> is not authorized to perform: bedrock:InvokeModel](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation-identity-is-not-authorized-to-perform-bedrockinvokemodel)
     - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: You don't have access to the model with the specified model ID](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation-you-dont-have-access-to-the-model-with-the-specified-model-id)
+    - [WARNING:graph_store:Retrying query in x seconds because it raised ConcurrentModificationException]
 
 ### Errors and warnings
 
@@ -93,5 +94,11 @@ graphrag_toolkit.errors.ModelError: An error occurred (AccessDeniedException) wh
 ```
 
 To fix,  [enable access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) to the appropriate foundation models in Amazon Bedrock, and then [grant IAM permissions to the model](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation-identity-is-not-authorized-to-perform-bedrockinvokemodel).
+
+---
+
+#### WARNING:graph_store:Retrying query in x seconds because it raised ConcurrentModificationException
+
+While indexing data in Amazon Neptune Database, Neptune can sometimes issue a `ConcurrentModificationException`. This occurs because multiple workers are attempting to [update the same set of vertices](https://docs.aws.amazon.com/neptune/latest/userguide/transactions-exceptions.html). The GraphRAG Toolkit automatically retries transactionsb that are cancelled because of a `ConcurrentModificationException`.
 
 ---
