@@ -4,8 +4,8 @@
 
   - [Errors and warnings](#errors-and-warnings)
     - [RuntimeError: Please use nest_asyncio.apply() to allow nested event loops](#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops)
-    - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation)
-    - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: You don't have access to the model with the specified model ID](#)
+    - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: <identity> is not authorized to perform: bedrock:InvokeModel](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation--is-not-authorized-to-perform-bedrockinvokemodel)
+    - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: You don't have access to the model with the specified model ID](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation-you-dont-have-access-to-the-model-with-the-specified-model-id)
 
 ### Errors and warnings
 
@@ -88,6 +88,6 @@ Access to Amazon Bedrock foundation models isn't granted by default. If you have
 graphrag_toolkit.errors.ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: You don't have access to the model with the specified model ID. [Model config: {"system_prompt": null, "pydantic_program_mode":"default", "model": "anthropic.claude-3-5-sonnet-20241022-v2:0", "temperature": 0.0, "max_tokens": 4096, "context_size": 200000, "profile_name": null, "max_retries": 10, "timeout": 60.0, "additional_kwargs": {}, "class_name": "Bedrock_LLM"}]
 ```
 
-To fix,  [enable access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) to the appropriate foundation models in Amazon Bedrock, and then grant IAM permissions to the model.
+To fix,  [enable access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) to the appropriate foundation models in Amazon Bedrock, and then [grant IAM permissions to the model](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation--is-not-authorized-to-perform-bedrockinvokemodel).
 
 
