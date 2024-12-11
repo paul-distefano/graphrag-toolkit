@@ -5,6 +5,7 @@
   - [Errors and warnings](#errors-and-warnings)
     - [RuntimeError: Please use nest_asyncio.apply() to allow nested event loops](#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops)
     - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation)
+    - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: You don't have access to the model with the specified model ID](#)
 
 ### Errors and warnings
 
@@ -57,7 +58,7 @@ if __name__ == '__main__':
     run_extract_and_build()
 ```
 
-#### ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation
+#### ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: <identity> is not authorized to perform: bedrock:InvokeModel
 
 If the AWS Identity and Access Management (IAM) identity under which your application is running does not have permission to invoke an Amazon Bedrock foundation model, you will get an error similar to the following:
 
@@ -78,4 +79,15 @@ To fix, ensure you have [enabled access](https://docs.aws.amazon.com/bedrock/lat
     ]
 }
 ```
+
+#### ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: You don't have access to the model with the specified model ID
+
+Access to Amazon Bedrock foundation models isn't granted by default. If you have not enabled access to a foundation model, you will get an error similar to the following:
+
+```
+graphrag_toolkit.errors.ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: You don't have access to the model with the specified model ID. [Model config: {"system_prompt": null, "pydantic_program_mode":"default", "model": "anthropic.claude-3-5-sonnet-20241022-v2:0", "temperature": 0.0, "max_tokens": 4096, "context_size": 200000, "profile_name": null, "max_retries": 10, "timeout": 60.0, "additional_kwargs": {}, "class_name": "Bedrock_LLM"}]
+```
+
+To fix,  [enable access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) to the appropriate foundation models in Amazon Bedrock, and then grant IAM permissions to the model.
+
 
