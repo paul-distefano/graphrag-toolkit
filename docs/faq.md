@@ -58,7 +58,7 @@ if __name__ == '__main__':
     run_extract_and_build()
 ```
 
-#### ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: <<identity>> is not authorized to perform: bedrock:InvokeModel
+#### ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: \<identity\> is not authorized to perform: bedrock:InvokeModel
 
 If the AWS Identity and Access Management (IAM) identity under which your application is running does not have permission to invoke an Amazon Bedrock foundation model, you will get an error similar to the following:
 
