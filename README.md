@@ -108,7 +108,7 @@ if __name__ == '__main__':
   - [Querying](./docs/querying.md) 
   - [Configuration](./docs/configuration.md) 
   - [Graph Model](./docs/graph-model.md)
-  - [FAQ](./faq.md)
+  - [FAQ](./docs/faq.md)
 
 
 ## Security
