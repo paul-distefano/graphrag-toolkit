@@ -25,6 +25,10 @@ The `SemanticGuidedRetriever` uses a *statement* vector index, whereas the `Trav
 
 In the current release the output formats of the two retrievers are different. Future releases of the graphrag-toolkit will seek to align the outputs.
 
+#### Code examples
+
+The code examples here are formatted to run in a Jupyter notebook. If you’re building an application with a main entry point, put your application logic inside a method, and add an [`if name == 'main' block`](./faq.md#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops).
+
 ### TraversalBasedRetriever
 
 The following example uses a `TraversalBasedRetriever` with all its default settings to query the graph:

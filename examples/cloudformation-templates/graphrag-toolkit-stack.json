@@ -535,7 +535,7 @@
         "Name": {
           "Fn::Sub": "neptune-cluster-params-${ApplicationId}"
         },
-        "Family": "neptune1.3",
+        "Family": "neptune1.4",
         "Description": "Neptune cluster parameter group",
         "Parameters": {
           "neptune_enable_audit_log": {
@@ -576,7 +576,7 @@
         "Name": {
           "Fn::Sub": "neptune-params-${ApplicationId}"
         },
-        "Family": "neptune1.3",
+        "Family": "neptune1.4",
         "Description": "Neptune parameter group",
         "Parameters": {
           "neptune_query_timeout": {
@@ -617,6 +617,7 @@
         "DBClusterIdentifier": {
           "Fn::Sub": "${ApplicationId}-cluster"
         },
+        "EngineVersion": "1.4.1.0",
         "DBSubnetGroupName": {
           "Ref": "NeptuneDBSubnetGroup"
         },
