@@ -5,3 +5,4 @@
   - [Querying](./querying.md) 
   - [Configuration](./configuration.md) 
   - [Graph Model](./graph-model.md)
+  - [FAQ](./faq.md)

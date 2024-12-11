@@ -23,6 +23,8 @@ The graphrag-toolkit requires Python 3.10 or greater.
 ### Indexing
 
 ```
+import os
+
 from graphrag_toolkit import LexicalGraphIndex
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
@@ -32,32 +34,37 @@ from llama_index.readers.web import SimpleWebPageReader
 import nest_asyncio
 nest_asyncio.apply()
 
-doc_urls = [
-    'https://docs.aws.amazon.com/neptune/latest/userguide/intro.html',
-    'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html',
-    'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-features.html',
-    'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-vs-neptune-database.html'
-]
+def run_extract_and_build()
 
-docs = SimpleWebPageReader(
-    html_to_text=True,
-    metadata_fn=lambda url:{'url': url}
-).load_data(doc_urls)
+    graph_store = GraphStoreFactory.for_graph_store(
+        'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
+    )
+    
+    vector_store = VectorStoreFactory.for_vector_store(
+        'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
+    )
 
-graph_store = GraphStoreFactory.for_graph_store(
-    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
-)
+    graph_index = LexicalGraphIndex(
+        graph_store, 
+        vector_store
+    )
 
-vector_store = VectorStoreFactory.for_vector_store(
-    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
-)
+    doc_urls = [
+        'https://docs.aws.amazon.com/neptune/latest/userguide/intro.html',
+        'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html',
+        'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-features.html',
+        'https://docs.aws.amazon.com/neptune-analytics/latest/userguide/neptune-analytics-vs-neptune-database.html'
+    ]
 
-graph_index = LexicalGraphIndex(
-    graph_store, 
-    vector_store
-)
+    docs = SimpleWebPageReader(
+        html_to_text=True,
+        metadata_fn=lambda url:{'url': url}
+    ).load_data(doc_urls)
 
-graph_index.extract_and_build(docs)
+    graph_index.extract_and_build(docs, show_progress=True)
+
+if __name__ == '__main__':
+    run_extract_and_build()
 ```
 
 ### Querying
@@ -70,23 +77,28 @@ from graphrag_toolkit.storage import VectorStoreFactory
 import nest_asyncio
 nest_asyncio.apply()
 
-graph_store = GraphStoreFactory.for_graph_store(
-    'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
-)
+def run_query():
 
-vector_store = VectorStoreFactory.for_vector_store(
-    'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
-)
-
-query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
-    graph_store, 
-    vector_store
-)
-
-response = query_engine.query('''What are the differences between Neptune Database 
-                                 and Neptune Analytics?''')
-
-print(response.response)
+  graph_store = GraphStoreFactory.for_graph_store(
+      'neptune-db://my-graph.cluster-abcdefghijkl.us-east-1.neptune.amazonaws.com'
+  )
+  
+  vector_store = VectorStoreFactory.for_vector_store(
+      'aoss://https://abcdefghijkl.us-east-1.aoss.amazonaws.com'
+  )
+  
+  query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
+      graph_store, 
+      vector_store
+  )
+  
+  response = query_engine.query('''What are the differences between Neptune Database 
+                                   and Neptune Analytics?''')
+  
+  print(response.response)
+  
+if __name__ == '__main__':
+    run_query()
 ```
 
 ## Documentation
@@ -96,6 +108,7 @@ print(response.response)
   - [Querying](./docs/querying.md) 
   - [Configuration](./docs/configuration.md) 
   - [Graph Model](./docs/graph-model.md)
+  - [FAQ](./faq.md)
 
 
 ## Security
