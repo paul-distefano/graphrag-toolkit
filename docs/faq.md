@@ -4,7 +4,7 @@
 
   - [Errors and warnings](#errors-and-warnings)
     - [RuntimeError: Please use nest_asyncio.apply() to allow nested event loops](#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops)
-    - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: __identity__ is not authorized to perform: bedrock:InvokeModel](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation--is-not-authorized-to-perform-bedrockinvokemodel)
+    - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: <<identity>> is not authorized to perform: bedrock:InvokeModel](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation--is-not-authorized-to-perform-bedrockinvokemodel)
     - [ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: You don't have access to the model with the specified model ID](#modelerror-an-error-occurred-accessdeniedexception-when-calling-the-invokemodel-operation-you-dont-have-access-to-the-model-with-the-specified-model-id)
 
 ### Errors and warnings
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     run_extract_and_build()
 ```
 
-#### ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: __identity__ is not authorized to perform: bedrock:InvokeModel
+#### ModelError: An error occurred (AccessDeniedException) when calling the InvokeModel operation: <<identity>> is not authorized to perform: bedrock:InvokeModel
 
 If the AWS Identity and Access Management (IAM) identity under which your application is running does not have permission to invoke an Amazon Bedrock foundation model, you will get an error similar to the following:
 
