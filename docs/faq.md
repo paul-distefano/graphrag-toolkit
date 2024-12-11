@@ -6,7 +6,7 @@
 
 #### RuntimeError: Please use nest_asyncio.apply() to allow nested event loops
 
-`nest_asyncio.apply()` provides a convenient solution to enable nested event loops and make it easier to handle complex asynchronous programming situations in Python. All of the code examples in the documentation include `nest_asyncio.apply()`. However, the examples are formatted to be run in a Jupyter notebook. If you’re building an application with a main entry point, you may encounter this runtime error. To fix, put your application logic inside a method, and add an if name == 'main' block:
+`nest_asyncio.apply()` provides a convenient solution to enable nested event loops and make it easier to handle complex asynchronous programming situations in Python. All of the code examples in the documentation include `nest_asyncio.apply()`. However, the examples are formatted to be run in a Jupyter notebook. If you’re building an application with a main entry point, you may encounter this runtime error. To fix, put your application logic inside a method, and add an `if name == 'main' block`:
 
 ```
 import os
