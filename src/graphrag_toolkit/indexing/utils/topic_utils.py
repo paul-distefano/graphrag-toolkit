@@ -70,7 +70,7 @@ def parse_extracted_topics(raw_text:str) -> Tuple[TopicCollection, List[str]]:
                 
             continue
             
-        if line.startswith('claim:'):
+        if line.startswith('proposition:'):
 
             if current_statement and (current_statement.details or current_statement.facts):
                 current_topic.statements.append(current_statement)

@@ -45,16 +45,20 @@ Do not provide any other explanatory text. Ensure you have captured all of the d
 
 EXTRACT_TOPICS_PROMPT = """
 You are a top-tier algorithm designed for extracting information in structured formats to build a knowledge graph.
-Try to capture as much information from the text as possible without sacrificing accuracy. Do not add any information that is not explicitly mentioned in the text.
-Your task is to extract structured information from a given text and represent it in a knowledge graph format. The knowledge graph should capture all relevant entities, their attributes, and relationships between entities present in the text.
+Your input consists of carefully crafted propositions - simple, atomic, and decontextualized statements. Your task is to:
+   1. Organize these propositions into topics
+   2. Extract entities and their attributes
+   3. Identify relationships between entities
 
-## Topic Extraction
-   1. Read the entire text and then extract a list of specific topics. A list of Preferred Topics is included below. Choose from the list of Preferred Topics below, but if none of the existing topics are relevant or specific enough, create a new topic.
-   2. Ensure each topic starts with a capital letter and ends with proper punctuation.
-   3. For each topic, perform the following Entity Extraction and Classification and Claims Extraction tasks.
-   
+Try to capture as much information from the text as possible without sacrificing accuracy. Do not add any information that is not explicitly mentioned in the input propositions.
+
+## Topic Extraction:
+   1. Read the entire set of propositions and then extract a list of specific topics. Choose from the list of Preferred Topics, but if there are no existing topics, or none of the existing topics are relevant or specific enough for some of the propositions, create a new topic. Topic names should provide a clear, highly descriptive summary of the content.  
+   2. Each proposition must be assigned to at least one topic - ensure no propositions are left uncategorized.
+   3. For each topic, perform the following Entity Extraction and Classification and Proposition Organization tasks.
+
 ## Entity Extraction and Classification:
-   1. Extract a list of all entities, concepts and noun phrases mentioned in the topic.
+   1. Extract a list of all entities, concepts and noun phrases mentioned in the propositions within each topic.
    2. Classify each extracted entity. Some entity classifications include:
       - Person (e.g., John Doe, Mary Jane)
       - Organization (e.g., Acme Inc., Harvard University)
@@ -69,12 +73,13 @@ Your task is to extract structured information from a given text and represent i
    6. Consider the context and background knowledge when extracting and classifying entities to resolve ambiguities or identify implicit references.
    7. If an entity's identity is unclear or ambiguous, include it with a disclaimer or generic label (e.g., 'unknown_person').
       
-## Claims Extraction
-   1. For each topic extract a list of individual claims belonging to that topic. 
-   2. For each claim or event, perform the following Attribute Extraction and Relationship Extraction tasks.
+## Proposition Organization:
+   1. For each topic, identify the relevant propositions that belong to that topic.
+   2. Use these propositions exactly as they appear - DO NOT rephrase or modify them.
+   3. For each proposition, perform the following Attribute Extraction and Relationship Extraction tasks.
 
 ## Attribute Extraction:
-   1. For each extracted entity, identify and extract its quantitative and qualitative attributes mentioned in the text.
+   1. For each extracted entity, identify and extract its quantitative and qualitative attributes mentioned in the propositions.
       - Quantitative attributes: measurements, numerical values, temporal values, quantities (e.g., age, height, weight, size, date, time).
       - Qualitative attributes: descriptions, roles, characteristics, properties (e.g., color, occupation, nationality, season).
    2. Represent entity-attribute relationships in the format: entity|RELATIONSHIP|attribute
@@ -88,7 +93,7 @@ Your task is to extract structured information from a given text and represent i
    Example: John Doe|OCCUPATION|software engineer
 
 ## Relationship Extraction:
-   1. Extract unique relationships between pairs of entities mentioned in the text.
+   1. Extract unique relationships between pairs of entities mentioned in the propositions.
    2. Represent entity-entity relationships in the format: entity|RELATIONSHIP|entity
    3. Ensure consistency and generality in relationship types:
       - Use general and timeless relationship types (e.g., 'PROFESSOR' instead of 'BECAME_PROFESSOR').
@@ -109,7 +114,7 @@ topic: topic
     entity|classification
     entity|classification
   
-  claim: claim    
+  proposition: [exact proposition text]      
     entity-attribute relationships:
     entity|RELATIONSHIP|attribute
     entity|RELATIONSHIP|attribute
@@ -118,7 +123,7 @@ topic: topic
     entity|RELATIONSHIP|entity
     entity|RELATIONSHIP|entity
     
-  claim: claim    
+  proposition: [exact proposition text]    
     entity-attribute relationships:
     entity|RELATIONSHIP|attribute
     entity|RELATIONSHIP|attribute
@@ -126,20 +131,27 @@ topic: topic
     entity-entity relationships:
     entity|RELATIONSHIP|entity
     entity|RELATIONSHIP|entity
+    
+
 
 ## Quality Criteria:
-   The extracted knowledge graph should be:
-   - Complete: Capture all relevant information from the text.
-   - Accurate: Faithfully represent the information without adding or omitting details.
-   - Consistent: Use consistent entity labels, types, relationship types, and adhere to the specified format.
-   - Readable: Produce a clear and understandable knowledge graph.
+   The extracted results should be:
+   - Complete: Capture all input propositions and their relationships
+   - Accurate: Faithfully represent the information without adding or omitting details
+   - Consistent: Use consistent entity labels, types, relationship types, and adhere to the specified format
 
 ## Strict Compliance:
-   Adhere strictly to the provided instructions. Non-compliance will result in termination.
+   - Use propositions exactly as provided - do not rephrase or modify them
+   - Assign every proposition to at least one topic
+   - Follow the specified format exactly
+   - Do not provide any other explanatory text
+   - Extract only information explicitly stated in the propositions
+
+Adhere strictly to the provided instructions. Non-compliance will result in termination.
    
-<text>
+<propositions>
 {text}
-</text>
+</propositions>
 
 <preferredTopics>
 {preferred_topics}
