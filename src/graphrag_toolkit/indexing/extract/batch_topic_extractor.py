@@ -9,7 +9,7 @@ import boto3
 from typing import Optional, List, Sequence, Dict
 from datetime import datetime
 
-from graphrag_toolkit import GraphRAGConfig,BatchJobError
+from graphrag_toolkit import GraphRAGConfig, BatchJobError
 from graphrag_toolkit.indexing.utils.topic_utils import parse_extracted_topics, format_list, format_text
 from graphrag_toolkit.indexing.utils.batch_inference_utils import create_inference_inputs, create_and_run_batch_job, download_output_files, process_batch_output, split_nodes
 from graphrag_toolkit.indexing.constants import TOPICS_KEY, DEFAULT_ENTITY_CLASSIFICATIONS
@@ -125,10 +125,9 @@ class BatchTopicExtractor(BaseExtractor):
                 bedrock_client, 
                 timestamp, 
                 batch_index,
-                self.batch_config.bucket_name, 
+                self.batch_config,
                 s3_input_key, 
                 s3_output_path,
-                self.batch_config.role_arn,
                 self.llm.model
             )
 

@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from botocore.exceptions import ClientError
 
 from graphrag_toolkit import BatchJobError
-from graphrag_toolkit.indexing.extract.batch_config import BatchJobVpcConfig
+from graphrag_toolkit.indexing.extract.batch_config import BatchConfig
 
 from llama_index.llms.bedrock import Bedrock
 from llama_index.core.schema import TextNode
@@ -61,38 +61,38 @@ def create_and_run_batch_job(job_name_prefix:str,
                              bedrock_client: Any, 
                              timestamp:str, 
                              batch_index:int,
-                             bucket_name:str, 
+                             batch_config:BatchConfig,
                              input_key:str,
                              output_path:str, 
-                             role_arn:str, 
-                             model_id:str,
-                             s3_encryption_key_id:Optional[str]=None,
-                             vpc_config:Optional[BatchJobVpcConfig]=None) -> None:
+                             model_id:str) -> None:
     """Create and run a Bedrock batch inference job."""
     try:
         input_data_config = {
-            's3InputDataConfig': {'s3Uri': f's3://{bucket_name}/{input_key}'}
+            's3InputDataConfig': {'s3Uri': f's3://{batch_config.bucket_name}/{input_key}'}
         }
         output_data_config = {
-            's3OutputDataConfig': {'s3Uri': f's3://{bucket_name}/{output_path}'}
+            's3OutputDataConfig': {'s3Uri': f's3://{batch_config.bucket_name}/{output_path}'}
         }
 
-        if s3_encryption_key_id:
-            output_data_config['s3EncryptionKeyId'] = s3_encryption_key_id
+        if batch_config.s3_encryption_key_id:
+            output_data_config['s3EncryptionKeyId'] = batch_config.s3_encryption_key_id
 
         response = None
-        if vpc_config:
+        if batch_config.subnet_ids and batch_config.security_group_ids:
             response = bedrock_client.create_model_invocation_job(
-                roleArn=role_arn,
+                roleArn=batch_config.role_arn,
                 modelId=model_id,
                 jobName=f'{job_name_prefix}-{timestamp}-{batch_index}',
                 inputDataConfig=input_data_config,
                 outputDataConfig=output_data_config,
-                vpcConfig=vpc_config.to_dict()
+                vpcConfig={
+                    'subnetIds': batch_config.subnet_ids,
+                    'securityGroupIds': batch_config.security_group_ids
+                }
             )
         else:
             response = bedrock_client.create_model_invocation_job(
-                roleArn=role_arn,
+                roleArn=batch_config.role_arn,
                 modelId=model_id,
                 jobName=f'{job_name_prefix}-{timestamp}-{batch_index}',
                 inputDataConfig=input_data_config,

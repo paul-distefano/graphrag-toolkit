@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from .extraction_pipeline import ExtractionPipeline
-from .batch_config import BatchJobVpcConfig, BatchConfig
+from .batch_config import BatchConfig
 from .batch_llm_proposition_extractor import BatchLLMPropositionExtractor
 from .batch_topic_extractor import BatchTopicExtractor
 from .llm_proposition_extractor import LLMPropositionExtractor

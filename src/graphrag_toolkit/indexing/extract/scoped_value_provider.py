@@ -70,7 +70,6 @@ class ScopedValueProvider(BaseComponent):
     def get_current_values(self, node:BaseNode) -> Tuple[str, List[str]]:
         scope = self.scope_func(node)
         current_values = self.scoped_value_store.get_scoped_values(self.label, scope)
-        logger.debug(f'Current scoped values: [label: {self.label}, scope: {scope}, values: {current_values}]')
         return (scope, current_values)
     
     def update_values(self, scope:str, old_values:List[str], new_values:List[str]):

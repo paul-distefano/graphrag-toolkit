@@ -9,7 +9,7 @@ import boto3
 from typing import Optional, List, Sequence, Dict
 from datetime import datetime
 
-from graphrag_toolkit import GraphRAGConfig,BatchJobError
+from graphrag_toolkit import GraphRAGConfig, BatchJobError
 from graphrag_toolkit.indexing.model import Propositions
 from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY
 from graphrag_toolkit.indexing.prompts import EXTRACT_PROPOSITIONS_PROMPT
@@ -106,10 +106,9 @@ class BatchLLMPropositionExtractor(BaseExtractor):
                 bedrock_client, 
                 timestamp, 
                 batch_index,
-                self.batch_config.bucket_name, 
+                self.batch_config,
                 s3_input_key, 
                 s3_output_path,
-                self.batch_config.role_arn,
                 self.llm.model
             )
 

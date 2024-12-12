@@ -1,0 +1,60 @@
+
+[[Home](./)]
+
+## Batch Extraction
+
+```
+import os
+
+from graphrag_toolkit import LexicalGraphIndex
+from graphrag_toolkit import GraphRAGConfig, ExtractionConfig
+from graphrag_toolkit.storage import GraphStoreFactory
+from graphrag_toolkit.storage import VectorStoreFactory
+from graphrag_toolkit.indexing.extract import BatchConfig
+
+from llama_index.core import SimpleDirectoryReader
+
+import nest_asyncio
+nest_asyncio.apply()
+    
+def batch_extract_and_load():
+    
+    GraphRAGConfig.extraction_batch_size = 100
+
+    batch_config = BatchConfig(
+        region='us-west-2',
+        bucket_name='my-bucket',
+        key_prefix='batch-extract',
+        role_arn='arn:aws:iam::111111111111:role/my-batch-inference-role'
+    )
+
+    extraction_config = ExtractionConfig(batch_config=batch_config)
+
+    graph_store = GraphStoreFactory.for_graph_store(os.environ['GRAPH_STORE'])
+    vector_store = VectorStoreFactory.for_vector_store(os.environ['VECTOR_STORE'])
+
+    graph_index = LexicalGraphIndex(
+        graph_store, 
+        vector_store,
+        extraction_config=extraction_config
+    )
+
+    reader = SimpleDirectoryReader(input_dir='path/to/directory')
+    docs = reader.load_data()
+
+    graph_index.extract_and_build(docs, show_progress=True)
+    
+batch_extract_and_load()
+```
+
+| Parameter  | Description | Mandatory | Default Value |
+| ------------- | ------------- | ------------- | ------------- |
+| bucket_name | Name of an Amazon S3 bucket where batch input and output files will be stored | Y | |
+| region | The name of the AWS Region in which the bucket is located and the Amazon Bedrock batch inference job will run (e.g. us-east-1) | Y | |
+| role_arn | The Amazon Resource Name (ARN) of the service role with permissions to carry out and manage batch inference (you can use the console to create a default service role or follow the steps at [Create a service role for batch inference](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-iam-sr.html)) | Y | |
+| key_prefix | S3 key prefix for input and output files | N | |
+| max_batch_size | Maximun number of records to be included in each batch | N | 25000 |
+| max_num_concurrent_batches | Maximum number of batch inferences jobs to run concurrently | N | 3 |
+| s3_encryption_key_id | The unique identifier of the key that encrypts the S3 location of the output data. | N | |
+| subnet_ids | An array of IDs for each subnet in the Virtual Private Cloud (VPC) used to protect batch inference jobs (for more information, see [Protect batch inference jobs using a VPC](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-vpc))| N | |
+| security_group_ids | An array of IDs for each security group in the Virtual Private Cloud (VPC) used to protect batch inference jobs (for more information, see [Protect batch inference jobs using a VPC](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-vpc))| N | |
