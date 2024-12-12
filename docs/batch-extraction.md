@@ -68,16 +68,17 @@ batch_extract_and_load()
 
 #### Prerequisites
 
-Before running batch extraction for the first time, you must fulfill the following prerequisites
+Before running batch extraction for the first time, you must fulfill the following prerequisites:
 
   - Create an Amazon S3 bucket in the AWS Region where you will be running batch extraction
   - Create a custom service role for batch inference with access to the S3 bucket
   - Update the IAM identity under which the indexing process runs to allow it to to [submit and manage batch inference jobs
 
+In the examples below, replace `<account-id>` with your AWS account ID, `<region>` with the name of the AWS Region where you will be running batch extraction, and `<model-id>` with the ID of the foundation model in Amazon Bedrock that you want to use for batch extraction.
 
 ##### Custom service role
 
-[Create a custom service role for batch inference](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-iam-sr.html) with the following trust relationship
+[Create a custom service role for batch inference](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-iam-sr.html) with the following trust relationship:
 
 ```
 {
