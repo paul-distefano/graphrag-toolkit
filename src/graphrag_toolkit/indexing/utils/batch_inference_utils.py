@@ -20,11 +20,14 @@ from llama_index.core.prompts import PromptTemplate
 logger = logging.getLogger(__name__)
 
 BEDROCK_MIN_BATCH_SIZE = 100
+BEDROCK_MAX_BATCH_SIZE = 50000
 
 def split_nodes(nodes: List[Any], batch_size: int) -> List[List[Any]]:   
     
     if batch_size < BEDROCK_MIN_BATCH_SIZE:
         raise BatchJobError(f'Batch size ({batch_size}) is smaller than the minimum required by Bedrock ({BEDROCK_MIN_BATCH_SIZE})')
+    if batch_size > BEDROCK_MAX_BATCH_SIZE:
+        raise BatchJobError(f'Batch size ({batch_size}) is larger than the maximum required by Bedrock ({BEDROCK_MAX_BATCH_SIZE})')
     if not nodes:
         raise BatchJobError('Empty list of records')
     if len(nodes) < BEDROCK_MIN_BATCH_SIZE:
