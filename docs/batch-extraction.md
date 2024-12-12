@@ -20,7 +20,7 @@ The code examples here are formatted to run in a Jupyter notebook. If you’re b
 
 ### Using batch inference with the LexicalGraphIndex
 
-To use batch inference in the extract stage of the indexing process, create a `BatchConfig` object and supply it to the `LexicalGraphIndex` as part of the [`ExtractionConfig`](.indexing.md#configuring-the-extract-and-build-stages): 
+To use batch inference in the extract stage of the indexing process, create a `BatchConfig` object and supply it to the `LexicalGraphIndex` as part of the [`ExtractionConfig`](./indexing.md#configuring-the-extract-and-build-stages): 
 
 ```
 import os
