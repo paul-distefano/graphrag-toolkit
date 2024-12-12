@@ -3,3 +3,6 @@
 
 class ModelError(Exception):
     pass
+
+class BatchJobError(Exception):
+    pass

@@ -8,13 +8,14 @@ from dataclasses import dataclass, field
 from graphrag_toolkit.storage import GraphStoreFactory, GraphStoreType
 from graphrag_toolkit.storage import VectorStoreFactory, VectorStoreType
 from graphrag_toolkit.storage.graph_store import DummyGraphStore
+from graphrag_toolkit.indexing.extract import BatchConfig
 from graphrag_toolkit.indexing import NodeHandler
 from graphrag_toolkit.indexing import sink
 from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY, DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.extract import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.indexing.extract import GraphScopedValueStore
-from graphrag_toolkit.indexing.extract import LLMPropositionExtractor
-from graphrag_toolkit.indexing.extract import TopicExtractor
+from graphrag_toolkit.indexing.extract import LLMPropositionExtractor, BatchLLMPropositionExtractor
+from graphrag_toolkit.indexing.extract import TopicExtractor, BatchTopicExtractor
 from graphrag_toolkit.indexing.extract import ExtractionPipeline
 from graphrag_toolkit.indexing.build import BuildPipeline
 from graphrag_toolkit.indexing.build import VectorIndexing
@@ -35,6 +36,7 @@ class ExtractionConfig:
     chunk_overlap:Optional[int]=20
     enable_proposition_extraction:Optional[bool]=True
     preferred_entity_classifications:Optional[List[str]]=field(default_factory=lambda:DEFAULT_ENTITY_CLASSIFICATIONS)
+    batch_config:Optional[BatchConfig]=None
 
 ExtractionPipelineConfigType = Union[ExtractionConfig, List[TransformComponent]]
 
@@ -58,7 +60,7 @@ class LexicalGraphIndex():
             Unique name of the index. Defaults to DEFAULT_INDEX_NAME.
         extraction_dir (List[TransformComponent], optional):
             Directory to which intermediate artefacts (e.g. checkpoints) will be written. Defaults to DEFAULT_EXTRACTION_DIR.
-        extraction_pipeline_config (Optional[ExtractionPipelineConfigType], optional):
+        extraction_config (Optional[ExtractionPipelineConfigType], optional):
             Either an ExtractionConfig instance, or a list of TransformComponents. 
             If None, defaults to using a SentenceSplitter, LLMPropositionExtractor and TopicExtractor.
 
@@ -88,6 +90,11 @@ class LexicalGraphIndex():
         self.index_name = index_name or DEFAULT_INDEX_NAME
         self.extraction_dir = extraction_dir or DEFAULT_EXTRACTION_DIR
 
+        allow_batch_inference = False
+        if extraction_config and isinstance(extraction_config, ExtractionConfig):
+            allow_batch_inference = extraction_config.batch_config is not None
+        self.allow_batch_inference = allow_batch_inference
+
         if not extraction_config or isinstance(extraction_config, ExtractionConfig):
             self.extraction_pipeline_config = self._configure_extraction_pipeline(extraction_config)
         else:
@@ -102,7 +109,10 @@ class LexicalGraphIndex():
             components.append(SentenceSplitter(chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap))
         
         if config.enable_proposition_extraction:
-            components.append(LLMPropositionExtractor())
+            if self.allow_batch_inference:
+                components.append(BatchLLMPropositionExtractor(batch_config=config.batch_config))
+            else:
+                components.append(LLMPropositionExtractor())
 
         entity_classification_provider = None
         topic_provider = None
@@ -122,11 +132,21 @@ class LexicalGraphIndex():
                 scope_func=get_topic_scope
             )
 
-        topic_extractor = TopicExtractor(
-            source_metadata_field=PROPOSITIONS_KEY if config.enable_proposition_extraction else None,
-            entity_classification_provider=entity_classification_provider,
-            topic_provider=topic_provider
-        )
+        topic_extractor = None
+
+        if self.allow_batch_inference:
+            topic_extractor = BatchTopicExtractor(
+                batch_config=config.batch_config,
+                source_metadata_field=PROPOSITIONS_KEY if config.enable_proposition_extraction else None,
+                entity_classification_provider=entity_classification_provider,
+                topic_provider=topic_provider
+            )
+        else:
+            topic_extractor = TopicExtractor(
+                source_metadata_field=PROPOSITIONS_KEY if config.enable_proposition_extraction else None,
+                entity_classification_provider=entity_classification_provider,
+                topic_provider=topic_provider
+            )
 
         components.append(topic_extractor)
 
@@ -159,8 +179,10 @@ class LexicalGraphIndex():
         extraction_pipeline = ExtractionPipeline.create(
             components=self.extraction_pipeline_config,
             show_progress=show_progress,
-            checkpoint=checkpoint
+            checkpoint=checkpoint,
+            num_workers=1 if self.allow_batch_inference else None
         )
+
         build_pipeline = BuildPipeline.create(
             components=[
                 NullBuilder()
@@ -238,8 +260,10 @@ class LexicalGraphIndex():
         extraction_pipeline = ExtractionPipeline.create(
             components=self.extraction_pipeline_config,
             show_progress=show_progress,
-            checkpoint=checkpoint
+            checkpoint=checkpoint,
+            num_workers=1 if self.allow_batch_inference else None
         )
+        
         build_pipeline = BuildPipeline.create(
             components=[
                 GraphConstruction.for_graph_store(self.graph_store),
