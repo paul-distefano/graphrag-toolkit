@@ -22,7 +22,7 @@ Graph stores and vector stores provide connectivity to an *existing* storage ins
 
 #### Code examples
 
-The code examples here are formatted to run in a Jupyter notebook. If you’re building an application with a main entry point, put your application logic inside a method, and add an [`if name == 'main' block`](./faq.md#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops).
+The code examples here are formatted to run in a Jupyter notebook. If you’re building an application with a main entry point, put your application logic inside a method, and add an [`if __name__ == '__main__'` block](./faq.md#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops).
 
 ### Graph store
 

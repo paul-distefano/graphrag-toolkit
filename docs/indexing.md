@@ -11,11 +11,10 @@
     - [Continous ingest](#continous-ingest)
     - [Run the extract and build stages separately](#run-the-extract-and-build-stages-separately)
     - [Configuring the extract and build stages](#configuring-the-extract-and-build-stages)
+    - [Batch extraction](#batch-extraction)
     - [Checkpoints](#checkpoints)
   - [Advanced graph construction](#advanced-graph-construction)
     
-
-
 ### Overview
 
 There are two stages to indexing: extract, and build. The graphrag-toolkit uses separate pipelines for each of these stages, plus micro-batching, to provide a continous ingest capability. This means that your graph will start being populated soon after extraction begins.
@@ -26,7 +25,7 @@ The `LexicalGraphIndex` is a convenience class that allows you to run the extrac
 
 #### Code examples
 
-The code examples here are formatted to run in a Jupyter notebook. If you’re building an application with a main entry point, put your application logic inside a method, and add an [`if name == 'main' block`](./faq.md#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops).
+The code examples here are formatted to run in a Jupyter notebook. If you’re building an application with a main entry point, put your application logic inside a method, and add an [`if __name__ == '__main__'` block](./faq.md#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops).
 
 #### Extract
 
@@ -184,7 +183,7 @@ graph_index = LexicalGraphIndex(
 )
 ```
 
-The `ExtractionConfig` object has the following parameters.
+The `ExtractionConfig` object has the following parameters:
 
 | Parameter  | Description | Default Value |
 | ------------- | ------------- | ------------- |
@@ -193,6 +192,12 @@ The `ExtractionConfig` object has the following parameters.
 | `chunk_overlap` | Token overlap of each chunk when splitting if using the `SentenceSplitter` | `20` |
 | `enable_proposition_extraction` | Perform proposition extraction before extracting topics, statements, facts and entities | `True` |
 | `preferred_entity_classifications` | Comma-separated list of preferred entity classifications used to seed the entity extraction | `DEFAULT_ENTITY_CLASSIFICATIONS` |
+| `batch_config` | Batch configuration to be used if performing [batch extraction](./batch-extraction.md) | `None` |
+
+
+#### Batch extraction
+
+You can use [Amazon Bedrock batch inference](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference.html) with the extract stage of the indexing process. See [Batch Extraction](./batch-extraction.md) for more details.
 
 
 #### Checkpoints
