@@ -66,15 +66,17 @@ def batch_extract_and_load():
 batch_extract_and_load()
 ```
 
+When using batch extraction, update the `GraphRAGConfig.extraction_batch_size` configuration parameter so that a large number of source documents are passed to a batch inference job in a single batch. In the example above, `GraphRAGConfig.extraction_batch_size` has been set to `100`, meaning that 100 source documents will be chunked simultaneously, and these chunks then sent to the batch inference job. If there are 10-20 chunks per document, the batch inference job here will process several thousand records in a single batch.
+
 #### Prerequisites
 
 Before running batch extraction for the first time, you must fulfill the following prerequisites:
 
   - Create an Amazon S3 bucket in the AWS Region where you will be running batch extraction
-  - Create a custom service role for batch inference with access to the S3 bucket
-  - Update the IAM identity under which the indexing process runs to allow it to to [submit and manage batch inference jobs
+  - [Create a custom service role for batch inference](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-iam-sr.html) with access to the S3 bucket
+  - Update the IAM identity under which the indexing process runs to allow it to to [submit and manage batch inference jobs](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-prereq.html#batch-inference-permissions) and pass the custom serice role to Bedrock
 
-In the examples below, replace `<account-id>` with your AWS account ID, `<region>` with the name of the AWS Region where you will be running batch extraction, and `<model-id>` with the ID of the foundation model in Amazon Bedrock that you want to use for batch extraction.
+In the examples below, replace `<account-id>` with your AWS account ID, `<region>` with the name of the AWS Region where you will be running batch extraction, `<model-id>` with the ID of the foundation model in Amazon Bedrock that you want to use for batch extraction, and `<customer-service-role-arn>` with the ARN of your new custom service role.
 
 ##### Custom service role
 
@@ -136,7 +138,6 @@ Create and attach a policy to your custom service role that [allows access to th
 
 You will also need to update the IAM identity under which the indexing process runs (not the custom service role) to allow it to to [submit and manage batch inference jobs](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-prereq.html#batch-inference-permissions): 
 
-
 ```
 {
     "Version": "2012-10-17",
@@ -160,6 +161,18 @@ You will also need to update the IAM identity under which the indexing process r
 }
 ```
 
+Add the `iam:PassRole` permission so that the IAM identity under which the indexing process runs can pass the custom service role to Bedrock:
+
+```
+{
+    "Effect": "Allow",
+    "Action": [
+        "iam:PassRole"
+    ],
+    "Resource": "<customer-service-role-arn>"
+}
+```
+
 #### Configuring batch extraction
 
 The `BatchConfig` object has the following parameters:
@@ -170,8 +183,8 @@ The `BatchConfig` object has the following parameters:
 | `region` | The name of the AWS Region in which the bucket is located and the Amazon Bedrock batch inference job will run (e.g. us-east-1) | Y | |
 | `role_arn` | The Amazon Resource Name (ARN) of the service role with permissions to carry out and manage batch inference (you can use the console to create a default service role or follow the steps at [Create a service role for batch inference](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-iam-sr.html)) | Y | |
 | `key_prefix` | S3 key prefix for input and output files | N | |
-| `max_batch_size` | Maximun number of records to be included in each batch | N | `25000` |
-| `max_num_concurrent_batches` | Maximum number of batch inferences jobs to run concurrently | N | `3` |
+| `max_batch_size` | Maximun number of records (chunks) to be included in each batch sent to each batch inference job | N | `25000` |
+| `max_num_concurrent_batches` | Maximum number of batch inference jobs to run concurrently | N | `3` |
 | `s3_encryption_key_id` | The unique identifier of the key that encrypts the S3 location of the output data. | N | |
 | `subnet_ids` | An array of IDs for each subnet in the Virtual Private Cloud (VPC) used to protect batch inference jobs (for more information, see [Protect batch inference jobs using a VPC](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-vpc))| N | |
 | `security_group_ids` | An array of IDs for each security group in the Virtual Private Cloud (VPC) used to protect batch inference jobs (for more information, see [Protect batch inference jobs using a VPC](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-vpc))| N | |
