@@ -147,7 +147,7 @@ class BatchTopicExtractor(BaseExtractor):
 
         # 1 - Split nodes into batches (if needed)
         node_batches = split_nodes(nodes, self.batch_config.max_batch_size)
-        logger.debug(f'Split nodes into {len(node_batches)} batches')
+        logger.debug(f'Split nodes into {len(node_batches)} batches [sizes: {[len(b) for b in node_batches]}]')
 
         # 2 - Process batches concurrently
         all_results = {}
