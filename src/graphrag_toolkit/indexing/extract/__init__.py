@@ -9,5 +9,7 @@ from .llm_proposition_extractor import LLMPropositionExtractor
 from .proposition_extractor import PropositionExtractor
 from .topic_extractor import TopicExtractor
 from .graph_scoped_value_store import GraphScopedValueStore
-from .scoped_value_provider import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
+from .scoped_value_provider import ScopedValueStore, ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
 from .file_system_tap import FileSystemTap
+from .infer_classifications import InferClassifications
+from .infer_config import MergeAction, InferClassificationsConfig

@@ -12,6 +12,7 @@ from graphrag_toolkit.indexing.extract.docs_to_nodes import DocsToNodes
 from graphrag_toolkit.indexing.extract.id_rewriter import IdRewriter
 from graphrag_toolkit.indexing.constants import SOURCE_DOC_KEY
 
+from llama_index.core.node_parser.interface import NodeParser
 from llama_index.core.node_parser import TextSplitter
 from llama_index.core.async_utils import asyncio_run
 from llama_index.core.utils import iter_batch
@@ -37,6 +38,7 @@ class ExtractionPipeline():
 
     @staticmethod
     def create(components: List[TransformComponent], 
+               pre_processors:Optional[List[NodeParser]]=None,
                extraction_decorator:PipelineDecorator=None, 
                num_workers=None, 
                batch_size=None, 
@@ -46,6 +48,7 @@ class ExtractionPipeline():
         return Pipe(
             ExtractionPipeline(
                 components=components, 
+                pre_processors=pre_processors,
                 extraction_decorator=extraction_decorator,
                 num_workers=num_workers,
                 batch_size=batch_size,
@@ -55,7 +58,8 @@ class ExtractionPipeline():
         )
     
     def __init__(self, 
-                 components: List[TransformComponent], 
+                 components:List[TransformComponent], 
+                 pre_processors:Optional[List[NodeParser]]=None,
                  extraction_decorator:PipelineDecorator=None, 
                  num_workers=None, 
                  batch_size=None, 
@@ -89,6 +93,7 @@ class ExtractionPipeline():
         logger.debug(f'Extract pipeline components: {[type(c).__name__ for c in components]}')
 
         self.ingestion_pipeline = IngestionPipeline(transformations=components)
+        self.pre_processors = pre_processors or []
         self.extraction_decorator = extraction_decorator or PassThroughDecorator()
         self.num_workers = num_workers
         self.batch_size = batch_size
@@ -97,6 +102,9 @@ class ExtractionPipeline():
 
       
     def extract(self, source_documents: List[BaseNode]):
+
+        for pre_processor in self.pre_processors:
+            source_documents = pre_processor.get_nodes_from_documents(source_documents)
 
         for docs in iter_batch(source_documents, self.batch_size):
             

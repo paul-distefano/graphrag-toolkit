@@ -26,6 +26,7 @@ DEFAULT_PROCESSORS = [
     TruncateResults,
     TruncateStatements,
     ClearChunks,
+    ClearScores,
     StatementsToStrings,
     SimplifySingleTopicResults
 ]
