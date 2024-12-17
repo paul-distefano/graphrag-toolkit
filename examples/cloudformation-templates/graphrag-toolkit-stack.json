@@ -1041,8 +1041,9 @@
                     "/tmp/graph_notebook/install.sh\n",
                     "\n",
                     "cd /home/ec2-user/SageMaker\n",
-                    "mkdir graphrag-toolkit\n",
-                    "chmod -R 777 graphrag-toolkit\n",
+                    "if [ ! -d graphrag-toolkit ]; then\n",
+                    "  mkdir graphrag-toolkit\n",
+                    "  chmod -R 777 graphrag-toolkit\n",
                     {
                       "Fn::If": [
                         "ExampleNotebooksURLIsNotBlank",
@@ -1050,13 +1051,13 @@
                           "Fn::Join": [
                             "",
                             [
-                              "curl -LO \"",
+                              "  curl -LO \"",
                               {
                                 "Ref": "ExampleNotebooksURL"
                               },
                               "\" -o graphrag-toolkit-examples.zip\n",
-                              "unzip graphrag-toolkit-examples.zip -d graphrag-toolkit\n",
-                              "rm -rf graphrag-toolkit-examples.zip\n"
+                              "  unzip graphrag-toolkit-examples.zip -d graphrag-toolkit\n",
+                              "  rm -rf graphrag-toolkit-examples.zip\n"
                             ]
                           ]
                         },
@@ -1065,8 +1066,8 @@
                         }
                       ]
                     },
-                    "cd graphrag-toolkit\n",
-                    "echo \"export GRAPH_STORE=",
+                    "  cd graphrag-toolkit\n",
+                    "  echo \"export GRAPH_STORE=",
                     {
                       "Fn::Sub": [
                         "neptune-db://${graphid}",
@@ -1081,7 +1082,7 @@
                       ]
                     },
                     "\" >> .env\n",
-                    "echo \"export VECTOR_STORE=",
+                    "  echo \"export VECTOR_STORE=",
                     {
                       "Fn::Sub": [
                         "aoss://${endpoint}",
@@ -1096,11 +1097,12 @@
                       ]
                     },
                     "\" >> .env\n",
-                    "echo \"export EXTRACTION_MODEL=anthropic.claude-3-sonnet-20240229-v1:0\" >> .env\n",
-                    "echo \"export EMBEDDINGS_MODEL=cohere.embed-english-v3\" >> .env\n",
-                    "echo \"export EMBEDDINGS_DIMENSIONS=1024\" >> .env\n",
-                    "echo \"export RESPONSE_MODEL=anthropic.claude-3-sonnet-20240229-v1:0\" >> .env\n",
-                    "echo \"export EVALUATION_MODEL=anthropic.claude-3-sonnet-20240229-v1:0\" >> .env\n",
+                    "  echo \"export EXTRACTION_MODEL=anthropic.claude-3-sonnet-20240229-v1:0\" >> .env\n",
+                    "  echo \"export EMBEDDINGS_MODEL=cohere.embed-english-v3\" >> .env\n",
+                    "  echo \"export EMBEDDINGS_DIMENSIONS=1024\" >> .env\n",
+                    "  echo \"export RESPONSE_MODEL=anthropic.claude-3-sonnet-20240229-v1:0\" >> .env\n",
+                    "  echo \"export EVALUATION_MODEL=anthropic.claude-3-sonnet-20240229-v1:0\" >> .env\n",
+                    "fi\n",
                     "EOF"
                   ]
                 ]
