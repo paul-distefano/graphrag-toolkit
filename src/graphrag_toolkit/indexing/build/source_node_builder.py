@@ -6,7 +6,7 @@ from lru import LRU
 
 from llama_index.core.schema import TextNode, BaseNode
 from llama_index.core.schema import NodeRelationship
-from llama_index.core.bridge.pydantic import Field, PrivateAttr
+from llama_index.core.bridge.pydantic import PrivateAttr
 
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.constants import TOPICS_KEY
@@ -45,11 +45,11 @@ class SourceNodeBuilder(NodeBuilder):
         metadata = {
             'source': {
                 'sourceId': source_id
-            }
+            }    
         }
         
         if source_info.metadata:
-            metadata['metadata'] = source_info.metadata
+            metadata['sourceMetadata'] = source_info.metadata
             
         metadata[INDEX_KEY] = {
             'index': 'source',

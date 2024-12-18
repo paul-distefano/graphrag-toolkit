@@ -36,19 +36,25 @@ class ChunkGraphBuilder(GraphBuilder):
                 f'MERGE (chunk:Chunk{{{graph_client.node_id("chunkId")}: params.chunk_id}})',
                 'ON CREATE SET chunk.value = params.text ON MATCH SET chunk.value = params.text'
             ])
+            
+            source_info = node.relationships.get(NodeRelationship.SOURCE, None)
 
-            source_id = node.metadata['source']['sourceId']
-            
-            statements.extend([
-                f'MERGE (source:Source{{{graph_client.node_id("sourceId")}: params.source_id}})',
-                'MERGE (chunk)-[:EXTRACTED_FROM]->(source)'
-            ])
-            
-            properties = {
-                'chunk_id': chunk_id,
-                'source_id': source_id,
-                'text': node.text
-            }
+            if source_info:
+                
+                source_id = source_info.node_id
+
+                statements.extend([
+                    f'MERGE (source:Source{{{graph_client.node_id("sourceId")}: params.source_id}})',
+                    'MERGE (chunk)-[:EXTRACTED_FROM]->(source)'
+                ])
+
+                properties = {
+                    'chunk_id': chunk_id,
+                    'source_id': source_id,
+                    'text': node.text
+                }
+            else:
+                logger.warning(f'source_id missing from chunk node [node_id: {chunk_id}]')
             
             key_index = 0
             
