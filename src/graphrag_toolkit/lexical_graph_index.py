@@ -1,7 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List, Optional
+from typing import List, Optional, Union
 from pipe import Pipe
 from dataclasses import dataclass, field
 
@@ -37,7 +37,7 @@ class ExtractionConfig:
     chunk_overlap:Optional[int]=20
     enable_proposition_extraction:Optional[bool]=True
     preferred_entity_classifications:Optional[List[str]]=field(default_factory=lambda:DEFAULT_ENTITY_CLASSIFICATIONS)
-    infer_classifications_config:Optional[InferClassificationsConfig]=None
+    infer_entity_classifications:Optional[Union[InferClassificationsConfig, bool]]=False
     batch_config:Optional[BatchConfig]=None
 
 def get_topic_scope(node:BaseNode):
@@ -121,7 +121,7 @@ class LexicalGraphIndex():
             entity_classification_provider = FixedScopedValueProvider(scoped_values={DEFAULT_SCOPE: config.preferred_entity_classifications})
             topic_provider = FixedScopedValueProvider(scoped_values={DEFAULT_SCOPE: []})
         else:
-            initial_scope_values = [] if config.infer_classifications_config else config.preferred_entity_classifications
+            initial_scope_values = [] if config.infer_entity_classifications else config.preferred_entity_classifications
             entity_classification_provider = ScopedValueProvider(
                 label=classification_label,
                 scoped_value_store=GraphScopedValueStore(graph_store=self.graph_store),
@@ -133,8 +133,8 @@ class LexicalGraphIndex():
                 scope_func=get_topic_scope
             )
 
-        if config.infer_classifications_config:
-            infer_config = config.infer_classifications_config
+        if config.infer_entity_classifications:
+            infer_config = config.infer_entity_classifications if isinstance(config.infer_entity_classifications, InferClassificationsConfig) else InferClassificationsConfig()
             pre_processors.append(InferClassifications(
                 classification_label=classification_label,
                 classification_scope=classification_scope,
