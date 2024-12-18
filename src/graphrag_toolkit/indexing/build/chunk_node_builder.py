@@ -3,7 +3,7 @@
 
 from typing import List, Dict
 
-from llama_index.core.schema import BaseNode, TextNode
+from llama_index.core.schema import BaseNode, DEFAULT_TEXT_NODE_TMPL
 
 from graphrag_toolkit.indexing.build.source_node_builder import SourceNodeBuilder
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
@@ -24,6 +24,7 @@ class ChunkNodeBuilder(NodeBuilder):
         
         chunk_id = node.node_id
         chunk_node = node.model_copy()
+        chunk_node.text_template = DEFAULT_TEXT_NODE_TMPL
         
         topics = [topic['value'] for topic in node.metadata.get(TOPICS_KEY, {}).get('topics', [])]
 

@@ -6,7 +6,7 @@ from lru import LRU
 
 from llama_index.core.schema import TextNode, BaseNode
 from llama_index.core.schema import NodeRelationship
-from llama_index.core.bridge.pydantic import Field, PrivateAttr
+from llama_index.core.bridge.pydantic import PrivateAttr
 
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.constants import TOPICS_KEY
@@ -45,11 +45,11 @@ class SourceNodeBuilder(NodeBuilder):
         metadata = {
             'source': {
                 'sourceId': source_id
-            }
+            }    
         }
         
         if source_info.metadata:
-            metadata['metadata'] = source_info.metadata
+            metadata['source']['metadata'] = source_info.metadata
             
         metadata[INDEX_KEY] = {
             'index': 'source',
@@ -59,8 +59,8 @@ class SourceNodeBuilder(NodeBuilder):
         return [TextNode(
             id_ = source_id,
             metadata = metadata,
-            excluded_embed_metadata_keys = [INDEX_KEY, 'source'],
-            excluded_llm_metadata_keys = [INDEX_KEY, 'source']
+            excluded_embed_metadata_keys = [INDEX_KEY],
+            excluded_llm_metadata_keys = [INDEX_KEY]
         )]
     
     def allow_emit_node(self, node:BaseNode) -> bool:

@@ -32,7 +32,7 @@ class SourceGraphBuilder(GraphBuilder):
                 f"MERGE (source:Source{{{graph_client.node_id('sourceId')}: '{source_id}'}})"
             ]
 
-            metadata = node.metadata.get('metadata', {})
+            metadata = source_metadata.get('metadata', {})
             
             clean_metadata = {}
             for k, v in metadata.items():
