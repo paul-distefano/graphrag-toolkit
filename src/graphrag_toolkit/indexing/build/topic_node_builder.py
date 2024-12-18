@@ -52,7 +52,7 @@ class TopicNodeBuilder(NodeBuilder):
                     entity.entity_id = node_id_from(entity.value, entity.classification)
                 
                 topic_metadata = {
-                    'source': source_node.metadata.get('sourceMetadata', {}),
+                    'source': source_node.metadata.get('source', {}),
                     'topic': {
                         'topicId': topic_id
                     },
@@ -87,7 +87,7 @@ class TopicNodeBuilder(NodeBuilder):
                     statement.topic_id = topic_id
 
                     claim_metadata = {
-                        'source': source_node.metadata.get('sourceMetadata', {}),
+                        'source': source_node.metadata.get('source', {}),
                         'statement': {
                             'statementId': statement_id
                         },

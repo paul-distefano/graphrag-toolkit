@@ -38,7 +38,7 @@ class ChunkNodeBuilder(NodeBuilder):
         source_node = other_nodes.get(SourceNodeBuilder.name(), None)
         
         if source_node:
-            metadata['source'] = source_node.metadata.get('sourceMetadata', {})
+            metadata['source'] = source_node.metadata['source']
         
         metadata[INDEX_KEY] = {
             'index': 'chunk',
