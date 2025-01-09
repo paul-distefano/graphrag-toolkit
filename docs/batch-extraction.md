@@ -76,7 +76,7 @@ Before running batch extraction for the first time, you must fulfill the followi
   - [Create a custom service role for batch inference](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-iam-sr.html) with access to the S3 bucket
   - Update the IAM identity under which the indexing process runs to allow it to to [submit and manage batch inference jobs](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-prereq.html#batch-inference-permissions) and pass the custom serice role to Bedrock
 
-In the examples below, replace `<account-id>` with your AWS account ID, `<region>` with the name of the AWS Region where you will be running batch extraction, `<model-id>` with the ID of the foundation model in Amazon Bedrock that you want to use for batch extraction, and `<customer-service-role-arn>` with the ARN of your new custom service role.
+In the examples below, replace `<account-id>` with your AWS account ID, `<region>` with the name of the AWS Region where you will be running batch extraction, `<model-id>` with the ID of the foundation model in Amazon Bedrock that you want to use for batch extraction, and `<custom-service-role-arn>` with the ARN of your new custom service role.
 
 ##### Custom service role
 
@@ -169,7 +169,7 @@ Add the `iam:PassRole` permission so that the IAM identity under which the index
     "Action": [
         "iam:PassRole"
     ],
-    "Resource": "<customer-service-role-arn>"
+    "Resource": "<custom-service-role-arn>"
 }
 ```
 

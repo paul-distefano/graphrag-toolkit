@@ -36,34 +36,6 @@
       "MaxValue": 128,
       "MinValue": 1
     },
-    "DBClusterPort": {
-      "Type": "String",
-      "Default": "8182",
-      "Description": "Enter the port of your Neptune cluster"
-    },
-    "NeptuneQueryTimeout": {
-      "Type": "Number",
-      "Default": 20000,
-      "Description": "Neptune Query Time out (in milliseconds)"
-    },
-    "NeptuneEnableAuditLog": {
-      "Type": "Number",
-      "Default": 0,
-      "AllowedValues": [
-        0,
-        1
-      ],
-      "Description": "Enable Audit Log. 0 means disable and 1 means enable."
-    },
-    "IamAuthEnabled": {
-      "Type": "String",
-      "Default": "true",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
-      "Description": "Enable IAM Auth for Neptune."
-    },
     "IamPolicyArn": {
       "Type": "String",
       "Description": "ARN of an additional IAM policy to be attached to the GraphRAG client IAM role (optional)",
@@ -85,44 +57,40 @@
       "Default": "https://github.com/awslabs/graphrag-toolkit/releases/latest/download/graphrag-toolkit-examples.zip"
     }
   },
-	"Metadata": {
-		"AWS::CloudFormation::Interface": {
-			"ParameterGroups": [
-				{
-					"Label": {
-						"default": "Setup"
-					},
-					"Parameters": [
-						"ApplicationId"
-					]
-				},
-				{
-					"Label": {
-						"default": "Neptune"
-					},
-					"Parameters": [
-						"DbInstanceType",
-						"MinNCU",
-						"MaxNCU",
-            "IamAuthEnabled",
-            "DBClusterPort",
-            "NeptuneQueryTimeout",
-            "NeptuneEnableAuditLog"
-					]
-				},
-				{
-					"Label": {
-						"default": "Notebook"
-					},
-					"Parameters": [
-						"NotebookInstanceType",
-						"ExampleNotebooksURL",
-						"IamPolicyArn"
-					]
-				}
-			]
-		}
-	},
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Setup"
+          },
+          "Parameters": [
+            "ApplicationId"
+          ]
+        },
+        {
+          "Label": {
+            "default": "Neptune"
+          },
+          "Parameters": [
+            "DbInstanceType",
+            "MinNCU",
+            "MaxNCU"
+          ]
+        },
+        {
+          "Label": {
+            "default": "Notebook"
+          },
+          "Parameters": [
+            "NotebookInstanceType",
+            "ExampleNotebooksURL",
+            "IamPolicyArn"
+          ]
+        }
+      ]
+    }
+  },
   "Conditions": {
     "ExampleNotebooksURLIsNotBlank": {
       "Fn::Not": [
@@ -244,41 +212,30 @@
         ]
       }
     },
-    "GraphRAGSecurityGroup": {
+    "GraphRAGClientSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupName": {
-          "Fn::Sub": "${ApplicationId}-sg"
+          "Fn::Sub": "${ApplicationId}-client-sg"
         },
         "VpcId": {
           "Ref": "VPC"
         },
-        "GroupDescription": "Allow Access",
-        "SecurityGroupIngress": [
+        "GroupDescription": "GraphRAG client security group",
+        "SecurityGroupEgress": [
           {
             "FromPort": "443",
             "ToPort": "443",
             "IpProtocol": "tcp",
             "CidrIp": "0.0.0.0/0",
-            "Description": "HTTPS access"
-          },
-          {
-            "FromPort": {
-              "Ref": "DBClusterPort"
-            },
-            "ToPort": {
-              "Ref": "DBClusterPort"
-            },
-            "IpProtocol": "tcp",
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Neptune access"
+            "Description": "HTTPS egress"
           }
         ],
         "Tags": [
           {
             "Key": "Name",
             "Value": {
-              "Fn::Sub": "${ApplicationId}-sg"
+              "Fn::Sub": "${ApplicationId}-client-sg"
             }
           },
           {
@@ -300,6 +257,84 @@
             }
           }
         ]
+      }
+    },
+    "NeptuneSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupName": {
+          "Fn::Sub": "${ApplicationId}-neptune-sg"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "GroupDescription": "GraphRAG Neptune security group",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${ApplicationId}-neptune-sg"
+            }
+          },
+          {
+            "Key": "StackId",
+            "Value": {
+              "Fn::Sub": "${AWS::StackId}"
+            }
+          },
+          {
+            "Key": "Stack",
+            "Value": {
+              "Fn::Sub": "${AWS::Region}-${AWS::StackName}"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Fn::Sub": "graphrag-toolkit:application-id:${ApplicationId}"
+            }
+          }
+        ]
+      }
+    },
+    "GraphRAGClientSecurityGroupEgress": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": 8182,
+        "ToPort": 8182,
+        "DestinationSecurityGroupId": {
+          "Fn::GetAtt": [
+            "NeptuneSecurityGroup",
+            "GroupId"
+          ]
+        },
+        "GroupId": {
+          "Fn::GetAtt": [
+            "GraphRAGClientSecurityGroup",
+            "GroupId"
+          ]
+        }
+      }
+    },
+    "NeptuneSecurityGroupIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": 8182,
+        "ToPort": 8182,
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "GraphRAGClientSecurityGroup",
+            "GroupId"
+          ]
+        },
+        "GroupId": {
+          "Fn::GetAtt": [
+            "NeptuneSecurityGroup",
+            "GroupId"
+          ]
+        }
       }
     },
     "GraphRAGClientRole": {
@@ -334,160 +369,171 @@
             ]
           }
         ],
-        "Policies": [
-          {
-            "PolicyName": {
-              "Fn::Sub": "${ApplicationId}-client-policy"
+        "Path": "/"
+      }
+    },
+    "GraphRAGClientRolePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": {
+          "Fn::Sub": "${ApplicationId}-graphrag-client-policy"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "S3ListBucketAndGetObject",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:ListBucket"
+              ],
+              "Resource": [
+                {
+                  "Fn::If": [
+                    "IsIadRegion",
+                    "arn:aws:s3:::aws-neptune-notebook",
+                    {
+                      "Fn::Sub": "arn:aws:s3:::aws-neptune-notebook-${AWS::Region}"
+                    }
+                  ]
+                },
+                {
+                  "Fn::If": [
+                    "IsIadRegion",
+                    "arn:aws:s3:::aws-neptune-notebook/*",
+                    {
+                      "Fn::Sub": "arn:aws:s3:::aws-neptune-notebook-${AWS::Region}/*"
+                    }
+                  ]
+                }
+              ]
             },
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
+            {
+              "Sid": "LogGroupAccess",
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": [
                 {
-                  "Sid": "S3ListBucketAndGetObject",
-                  "Effect": "Allow",
-                  "Action": [
-                    "s3:GetObject",
-                    "s3:ListBucket"
-                  ],
-                  "Resource": [
-                    {
-                      "Fn::If": [
-                        "IsIadRegion",
-                        "arn:aws:s3:::aws-neptune-notebook",
-                        {
-                          "Fn::Sub": "arn:aws:s3:::aws-neptune-notebook-${AWS::Region}"
-                        }
-                      ]
-                    },
-                    {
-                      "Fn::If": [
-                        "IsIadRegion",
-                        "arn:aws:s3:::aws-neptune-notebook/*",
-                        {
-                          "Fn::Sub": "arn:aws:s3:::aws-neptune-notebook-${AWS::Region}/*"
-                        }
-                      ]
-                    }
-                  ]
+                  "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/sagemaker/*"
+                }
+              ]
+            },
+            {
+              "Sid": "SageMakerNotebookAccess",
+              "Effect": "Allow",
+              "Action": "sagemaker:DescribeNotebookInstance",
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:${AWS::Partition}:sagemaker:${AWS::Region}:${AWS::AccountId}:notebook-instance/*"
+                }
+              ]
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "GraphRAGClientRole"
+          }
+        ]
+      }
+    },
+    "BedrockInvokeModelPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": {
+          "Fn::Sub": "${ApplicationId}-bedrock-invoke-model-policy"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "bedrock:InvokeModel"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0"
                 },
                 {
-                  "Sid": "DBAccess",
-                  "Effect": "Allow",
-                  "Action": "neptune-db:*",
-                  "Resource": [
-                    {
-                      "Fn::Sub": [
-                        "arn:${partition}:neptune-db:${region}:${accountId}:${clusterResourceId}/*",
-                        {
-                          "partition": {
-                            "Ref": "AWS::Partition"
-                          },
-                          "region": {
-                            "Ref": "AWS::Region"
-                          },
-                          "accountId": {
-                            "Ref": "AWS::AccountId"
-                          },
-                          "clusterResourceId": {
-                            "Fn::GetAtt": [
-                              "NeptuneDBCluster",
-                              "ClusterResourceId"
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                },
+                  "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/cohere.embed-english-v3"
+                }
+              ]
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "GraphRAGClientRole"
+          }
+        ]
+      }
+    },
+    "OpenSearchServerlessAPIAccessAllPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": {
+          "Fn::Sub": "${ApplicationId}-aoss-api-access-all-policy"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "aoss:APIAccessAll",
+              "Resource": [
                 {
-                  "Sid": "LogGroupAccess",
-                  "Effect": "Allow",
-                  "Action": [
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents"
-                  ],
-                  "Resource": [
+                  "Fn::Sub": [
+                    "arn:${partition}:aoss:${region}:${accountId}:collection/${collectionId}",
                     {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/sagemaker/*"
-                    }
-                  ]
-                },
-                {
-                  "Sid": "SageMakerNotebookAccess",
-                  "Effect": "Allow",
-                  "Action": "sagemaker:DescribeNotebookInstance",
-                  "Resource": [
-                    {
-                      "Fn::Sub": "arn:${AWS::Partition}:sagemaker:${AWS::Region}:${AWS::AccountId}:notebook-instance/*"
-                    }
-                  ]
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "bedrock:InvokeModel"
-                  ],
-                  "Resource": [
-                    {
-                      "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0"
-                    },
-                    {
-                      "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/cohere.embed-english-v3"
-                    }
-                  ]
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": "aoss:APIAccessAll",
-                  "Resource": [
-                    {
-                      "Fn::Sub": [
-                        "arn:${partition}:aoss:${region}:${accountId}:collection/${collectionId}",
-                        {
-                          "partition": {
-                            "Ref": "AWS::Partition"
-                          },
-                          "region": {
-                            "Ref": "AWS::Region"
-                          },
-                          "accountId": {
-                            "Ref": "AWS::AccountId"
-                          },
-                          "collectionId": {
-                            "Fn::GetAtt": [
-                              "OpenSearchServerless",
-                              "Id"
-                            ]
-                          }
-                        }
-                      ]
+                      "partition": {
+                        "Ref": "AWS::Partition"
+                      },
+                      "region": {
+                        "Ref": "AWS::Region"
+                      },
+                      "accountId": {
+                        "Ref": "AWS::AccountId"
+                      },
+                      "collectionId": {
+                        "Fn::GetAtt": [
+                          "OpenSearchServerless",
+                          "Id"
+                        ]
+                      }
                     }
                   ]
                 }
               ]
             }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "GraphRAGClientRole"
           }
-        ],
-        "Path": "/"
+        ]
       }
     },
-    "NeptuneIamAuthUser": {
-      "Type": "AWS::IAM::User",
-      "Properties": {
-        "Path": "/"
-      }
-    },
-    "NeptuneIAMAuthPolicy": {
+    "NeptuneDBDataAccessPolicy": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
-        "PolicyName": "NeptuneIAMAuthPolicy",
+        "PolicyName": {
+          "Fn::Sub": "${ApplicationId}-neptune-db-data-access-policy"
+        },
         "PolicyDocument": {
+          "Version": "2012-10-17",
           "Statement": [
             {
               "Effect": "Allow",
               "Action": [
-                "neptune-db:*"
+                "neptune-db:ReadDataViaQuery",
+                "neptune-db:WriteDataViaQuery"
               ],
               "Resource": {
                 "Fn::Join": [
@@ -513,6 +559,11 @@
                     "/*"
                   ]
                 ]
+              },
+              "Condition": {
+                "StringEquals": {
+                  "neptune-db:QueryLanguage": "OpenCypher"
+                }
               }
             }
           ]
@@ -520,11 +571,6 @@
         "Roles": [
           {
             "Ref": "GraphRAGClientRole"
-          }
-        ],
-        "Users": [
-          {
-            "Ref": "NeptuneIamAuthUser"
           }
         ]
       }
@@ -538,9 +584,7 @@
         "Family": "neptune1.4",
         "Description": "Neptune cluster parameter group",
         "Parameters": {
-          "neptune_enable_audit_log": {
-            "Ref": "NeptuneEnableAuditLog"
-          }
+          "neptune_enable_audit_log": 0
         },
         "Tags": [
           {
@@ -579,9 +623,7 @@
         "Family": "neptune1.4",
         "Description": "Neptune parameter group",
         "Parameters": {
-          "neptune_query_timeout": {
-            "Ref": "NeptuneQueryTimeout"
-          }
+          "neptune_query_timeout": 60000
         },
         "Tags": [
           {
@@ -623,18 +665,14 @@
         },
         "VpcSecurityGroupIds": [
           {
-            "Ref": "GraphRAGSecurityGroup"
+            "Ref": "NeptuneSecurityGroup"
           }
         ],
         "DBClusterParameterGroupName": {
           "Ref": "NeptuneDBClusterParameterGroup"
         },
-        "Port": {
-          "Ref": "DBClusterPort"
-        },
-        "IamAuthEnabled": {
-          "Ref": "IamAuthEnabled"
-        },
+        "Port": "8182",
+        "IamAuthEnabled": true,
         "ServerlessScalingConfiguration": {
           "MaxCapacity": {
             "Ref": "MaxNCU"
@@ -905,7 +943,7 @@
         "InstanceType": {
           "Ref": "NotebookInstanceType"
         },
-        "PlatformIdentifier": "notebook-al2-v2",
+        "PlatformIdentifier": "notebook-al2-v3",
         "NotebookInstanceName": {
           "Fn::Sub": "aws-neptune-${ApplicationId}"
         },
@@ -914,7 +952,7 @@
         },
         "SecurityGroupIds": [
           {
-            "Ref": "GraphRAGSecurityGroup"
+            "Ref": "GraphRAGClientSecurityGroup"
           }
         ],
         "RoleArn": {
@@ -1406,19 +1444,14 @@
         ]
       }
     },
-    "GraphRAGSecurityGroup": {
-      "Description": "Neptune Security Group",
+    "GraphRAGClientSecurityGroup": {
+      "Description": "GraphRAG client security group",
       "Value": {
-        "Ref": "GraphRAGSecurityGroup"
-      }
-    },
-    "NeptuneIamAuthUser": {
-      "Description": "IAM user for accessing Neptune via IAM Auth",
-      "Value": {
-        "Ref": "NeptuneIamAuthUser"
+        "Ref": "GraphRAGClientSecurityGroup"
       }
     },
     "OpenSearchCollectionEndpoint": {
+      "Description": "OpenSearch Serverless collection endpoint",
       "Value": {
         "Fn::GetAtt": [
           "OpenSearchServerless",
@@ -1427,6 +1460,7 @@
       }
     },
     "NeptuneSagemakerNotebook": {
+      "Description": "SageMaker notebook URL",
       "Value": {
         "Fn::Join": [
           "",
