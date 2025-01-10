@@ -369,13 +369,13 @@
             ]
           }
         ],
-        "Path": "/"
+        "Path": "/graphrag-toolkit/"
       }
     },
     "GraphRAGClientRolePolicy": {
-      "Type": "AWS::IAM::Policy",
+      "Type": "AWS::IAM::ManagedPolicy",
       "Properties": {
-        "PolicyName": {
+        "ManagedPolicyName": {
           "Fn::Sub": "${ApplicationId}-graphrag-client-policy"
         },
         "PolicyDocument": {
@@ -439,13 +439,14 @@
           {
             "Ref": "GraphRAGClientRole"
           }
-        ]
+        ],
+        "Path": "/graphrag-toolkit/"
       }
     },
     "BedrockInvokeModelPolicy": {
-      "Type": "AWS::IAM::Policy",
+      "Type": "AWS::IAM::ManagedPolicy",
       "Properties": {
-        "PolicyName": {
+        "ManagedPolicyName": {
           "Fn::Sub": "${ApplicationId}-bedrock-invoke-model-policy"
         },
         "PolicyDocument": {
@@ -471,13 +472,14 @@
           {
             "Ref": "GraphRAGClientRole"
           }
-        ]
+        ],
+        "Path": "/graphrag-toolkit/"
       }
     },
     "OpenSearchServerlessAPIAccessAllPolicy": {
-      "Type": "AWS::IAM::Policy",
+      "Type": "AWS::IAM::ManagedPolicy",
       "Properties": {
-        "PolicyName": {
+        "ManagedPolicyName": {
           "Fn::Sub": "${ApplicationId}-aoss-api-access-all-policy"
         },
         "PolicyDocument": {
@@ -517,13 +519,14 @@
           {
             "Ref": "GraphRAGClientRole"
           }
-        ]
+        ],
+        "Path": "/graphrag-toolkit/"
       }
     },
     "NeptuneDBDataAccessPolicy": {
-      "Type": "AWS::IAM::Policy",
+      "Type": "AWS::IAM::ManagedPolicy",
       "Properties": {
-        "PolicyName": {
+        "ManagedPolicyName": {
           "Fn::Sub": "${ApplicationId}-neptune-db-data-access-policy"
         },
         "PolicyDocument": {
@@ -572,7 +575,8 @@
           {
             "Ref": "GraphRAGClientRole"
           }
-        ]
+        ],
+        "Path": "/graphrag-toolkit/"
       }
     },
     "NeptuneDBClusterParameterGroup": {
@@ -943,7 +947,7 @@
         "InstanceType": {
           "Ref": "NotebookInstanceType"
         },
-        "PlatformIdentifier": "notebook-al2-v3",
+        "PlatformIdentifier": "notebook-al2-v2",
         "NotebookInstanceName": {
           "Fn::Sub": "aws-neptune-${ApplicationId}"
         },
