@@ -48,11 +48,11 @@ class GraphQueryLogFormatting(BaseModel):
     def format_log_entry(self, query_ref:str, query:str, parameters:Dict[str,Any]={}, results:Optional[List[Any]]=None) -> GraphQueryLogEntryParameters:
         raise NotImplementedError
     
-class DefaultGraphQueryLogFormatting(GraphQueryLogFormatting):
+class RedactedGraphQueryLogFormatting(GraphQueryLogFormatting):
     def format_log_entry(self, query_ref:str, query:str, parameters:Dict[str,Any]={}, results:Optional[List[Any]]=None) -> GraphQueryLogEntryParameters:
         return GraphQueryLogEntryParameters(query_ref=query_ref, query=REDACTED, parameters=REDACTED, results=REDACTED)
     
-class FullGraphQueryLogFormatting(GraphQueryLogFormatting):
+class NonRedactedGraphQueryLogFormatting(GraphQueryLogFormatting):
     def format_log_entry(self, query_ref:str, query:str, parameters:Dict[str,Any]={}, results:Optional[List[Any]]=None) -> GraphQueryLogEntryParameters:
         results_str = str(results)
         if len(results_str) > NUM_CHARS_IN_DEBUG_RESULTS:
@@ -118,7 +118,7 @@ def on_query_failed(
 
 class GraphStore(BaseModel):
 
-    log_formatting:GraphQueryLogFormatting = Field(default_factory=lambda: DefaultGraphQueryLogFormatting())
+    log_formatting:GraphQueryLogFormatting = Field(default_factory=lambda: RedactedGraphQueryLogFormatting())
 
     def execute_query_with_retry(self, query:str, parameters:Dict[str, Any], max_attempts=3, max_wait=5, **kwargs):
         

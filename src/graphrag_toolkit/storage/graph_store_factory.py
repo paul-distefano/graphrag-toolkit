@@ -3,7 +3,7 @@
 
 import logging
 from typing import Union
-from graphrag_toolkit.storage.graph_store import GraphStore, DummyGraphStore, GraphQueryLogFormatting, DefaultGraphQueryLogFormatting
+from graphrag_toolkit.storage.graph_store import GraphStore, DummyGraphStore, GraphQueryLogFormatting, RedactedGraphQueryLogFormatting
 from graphrag_toolkit.storage.neptune_graph_stores import NeptuneAnalyticsClient, NeptuneDatabaseClient
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def graph_info_resolver(graph_info:str=None):
         return (NEPTUNE_ANALYTICS, graph_info)  
     
 def get_log_formatting(args):
-    log_formatting = args.pop('log_formatting', DefaultGraphQueryLogFormatting())
+    log_formatting = args.pop('log_formatting', RedactedGraphQueryLogFormatting())
     if not isinstance(log_formatting, GraphQueryLogFormatting):
         raise ValueError('log_formatting must be of type GraphQueryLogFormatting')
     return log_formatting
@@ -62,7 +62,7 @@ class GraphStoreFactory():
     
     @staticmethod
     def for_neptune_analytics(graph_id, **kwargs):
-        log_formatting = kwargs.pop('log_formattings', DefaultGraphQueryLogFormatting())
+        log_formatting = kwargs.pop('log_formattings', RedactedGraphQueryLogFormatting())
         if not isinstance(log_formatting, GraphQueryLogFormatting):
             raise ValueError('log_formatting must be of type GraphQueryLogFormatting')
         return NeptuneAnalyticsClient(graph_id=graph_id, log_formatting=get_log_formatting(kwargs))
