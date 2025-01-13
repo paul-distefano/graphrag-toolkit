@@ -36,6 +36,15 @@
       "MaxValue": 128,
       "MinValue": 1
     },
+    "EnableAuditLog": {
+      "Description": "Enable database auditing logging",
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ]
+    },
     "IamPolicyArn": {
       "Type": "String",
       "Description": "ARN of an additional IAM policy to be attached to the GraphRAG client IAM role (optional)",
@@ -75,7 +84,8 @@
           "Parameters": [
             "DbInstanceType",
             "MinNCU",
-            "MaxNCU"
+            "MaxNCU",
+            "EnableAuditLog"
           ]
         },
         {
@@ -149,6 +159,14 @@
             ""
           ]
         }
+      ]
+    },
+    "AuditLogEnabled": {
+      "Fn::Equals": [
+        {
+          "Ref": "EnableAuditLog"
+        },
+        "true"
       ]
     }
   },
@@ -588,7 +606,13 @@
         "Family": "neptune1.4",
         "Description": "Neptune cluster parameter group",
         "Parameters": {
-          "neptune_enable_audit_log": 0
+          "neptune_enable_audit_log": {
+            "Fn::If": [
+              "AuditLogEnabled",
+              1,
+              0
+            ]
+          }
         },
         "Tags": [
           {

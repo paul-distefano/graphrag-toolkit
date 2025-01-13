@@ -15,8 +15,6 @@ from llama_index.core.bridge.pydantic import PrivateAttr
 
 logger = logging.getLogger(__name__)
 
-NUM_CHARS_IN_DEBUG_RESULTS = 256
-
 def format_id_for_neptune(id_name:str):
         parts = id_name.split('.')
         if len(parts) == 1:
@@ -49,13 +47,19 @@ class NeptuneAnalyticsClient(GraphStore):
 
         query_id = uuid.uuid4().hex[:5]
 
-        logger.debug(f'{self._logging_prefix(query_id, correlation_id)}Query: [graphId: {self.graph_id}, query: {cypher}, parameters: {parameters}]')
+        request_log_entry_parameters = self.log_formatting.format_log_entry(
+            self._logging_prefix(query_id, correlation_id), 
+            cypher, 
+            parameters
+        )
+
+        logger.debug(f'[{request_log_entry_parameters.query_ref}] Query: [query: {request_log_entry_parameters.query}, parameters: {request_log_entry_parameters.parameters}]')
 
         start = time.time()
         
         response =  self.client.execute_query(
             graphIdentifier=self.graph_id,
-            queryString=cypher,
+            queryString=request_log_entry_parameters.format_query_with_query_ref(cypher),
             parameters=parameters,
             language='OPEN_CYPHER',
             planCache='DISABLED'
@@ -66,10 +70,13 @@ class NeptuneAnalyticsClient(GraphStore):
         results = json.loads(response['payload'].read())['results']
 
         if logger.isEnabledFor(logging.DEBUG):
-            results_str = str(results)
-            if len(results_str) > NUM_CHARS_IN_DEBUG_RESULTS:
-                results_str = f'{results_str[:NUM_CHARS_IN_DEBUG_RESULTS]}... <{len(results_str) - NUM_CHARS_IN_DEBUG_RESULTS} more chars>'
-            logger.debug(f'{self._logging_prefix(query_id, correlation_id)}{int((end-start) * 1000)}ms Results: [{results_str}]')
+            response_log_entry_parameters = self.log_formatting.format_log_entry(
+                self._logging_prefix(query_id, correlation_id), 
+                cypher, 
+                parameters, 
+                results
+            )
+            logger.debug(f'[{response_log_entry_parameters.query_ref}] {int((end-start) * 1000)}ms Results: [{response_log_entry_parameters.results}]')
     
         return results
     
@@ -101,12 +108,18 @@ class NeptuneDatabaseClient(GraphStore):
         
         params = json.dumps(parameters)
 
-        logger.debug(f'{self._logging_prefix(query_id, correlation_id)}Query: [query: {cypher}, parameters: {params}]')
+        request_log_entry_parameters = self.log_formatting.format_log_entry(
+            self._logging_prefix(query_id, correlation_id), 
+            cypher, 
+            params
+        )
+
+        logger.debug(f'[{request_log_entry_parameters.query_ref}] Query: [query: {request_log_entry_parameters.query}, parameters: {request_log_entry_parameters.parameters}]')
 
         start = time.time()
 
         response =  self.client.execute_open_cypher_query(
-            openCypherQuery=cypher,
+            openCypherQuery=request_log_entry_parameters.format_query_with_query_ref(cypher),
             parameters=params
         )
 
@@ -115,9 +128,12 @@ class NeptuneDatabaseClient(GraphStore):
         results = response['results']
 
         if logger.isEnabledFor(logging.DEBUG):
-            results_str = str(results)
-            if len(results_str) > NUM_CHARS_IN_DEBUG_RESULTS:
-                results_str = f'{results_str[:NUM_CHARS_IN_DEBUG_RESULTS]}... <{len(results_str) - NUM_CHARS_IN_DEBUG_RESULTS} more chars>'
-            logger.debug(f'{self._logging_prefix(query_id, correlation_id)}{int((end-start) * 1000)}ms Results: [{results_str}]')
-    
+            response_log_entry_parameters = self.log_formatting.format_log_entry(
+                self._logging_prefix(query_id, correlation_id), 
+                cypher, 
+                parameters, 
+                results
+            )
+            logger.debug(f'[{response_log_entry_parameters.query_ref}] {int((end-start) * 1000)}ms Results: [{response_log_entry_parameters.results}]')
+        
         return results
