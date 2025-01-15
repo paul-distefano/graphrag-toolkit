@@ -3,7 +3,7 @@
 
 import logging
 from typing import Union
-from graphrag_toolkit.storage.graph_store import GraphStore, DummyGraphStore
+from graphrag_toolkit.storage.graph_store import GraphStore, DummyGraphStore, GraphQueryLogFormatting, RedactedGraphQueryLogFormatting
 from graphrag_toolkit.storage.neptune_graph_stores import NeptuneAnalyticsClient, NeptuneDatabaseClient
 
 logger = logging.getLogger(__name__)
@@ -28,6 +28,12 @@ def graph_info_resolver(graph_info:str=None):
         return (NEPTUNE_DATABASE, graph_info)
     else:
         return (NEPTUNE_ANALYTICS, graph_info)  
+    
+def get_log_formatting(args):
+    log_formatting = args.pop('log_formatting', RedactedGraphQueryLogFormatting())
+    if not isinstance(log_formatting, GraphQueryLogFormatting):
+        raise ValueError('log_formatting must be of type GraphQueryLogFormatting')
+    return log_formatting
 
 class GraphStoreFactory():
 
@@ -52,12 +58,15 @@ class GraphStoreFactory():
     @staticmethod
     def for_neptune_database(graph_endpoint, port=8182, **kwargs):
         endpoint_url = f'https://{graph_endpoint}' if ':' in graph_endpoint else f'https://{graph_endpoint}:{port}'
-        return NeptuneDatabaseClient(endpoint_url=endpoint_url)
+        return NeptuneDatabaseClient(endpoint_url=endpoint_url, log_formatting=get_log_formatting(kwargs))
     
     @staticmethod
     def for_neptune_analytics(graph_id, **kwargs):
-        return NeptuneAnalyticsClient(graph_id=graph_id)
+        log_formatting = kwargs.pop('log_formattings', RedactedGraphQueryLogFormatting())
+        if not isinstance(log_formatting, GraphQueryLogFormatting):
+            raise ValueError('log_formatting must be of type GraphQueryLogFormatting')
+        return NeptuneAnalyticsClient(graph_id=graph_id, log_formatting=get_log_formatting(kwargs))
     
     @staticmethod
     def for_dummy_graph_store(*args, **kwargs):
-        return DummyGraphStore()
+        return DummyGraphStore(log_formatting=get_log_formatting(kwargs))
