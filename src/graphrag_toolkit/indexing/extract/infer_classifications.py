@@ -4,7 +4,7 @@
 import re
 import logging
 import random
-from typing import Sequence, List, Any, Optional
+from typing import Sequence, List, Any, Optional, Dict
 
 from graphrag_toolkit import GraphRAGConfig
 from graphrag_toolkit.utils import LLMCache, LLMCacheType
@@ -14,7 +14,7 @@ from graphrag_toolkit.indexing.constants import DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.prompts import DOMAIN_ENTITY_CLASSIFICATIONS_PROMPT
 
 from llama_index.core.node_parser.interface import NodeParser
-from llama_index.core.schema import BaseNode
+from llama_index.core.schema import BaseNode, Document
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.bridge.pydantic import Field
 from llama_index.core.prompts import PromptTemplate
@@ -94,6 +94,11 @@ class InferClassifications(NodeParser):
             default_classifications=default_classifications or DEFAULT_ENTITY_CLASSIFICATIONS,
             merge_action=merge_action or MergeAction.HALT_IF_EXISTING
         )
+        
+    def _postprocess_parsed_nodes(
+        self, nodes: List[BaseNode], parent_doc_map: Dict[str, Document]
+    ) -> List[BaseNode]:
+        return nodes
 
     def _parse_classifications(self, response_text:str) -> Optional[List[str]]:
 
