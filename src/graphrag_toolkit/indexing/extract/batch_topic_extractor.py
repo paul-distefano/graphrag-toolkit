@@ -14,8 +14,10 @@ from graphrag_toolkit.indexing.utils.topic_utils import parse_extracted_topics, 
 from graphrag_toolkit.indexing.utils.batch_inference_utils import create_inference_inputs, create_and_run_batch_job, download_output_files, process_batch_output, split_nodes
 from graphrag_toolkit.indexing.constants import TOPICS_KEY, DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.prompts import EXTRACT_TOPICS_PROMPT
+from graphrag_toolkit.indexing.extract import TopicExtractor
 from graphrag_toolkit.indexing.extract.batch_config import BatchConfig
 from graphrag_toolkit.indexing.extract.scoped_value_provider import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
+from graphrag_toolkit.indexing.utils.batch_inference_utils import BEDROCK_MIN_BATCH_SIZE
 
 from llama_index.core.extractors.interface import BaseExtractor
 from llama_index.llms.bedrock import Bedrock
@@ -142,6 +144,18 @@ class BatchTopicExtractor(BaseExtractor):
             raise BatchJobError(f'Error processing batch {batch_index}: {str(e)}') from e 
         
     async def aextract(self, nodes: Sequence[BaseNode]) -> List[Dict]:
+
+        if len(nodes) < BEDROCK_MIN_BATCH_SIZE:
+            logger.debug(f'List of nodes contains fewer records ({len(nodes)}) than the minimum required by Bedrock ({BEDROCK_MIN_BATCH_SIZE}), so running TopicExtractor instead')
+            extractor = TopicExtractor( 
+                prompt_template=self.prompt_template, 
+                source_metadata_field=self.source_metadata_field,
+                entity_classification_provider=self.entity_classification_provider,
+                topic_provider=self.topic_provider
+            )
+            return await extractor.aextract(nodes)
+
+
         s3_client = boto3.client('s3', region_name=self.batch_config.region)
         bedrock_client = boto3.client('bedrock', region_name=self.batch_config.region)
 
