@@ -14,7 +14,9 @@ from graphrag_toolkit.indexing.model import Propositions
 from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY
 from graphrag_toolkit.indexing.prompts import EXTRACT_PROPOSITIONS_PROMPT
 from graphrag_toolkit.indexing.extract.batch_config import BatchConfig
+from graphrag_toolkit.indexing.extract import LLMPropositionExtractor
 from graphrag_toolkit.indexing.utils.batch_inference_utils import create_inference_inputs, create_and_run_batch_job, download_output_files, process_batch_output, split_nodes
+from graphrag_toolkit.indexing.utils.batch_inference_utils import BEDROCK_MIN_BATCH_SIZE
 
 from llama_index.core.extractors.interface import BaseExtractor
 from llama_index.llms.bedrock import Bedrock
@@ -124,6 +126,16 @@ class BatchLLMPropositionExtractor(BaseExtractor):
             
             
     async def aextract(self, nodes: Sequence[BaseNode]) -> List[Dict]:
+
+        if len(nodes) < BEDROCK_MIN_BATCH_SIZE:
+            logger.debug(f'List of nodes contains fewer records ({len(nodes)}) than the minimum required by Bedrock ({BEDROCK_MIN_BATCH_SIZE}), so running LLMPropositionExtractor instead')
+            extractor = LLMPropositionExtractor(
+                prompt_template=self.prompt_template, 
+                source_metadata_field=self.source_metadata_field
+            )
+            return await extractor.aextract(nodes)
+
+
         s3_client = boto3.client('s3', region_name=self.batch_config.region)
         bedrock_client = boto3.client('bedrock', region_name=self.batch_config.region)
 
