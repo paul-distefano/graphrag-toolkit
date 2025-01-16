@@ -14,7 +14,7 @@ from graphrag_toolkit.indexing.utils.topic_utils import parse_extracted_topics, 
 from graphrag_toolkit.indexing.utils.batch_inference_utils import create_inference_inputs, create_and_run_batch_job, download_output_files, process_batch_output, split_nodes
 from graphrag_toolkit.indexing.constants import TOPICS_KEY, DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.prompts import EXTRACT_TOPICS_PROMPT
-from graphrag_toolkit.indexing.extract import TopicExtractor
+from graphrag_toolkit.indexing.extract.topic_extractor import TopicExtractor
 from graphrag_toolkit.indexing.extract.batch_config import BatchConfig
 from graphrag_toolkit.indexing.extract.scoped_value_provider import ScopedValueProvider, FixedScopedValueProvider, DEFAULT_SCOPE
 from graphrag_toolkit.indexing.utils.batch_inference_utils import BEDROCK_MIN_BATCH_SIZE

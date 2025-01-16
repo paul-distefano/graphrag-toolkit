@@ -14,7 +14,7 @@ from graphrag_toolkit.indexing.model import Propositions
 from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY
 from graphrag_toolkit.indexing.prompts import EXTRACT_PROPOSITIONS_PROMPT
 from graphrag_toolkit.indexing.extract.batch_config import BatchConfig
-from graphrag_toolkit.indexing.extract import LLMPropositionExtractor
+from graphrag_toolkit.indexing.extract.llm_proposition_extractor import LLMPropositionExtractor
 from graphrag_toolkit.indexing.utils.batch_inference_utils import create_inference_inputs, create_and_run_batch_job, download_output_files, process_batch_output, split_nodes
 from graphrag_toolkit.indexing.utils.batch_inference_utils import BEDROCK_MIN_BATCH_SIZE
 
