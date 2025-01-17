@@ -11,6 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from botocore.exceptions import ClientError
 
 from graphrag_toolkit import BatchJobError
+from graphrag_toolkit.utils import LLMCache
 from graphrag_toolkit.indexing.extract.batch_config import BatchConfig
 
 from llama_index.llms.bedrock import Bedrock
@@ -156,7 +157,7 @@ def download_output_files(s3_client: Any, bucket_name:str, output_path:str, inpu
         s3_client.download_file(Bucket=bucket_name, Key=key, Filename=local_file_path)
         logger.debug(f'Downloaded: {key} to {local_file_path}')
 
-async def process_batch_output(local_output_directory:str, input_filename:str, llm:Bedrock) -> Dict[str, str]:
+async def process_batch_output(local_output_directory:str, input_filename:str, llm:LLMCache) -> Dict[str, str]:
     """Process batch output files and return results."""
     results = {}
     failed_records = []

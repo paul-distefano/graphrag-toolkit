@@ -11,6 +11,7 @@ from datetime import datetime
 
 from graphrag_toolkit import GraphRAGConfig, BatchJobError
 from graphrag_toolkit.indexing.model import Propositions
+from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY
 from graphrag_toolkit.indexing.prompts import EXTRACT_PROPOSITIONS_PROMPT
 from graphrag_toolkit.indexing.extract.batch_config import BatchConfig
@@ -28,7 +29,9 @@ logger = logging.getLogger(__name__)
 class BatchLLMPropositionExtractor(BaseExtractor):
 
     batch_config:BatchConfig = Field('Batch inference config')
-    llm:Optional[Bedrock] = Field(description='The LLM to use for extraction')
+    llm:Optional[LLMCache] = Field(
+        description='The LLM to use for extraction'
+    )
     prompt_template:str = Field(description='Prompt template')
     source_metadata_field:Optional[str] = Field(description='Metadata field from which to extract propositions')
     batch_inference_dir:str = Field(description='Directory for batch inputs and results results')
@@ -40,14 +43,17 @@ class BatchLLMPropositionExtractor(BaseExtractor):
     
     def __init__(self, 
                  batch_config:BatchConfig,
-                 llm:Optional[Bedrock] = None,
+                 llm:LLMCacheType=None,
                  prompt_template:str = None,
                  source_metadata_field:Optional[str] = None,
                  batch_inference_dir:str = None):
         
         super().__init__(
             batch_config = batch_config,
-            llm = llm or GraphRAGConfig.extraction_llm,
+            llm = llm if llm and isinstance(llm, LLMCache) else LLMCache(
+                llm=llm or GraphRAGConfig.extraction_llm,
+                enable_cache=GraphRAGConfig.enable_cache
+            ),
             prompt_template=prompt_template or  EXTRACT_PROPOSITIONS_PROMPT,
             source_metadata_field=source_metadata_field,
             batch_inference_dir=batch_inference_dir or os.path.join('output', 'batch-propositions')
@@ -73,7 +79,7 @@ class BatchLLMPropositionExtractor(BaseExtractor):
                 prompts.append(prompt)
 
             json_inputs = create_inference_inputs(
-                self.llm,
+                self.llm.llm,
                 node_batch, 
                 prompts
             )

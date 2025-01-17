@@ -10,6 +10,7 @@ from typing import Optional, List, Sequence, Dict
 from datetime import datetime
 
 from graphrag_toolkit import GraphRAGConfig, BatchJobError
+from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.indexing.utils.topic_utils import parse_extracted_topics, format_list, format_text
 from graphrag_toolkit.indexing.utils.batch_inference_utils import create_inference_inputs, create_and_run_batch_job, download_output_files, process_batch_output, split_nodes
 from graphrag_toolkit.indexing.constants import TOPICS_KEY, DEFAULT_ENTITY_CLASSIFICATIONS
@@ -28,7 +29,9 @@ logger = logging.getLogger(__name__)
 
 class BatchTopicExtractor(BaseExtractor):
     batch_config:BatchConfig = Field('Batch inference config')
-    llm:Optional[Bedrock] = Field(description='The LLM to use for extraction')
+    llm:Optional[LLMCache] = Field(
+        description='The LLM to use for extraction'
+    )
     prompt_template:str = Field(description='Prompt template')
     source_metadata_field:Optional[str] = Field(description='Metadata field from which to extract propositions')
     batch_inference_dir:str = Field(description='Directory for batch inputs and results results')
@@ -41,7 +44,7 @@ class BatchTopicExtractor(BaseExtractor):
     
     def __init__(self, 
                  batch_config:BatchConfig,
-                 llm:Optional[Bedrock] = None,
+                 llm:LLMCacheType=None,
                  prompt_template:str = None,
                  source_metadata_field:Optional[str] = None,
                  batch_inference_dir:str = None,
@@ -50,7 +53,10 @@ class BatchTopicExtractor(BaseExtractor):
         
         super().__init__(
             batch_config = batch_config,
-            llm = llm or GraphRAGConfig.extraction_llm,
+            llm = llm if llm and isinstance(llm, LLMCache) else LLMCache(
+                llm=llm or GraphRAGConfig.extraction_llm,
+                enable_cache=GraphRAGConfig.enable_cache
+            ),
             prompt_template=prompt_template or  EXTRACT_TOPICS_PROMPT,
             source_metadata_field=source_metadata_field,
             batch_inference_dir=batch_inference_dir or os.path.join('output', 'batch-topics'),
@@ -92,7 +98,7 @@ class BatchTopicExtractor(BaseExtractor):
                 prompts.append(prompt)
 
             json_inputs = create_inference_inputs(
-                self.llm,
+                self.llm.llm,
                 node_batch, 
                 prompts
             )

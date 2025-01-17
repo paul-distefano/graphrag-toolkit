@@ -9,6 +9,8 @@ import uuid
 import logging
 import shutil
 import hashlib
+import copy
+import base64
 from typing import Callable, Dict, Any
 from os.path import join
 from urllib.parse import urlparse
@@ -57,7 +59,7 @@ class BedrockKnowledgeBaseExport():
                  region='us-east-1', 
                  limit=-1, 
                  output_dir='output', 
-                 metadata_fn:Callable[[str], Dict[str, Any]]=None, 
+                 metadata_fn:Callable[[str], Dict[str, Any]]=None,
                  **kwargs):
         
         self.bucket=bucket
@@ -97,18 +99,25 @@ class BedrockKnowledgeBaseExport():
 
         logger.info(f'Loading Amazon Bedrock Knowledge Base underyling source document [source: {source}, bucket: {self.bucket}, key: {key}, region: {self.region}]')
             
+        object_metadata = self.s3.head_object(Bucket=self.bucket, Key=key)
+        content_type = object_metadata.get('ContentType', None)
+
         with io.BytesIO() as io_stream:
             self.s3.download_fileobj(self.bucket, key, io_stream)
-    
-            io_stream.seek(0)
-            data = io_stream.read().decode('utf-8')
         
+            io_stream.seek(0)
+
+            if content_type and content_type in ['application/pdf']:
+                data = base64.b64encode(io_stream.read())
+            else:
+                data = io_stream.read().decode('utf-8')
+            
         metadata = self.metadata_fn(data) if self.metadata_fn else {}
         if not metadata:
             metadata = { 'source': source }
         elif not metadata['source']:
             metadata['source'] = source
-        
+            
         doc = Document(
             text=data,
             metadata=metadata
@@ -152,6 +161,15 @@ class BedrockKnowledgeBaseExport():
     def chunks(self):
         return self
     
+    def _with_page_number(self, metadata, page_number):
+        if page_number:
+            metadata_copy = copy.deepcopy(metadata)
+            metadata_copy['page_number'] = page_number
+            return metadata_copy
+        else:
+            return metadata
+        
+    
     def __iter__(self):
 
         job_dir = join(self.output_dir, 'bedrock-kb', f'{uuid.uuid4().hex}')
@@ -169,13 +187,14 @@ class BedrockKnowledgeBaseExport():
                 for kb_chunk in self._kb_chunks(kb_export_dir):
                     
                     bedrock_id = kb_chunk['id']
+                    page_number = kb_chunk.get('x-amz-bedrock-kb-document-page-number', None)
                     metadata = json.loads(kb_chunk['AMAZON_BEDROCK_METADATA'])
                     source = metadata['source']
                     
                     chunk = TextNode()
                     
                     
-                    chunk.text = kb_chunk['AMAZON_BEDROCK_TEXT_CHUNK']
+                    chunk.text = kb_chunk['AMAZON_BEDROCK_TEXT']
                     chunk.metadata = metadata
                     chunk.metadata['bedrock_id'] = bedrock_id
                     
@@ -185,7 +204,7 @@ class BedrockKnowledgeBaseExport():
                     chunk.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
                         node_id=doc.id_,
                         node_type=NodeRelationship.SOURCE,
-                        metadata=doc.metadata,
+                        metadata=self._with_page_number(doc.metadata, page_number),
                         hash=doc.hash
                     )
                     
