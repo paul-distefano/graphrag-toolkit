@@ -213,7 +213,6 @@ chunks = FileBasedChunks(
     chunks_directory='./extracted/',
     collection_id='12345'
 )
-
 ```
 
 The `FileBasedChunks` object has the following parameters:
