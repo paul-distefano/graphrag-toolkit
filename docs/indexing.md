@@ -191,14 +191,14 @@ If you use Amazon Web Services KMS keys to encrypt objects in S3, the identity u
     "Version": "2012-10-17",
     "Statement": [
         {
-        			"Action": [
-        				"kms:GenerateDataKey",
-        				"kms:Decrypt"
-        			],
-        			"Resource": [
-        				"<kms-key-arn>"
-        			],
-        			"Effect": "Allow"
+            "Action": [
+            	"kms:GenerateDataKey",
+            	"kms:Decrypt"
+            ],
+            "Resource": [
+            	"<kms-key-arn>"
+            ],
+            "Effect": "Allow"
         }
     ]
 }
@@ -209,7 +209,7 @@ If you want to persist chunks to the local filesystem instead of an S3 bucket, u
 ```
 from graphrag_toolkit.indexing.load import FileBasedChunks
 
-chunks = S3BasedChunks(
+chunks = FileBasedChunks(
     chunks_directory='./extracted/',
     collection_id='12345'
 )
