@@ -4,6 +4,7 @@
 import os
 import json
 import logging
+from datetime import datetime
 from os.path import join
 from typing import List, Any, Generator, Optional, Dict
 
@@ -18,18 +19,25 @@ logger = logging.getLogger(__name__)
 class FileBasedChunks(NodeHandler):
 
     chunks_directory:str
+    collection_id:str
+
     metadata_keys:Optional[List[str]]
     
-    def __init__(self, chunks_directory, metadata_keys:Optional[List[str]]=None):
+    def __init__(self, 
+                 chunks_directory:str, 
+                 collection_id:Optional[str]=None,
+                 metadata_keys:Optional[List[str]]=None):
         super().__init__(
-            chunks_directory=self._prepare_directory(chunks_directory),
-            metadata_keys=metadata_keys
+            chunks_directory=chunks_directory,
+            collection_id=collection_id or datetime.now().strftime('%Y%m%d-%H%M%S'),
+            metadata_keys=metadata_keys or []
         )
+        self._prepare_directory()
 
-    def _prepare_directory(self, dir):
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        return dir
+    def _prepare_directory(self):
+        directory_path = join(self.chunks_directory, self.collection_id)
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
 
     def chunks(self):
         return self
@@ -54,8 +62,10 @@ class FileBasedChunks(NodeHandler):
         return node
 
     def __iter__(self):
-        for filename in os.listdir(self.chunks_directory):
-            file_path = os.path.join(self.chunks_directory, filename)
+        directory_path = join(self.chunks_directory, self.collection_id)
+        logger.debug(f'Reading chunks from directory: {directory_path}')
+        for filename in os.listdir(directory_path):
+            file_path = os.path.join(directory_path, filename)
             if os.path.isfile(file_path):
                 with open(file_path) as f:
                     yield self._filter_metadata(TextNode.from_json(f.read()))
@@ -63,7 +73,7 @@ class FileBasedChunks(NodeHandler):
     def accept(self, nodes: List[BaseNode], **kwargs: Any) -> Generator[BaseNode, None, None]:
         for n in nodes:
             if not [key for key in [INDEX_KEY] if key in n.metadata]:
-                chunk_output_path = join(self.chunks_directory, f'{n.node_id}.json')
+                chunk_output_path = join(self.chunks_directory, self.collection_id, f'{n.node_id}.json')
                 logger.debug(f'Writing chunk to file: {chunk_output_path}')
                 with open(chunk_output_path, 'w') as f:
                     json.dump(n.to_dict(), f, indent=4)

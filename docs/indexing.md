@@ -98,22 +98,28 @@ graph_index.extract_and_build(docs)
 
 Using the `LexicalGraphIndex` you can perform the extract and build stages separately. This is useful if you want to extract the graph once, and then build it multiple times (in different environments, for example.)
 
-When you run the extract and build stages separately, you can persist the extracted chunks to the filesystem at the end of the extract stage, and then consume these same chunks in the build stage. Use the graphrag-toolkit's `FileBasedChunks` class to persist and then retrieve JSON-serialized LlamaIndex nodes.
+When you run the extract and build stages separately, you can persist the extracted chunks to Amazon S3 or to the filesystem at the end of the extract stage, and then consume these same chunks in the build stage. Use the graphrag-toolkit's `S3BasedChunks` and `FileBasedChunks` classes to persist and then retrieve JSON-serialized LlamaIndex nodes.
 
-The following example shows how to use a `FileBaseChunks` handler to persist extracted chunks to the filesystem at the end of the extract stage:
+The following example shows how to use a `S3BasedChunks` handler to persist extracted chunks to an Amazon S3 bucket at the end of the extract stage:
 
 ```
 from graphrag_toolkit import LexicalGraphIndex
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
-from graphrag_toolkit.indexing.load import FileBasedChunks
+from graphrag_toolkit.indexing.load import S3BasedChunks
 
 from llama_index.readers.web import SimpleWebPageReader
 
 import nest_asyncio
 nest_asyncio.apply()
 
-file_based_chunks = FileBasedChunks('./extracted/')
+chunks = S3BasedChunks(
+    region='us-east-1',
+    bucket_name='my-bucket',
+    key_prefix='extracted',
+    collection_id='12345',
+    s3_encryption_key_id='arn:aws:kms:us-east-1:222222222222:key/99169dcb-12ce-4493-942b-1523125d7339'
+)
 
 graph_store = GraphStoreFactory.for_graph_store(graph_store_info)
 vector_store = VectorStoreFactory.for_vector_store(vector_store_info)
@@ -135,21 +141,27 @@ docs = SimpleWebPageReader(
     metadata_fn=lambda url:{'url': url}
 ).load_data(doc_urls)
 
-graph_index.extract(docs, handler=file_based_chunks)
+graph_index.extract(docs, handler=chunks)
 ```
 
-Following the extract stage, you can then build the graph from the previously extracted chunks. Whereas in the extract stage the `FileBasedChunks` object acted as a handler to persist extracted chunks, in the build stage the `FileBasedChunks` object acts as a source of LlamaIndex nodes, and is thus passed as the first argument to the `build()` method:
+Following the extract stage, you can then build the graph from the previously extracted chunks. Whereas in the extract stage the `S3BasedChunks` object acted as a handler to persist extracted chunks, in the build stage the `S3BasedChunks` object acts as a source of LlamaIndex nodes, and is thus passed as the first argument to the `build()` method:
 
 ```
 from graphrag_toolkit import LexicalGraphIndex
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
-from graphrag_toolkit.indexing.load import FileBasedChunks
+from graphrag_toolkit.indexing.load import S3BasedChunks
 
 import nest_asyncio
 nest_asyncio.apply()
 
-file_based_chunks = FileBasedChunks('./extracted/')
+chunks = S3BasedChunks(
+    region='us-east-1',
+    bucket_name='my-bucket',
+    key_prefix='extracted',
+    collection_id='12345',
+    s3_encryption_key_id='arn:aws:kms:us-east-1:222222222222:key/99169dcb-12ce-4493-942b-1523125d7339'
+)
 
 graph_store = GraphStoreFactory.for_graph_store(graph_store_info)
 vector_store = VectorStoreFactory.for_vector_store(vector_store_info)
@@ -159,8 +171,59 @@ graph_index = LexicalGraphIndex(
     vector_store
 )
 
-graph_index.build(file_based_chunks)
+graph_index.build(chunks)
 ```
+
+The `S3BasedChunks` object has the following parameters:
+
+| Parameter  | Description | Mandatory |
+| ------------- | ------------- | ------------- |
+| `region` | AWS Region in which the S3 bucket is located (e.g. `us-east-1`) | Yes |
+| `bucket_name` | Amazon S3 bucket name | Yes |
+| `key_prefix` | S3 key prefix | Yes |
+| `collection_id` | Id for a particular collection of chunks. Optional: if no `collection_id` is supplied, the graphrag-toolkit will create a timestamp value. Extracted chunks will be written to `s3://<bucket>/<key_prefix>/<collection_id>/`. | No |
+| `s3_encryption_key_id` | KMS key id (Key ID, Key ARN, or Key Alias) to use for object encryption. Optional: if no `s3_encryption_key_id` is supplied, the graphrag-toolkit will encrypt objects in S3 using Amazon S3 managed keys. | No |
+
+If you use Amazon Web Services KMS keys to encrypt objects in S3, the identity under which the graphrag-toolkit runs should include the following IAM policy. Replace `<kms-key-arn>` with the ARN of the KMS key you want to use to encrypt objects:
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+        			"Action": [
+        				"kms:GenerateDataKey",
+        				"kms:Decrypt"
+        			],
+        			"Resource": [
+        				"<kms-key-arn>"
+        			],
+        			"Effect": "Allow"
+        }
+    ]
+}
+```
+
+If you want to persist chunks to the local filesystem instead of an S3 bucket, use a `FileBasedChunks` object instead:
+
+```
+from graphrag_toolkit.indexing.load import FileBasedChunks
+
+chunks = S3BasedChunks(
+    chunks_directory='./extracted/',
+    collection_id='12345'
+)
+
+```
+
+The `FileBasedChunks` object has the following parameters:
+
+| Parameter  | Description | Mandatory |
+| ------------- | ------------- | ------------- |
+| `chunks_directory` | Root directory for the extracted chunks | Yes |
+| `collection_id` | Id for a particular collection of chunks. Optional: if no `collection_id` is supplied, the graphrag-toolkit will create a timestamp value. Extracted chunks will be written to `/<chunks_directory>/<collection_id>/`. | No |
+
+
 
 #### Configuring the extract and build stages
 

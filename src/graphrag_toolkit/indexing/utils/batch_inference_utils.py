@@ -6,7 +6,7 @@ import asyncio
 import time
 import os
 import json
-from typing import Any, List, Dict, Optional
+from typing import Any, List, Dict
 from tenacity import retry, stop_after_attempt, wait_exponential
 from botocore.exceptions import ClientError
 
