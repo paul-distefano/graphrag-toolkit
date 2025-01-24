@@ -4,7 +4,7 @@
 from typing import List
 from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.storage.vector_index import VectorIndex, DummyVectorIndex
-from graphrag_toolkit.storage.constants import EMBEDDING_INDEXES
+from graphrag_toolkit.storage.constants import ALL_EMBEDDING_INDEXES
 
 class BatchVectorIndex():
     def __init__(self, idx:VectorIndex, batch_write_size:int):
@@ -35,8 +35,8 @@ class VectorBatchClient():
 
     def get_index(self, index_name):
 
-        if index_name not in EMBEDDING_INDEXES:
-            raise ValueError(f'Invalid index name ({index_name}): must be one of {EMBEDDING_INDEXES}')
+        if index_name not in ALL_EMBEDDING_INDEXES:
+            raise ValueError(f'Invalid index name ({index_name}): must be one of {ALL_EMBEDDING_INDEXES}')
         if index_name not in self.indexes:
             return DummyVectorIndex(index_name=index_name)
         

@@ -4,7 +4,7 @@
 import boto3
 import json
 import logging
-from typing import List, Any
+from typing import List
 from dataclasses import dataclass
 
 from llama_index.core.bridge.pydantic import PrivateAttr
@@ -21,7 +21,7 @@ from opensearchpy import OpenSearch, AsyncOpenSearch
 
 from graphrag_toolkit.config import GraphRAGConfig, EmbeddingType
 from graphrag_toolkit.storage.vector_index import VectorIndex, to_embedded_query
-from graphrag_toolkit.storage.constants import INDEX_KEY, EMBEDDING_INDEXES
+from graphrag_toolkit.storage.constants import INDEX_KEY
 
 logger = logging.getLogger(__name__)
 

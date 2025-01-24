@@ -9,7 +9,7 @@ from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.storage import VectorStoreFactory
 from graphrag_toolkit.indexing.node_handler import NodeHandler
 from graphrag_toolkit.indexing.build.vector_batch_client import VectorBatchClient
-from graphrag_toolkit.storage.constants import INDEX_KEY, EMBEDDING_INDEXES
+from graphrag_toolkit.storage.constants import INDEX_KEY, ALL_EMBEDDING_INDEXES, DEFAULT_EMBEDDING_INDEXES
 
 from llama_index.core.schema import BaseNode
 
@@ -20,22 +20,22 @@ VectorStoreInfoType = Union[str, VectorStore]
 class VectorIndexing(NodeHandler):
 
     @staticmethod
-    def for_vector_store(vector_store_info:VectorStoreInfoType=None, index_names=EMBEDDING_INDEXES, **kwargs):
+    def for_vector_store(vector_store_info:VectorStoreInfoType=None, index_names=DEFAULT_EMBEDDING_INDEXES, **kwargs):
         if isinstance(vector_store_info, VectorStore):
             return VectorIndexing(vector_store=vector_store_info)
         else:
             return VectorIndexing(vector_store=VectorStoreFactory.for_vector_store(vector_store_info, index_names, **kwargs))
     
     @staticmethod
-    def for_opensearch(endpoint, index_names=EMBEDDING_INDEXES, **kwargs):
+    def for_opensearch(endpoint, index_names=DEFAULT_EMBEDDING_INDEXES, **kwargs):
         return VectorIndexing(vector_store=VectorStoreFactory.for_opensearch(endpoint, index_names=index_names, *kwargs))
 
     @staticmethod
-    def for_neptune_analytics(graph_id, index_names=EMBEDDING_INDEXES, **kwargs):
+    def for_neptune_analytics(graph_id, index_names=DEFAULT_EMBEDDING_INDEXES, **kwargs):
         return VectorIndexing(vector_store=VectorStoreFactory.for_neptune_analytics(graph_id, index_names=index_names, **kwargs))
         
     @staticmethod
-    def for_dummy_vector_index(index_names=EMBEDDING_INDEXES, **kwargs):
+    def for_dummy_vector_index(index_names=DEFAULT_EMBEDDING_INDEXES, **kwargs):
         return VectorIndexing(vector_store=VectorStoreFactory.for_dummy_vector_index(index_names=index_names))
     
     vector_store:VectorStore
@@ -55,7 +55,7 @@ class VectorIndexing(NodeHandler):
                 if [key for key in [INDEX_KEY] if key in node.metadata]:
                     try:
                         index_name = node.metadata[INDEX_KEY]['index']
-                        if index_name in EMBEDDING_INDEXES:
+                        if index_name in ALL_EMBEDDING_INDEXES:
                             index = batch_client.get_index(index_name)
                             index.add_embeddings([node])
                     except Exception as e:
