@@ -24,10 +24,10 @@ def graph_info_resolver(graph_info:str=None):
         return (NEPTUNE_DATABASE, graph_info[len(NEPTUNE_DATABASE):])
     elif graph_info.startswith(NEPTUNE_ANALYTICS):
         return (NEPTUNE_ANALYTICS, graph_info[len(NEPTUNE_ANALYTICS):]) 
-    elif graph_info.endswith(NEPTUNE_DB_DNS):
-        return (NEPTUNE_DATABASE, graph_info)
+    elif NEPTUNE_DB_DNS in graph_info:
+        return (NEPTUNE_DATABASE, graph_info.replace('https://', ''))
     else:
-        return (NEPTUNE_ANALYTICS, graph_info)  
+        raise ValueError(f'Incorrectly formatted graph store connection info: {graph_info}')
     
 def get_log_formatting(args):
     log_formatting = args.pop('log_formatting', RedactedGraphQueryLogFormatting())
@@ -51,9 +51,12 @@ class GraphStoreFactory():
         elif graph_type == NEPTUNE_ANALYTICS:
             logger.debug(f"Opening Neptune Analytics graph [graph_id: {init_info}]")
             return GraphStoreFactory.for_neptune_analytics(init_info, **kwargs)
-        else:
+        elif graph_type == DUMMY_GRAPH:
             logger.debug(f'Opening dummy graph store')
             return DummyGraphStore()
+        else:
+            raise ValueError(f'Unrecognized graph store type: {graph_type}. Check that the graph store connection info is formatted correctly: {graph_info}.')
+
     
     @staticmethod
     def for_neptune_database(graph_endpoint, port=8182, **kwargs):
