@@ -25,14 +25,14 @@ class FileSystemTap(PipelineDecorator):
         self.sources_dir = sources_dir
 
     def handle_input_nodes(self, nodes:List[BaseNode]):
-        for doc in nodes:
-            if isinstance(doc, Document):
-                raw_source_output_path = join(self.raw_sources_dir, doc.doc_id)
-                source_output_path = join(self.sources_dir, f'{doc.doc_id}.json')
+        for node in nodes:
+            if isinstance(node, Document):
+                raw_source_output_path = join(self.raw_sources_dir, node.doc_id)
+                source_output_path = join(self.sources_dir, f'{node.doc_id}.json')
                 with open(raw_source_output_path, 'w') as f:
-                    f.write(doc.text)
+                    f.write(node.text)
                 with open(source_output_path, 'w') as f:
-                    f.write(doc.to_json())
+                    f.write(node.to_json())
     
     def handle_output_node(self, node) -> BaseNode:
         chunk_output_path = join(self.chunks_dir, f'{node.node_id}.json')

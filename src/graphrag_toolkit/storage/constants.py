@@ -2,4 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 INDEX_KEY = 'aws::graph::index'
-EMBEDDING_INDEXES = ['chunk', 'statement']
+EMBEDDING_INDEXES = ['chunk', 'statement', 'topic']

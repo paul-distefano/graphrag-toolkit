@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from lru import LRU
 
 from graphrag_toolkit.indexing.model import Fact
 from graphrag_toolkit.storage.graph_store import GraphStore
@@ -10,7 +9,6 @@ from graphrag_toolkit.indexing.build.graph_builder import GraphBuilder
 from graphrag_toolkit.indexing.constants import DEFAULT_CLASSIFICATION
 
 from llama_index.core.schema import BaseNode
-from llama_index.core.schema import NodeRelationship
 
 logger = logging.getLogger(__name__)
 
@@ -20,15 +18,13 @@ class GraphSummaryBuilder(GraphBuilder):
     def index_key(cls) -> str:
         return 'fact'
     
-    def build(self, node:BaseNode, graph_client: GraphStore, node_ids:LRU):
+    def build(self, node:BaseNode, graph_client: GraphStore):
             
         fact_metadata = node.metadata.get('fact', {})
-        fact_id = fact_metadata.get('factId', None)
-
-        if fact_id:
         
-            source_info = node.relationships.get(NodeRelationship.SOURCE, None)
-            fact = Fact.model_validate(source_info.metadata['fact'])
+        if fact_metadata:
+
+            fact = Fact.model_validate(fact_metadata)
 
             if fact.subject and fact.object:
 

@@ -3,9 +3,10 @@
 
 import logging
 from pipe import Pipe
-from typing import List, Optional
+from typing import List, Optional, Sequence, Dict
 
 from graphrag_toolkit.config import GraphRAGConfig
+from graphrag_toolkit.indexing.model import SourceType, SourceDocument, source_documents_from_source_types
 from graphrag_toolkit.indexing.extract.pipeline_decorator import PipelineDecorator
 from graphrag_toolkit.indexing.build.checkpoint import Checkpoint
 from graphrag_toolkit.indexing.extract.docs_to_nodes import DocsToNodes
@@ -19,6 +20,7 @@ from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.extractors.interface import BaseExtractor
 from llama_index.core.schema import TransformComponent
 from llama_index.core.schema import BaseNode
+from llama_index.core.schema import NodeRelationship
 
 logger = logging.getLogger(__name__)
     
@@ -94,21 +96,42 @@ class ExtractionPipeline():
         self.batch_size = batch_size
         self.show_progress = show_progress
         self.id_rewriter = IdRewriter()
+    
+    def _source_documents_from_base_nodes(self, nodes:Sequence[BaseNode]) -> List[SourceDocument]:
+        results:Dict[str, SourceDocument] = {}
+        
+        for node in nodes:
+            source_info = node.relationships[NodeRelationship.SOURCE]
+            source_id = source_info.node_id
+            if source_id not in results:
+                results[source_id] = SourceDocument()
+            results[source_id].nodes.append(node)
 
-      
-    def extract(self, source_documents: List[BaseNode]):
+        return list(results.values())
+    
+    def extract(self, inputs: List[SourceType]):
 
-        for docs in iter_batch(source_documents, self.batch_size):
+        input_source_documents = source_documents_from_source_types(inputs)
+
+        for source_documents in iter_batch(input_source_documents, self.batch_size):
+
+            nodes = [
+                n
+                for sd in source_documents
+                for n in sd.nodes
+            ]
             
-            source_docs = [doc.metadata.pop(SOURCE_DOC_KEY) for doc in docs if SOURCE_DOC_KEY in doc.metadata]
-            docs = self.id_rewriter(docs)
+            input_nodes = self.id_rewriter(nodes)
 
-            self.extraction_decorator.handle_input_nodes(source_docs)
-            self.extraction_decorator.handle_input_nodes(docs)
+            # decorator - input nodes
 
             logger.info(f'Running extraction pipeline [batch_size: {self.batch_size}, num_workers: {self.num_workers}]')
             
-            async_results = asyncio_run(self.ingestion_pipeline.arun(nodes=docs, num_workers=self.num_workers, show_progress=self.show_progress))
-            for node in async_results:
-                yield self.extraction_decorator.handle_output_node(node)
+            output_nodes = asyncio_run(self.ingestion_pipeline.arun(nodes=input_nodes, num_workers=self.num_workers, show_progress=self.show_progress))
+
+            output_source_documents = self._source_documents_from_base_nodes(output_nodes)
+            
+            for source_document in output_source_documents:
+                # decorator - output node
+                yield source_document
                 

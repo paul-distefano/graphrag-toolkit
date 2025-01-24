@@ -24,7 +24,8 @@ DEFAULT_EXTRACTION_NUM_WORKERS = 2
 DEFAULT_EXTRACTION_BATCH_SIZE = 4
 DEFAULT_EXTRACTION_NUM_THREADS_PER_WORKER = 4
 DEFAULT_BUILD_NUM_WORKERS = 2
-DEFAULT_BUILD_BATCH_SIZE = 25
+DEFAULT_BUILD_BATCH_SIZE = 4
+DEFAULT_BUILD_BATCH_WRITE_SIZE = 25
 DEFAULT_BATCH_WRITES_ENABLED = True
 DEFAULT_ENABLE_CACHE = False
 
@@ -54,6 +55,7 @@ class _GraphRAGConfig:
     _extraction_batch_size: Optional[int] = None
     _build_num_workers: Optional[int] = None
     _build_batch_size: Optional[int] = None
+    _build_batch_write_size: Optional[int] = None
     _batch_writes_enabled: Optional[bool] = None
     _enable_cache: Optional[bool] = None
 
@@ -111,6 +113,17 @@ class _GraphRAGConfig:
     @build_batch_size.setter
     def build_batch_size(self, batch_size:int) -> None:
         self._build_batch_size = batch_size
+
+    @property
+    def build_batch_write_size(self) -> int:
+        if self._build_batch_write_size is None:
+            self.build_batch_write_size = int(os.environ.get('BUILD_BATCH_WRITE_SIZE', DEFAULT_BUILD_BATCH_WRITE_SIZE))  
+
+        return self._build_batch_write_size
+
+    @build_batch_write_size.setter
+    def build_batch_write_size(self, batch_size:int) -> None:
+        self._build_batch_write_size = batch_size
 
     @property
     def batch_writes_enabled(self) -> bool:

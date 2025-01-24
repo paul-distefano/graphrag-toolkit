@@ -43,13 +43,13 @@ class VectorIndexing(NodeHandler):
     def accept(self, nodes: List[BaseNode], **kwargs: Any):
 
         batch_writes_enabled = kwargs['batch_writes_enabled']
-        batch_size = kwargs['batch_size']
+        batch_write_size = kwargs['batch_write_size']
 
-        logger.debug(f'Batch config: [batch_writes_enabled: {batch_writes_enabled}, batch_size: {batch_size}]')
+        logger.debug(f'Batch config: [batch_writes_enabled: {batch_writes_enabled}, batch_write_size: {batch_write_size}]')
         
-        with VectorBatchClient(vector_store=self.vector_store, batch_writes_enabled=batch_writes_enabled, batch_size=batch_size) as batch_client:
+        with VectorBatchClient(vector_store=self.vector_store, batch_writes_enabled=batch_writes_enabled, batch_write_size=batch_write_size) as batch_client:
 
-            node_iterable = nodes if not self.show_progress else tqdm(nodes, desc=f'Building vector index [batch_writes_enabled: {batch_writes_enabled}]')
+            node_iterable = nodes if not self.show_progress else tqdm(nodes, desc=f'Building vector index [batch_writes_enabled: {batch_writes_enabled}, batch_write_size: {batch_write_size}]')
 
             for node in node_iterable:
                 if [key for key in [INDEX_KEY] if key in node.metadata]:

@@ -104,7 +104,7 @@ def create_and_run_batch_job(job_name_prefix:str,
             )
 
         job_arn = response.get('jobArn')
-        logger.debug(f'Created batch job [job_arn: {job_arn}]')
+        logger.info(f'Created batch job [job_arn: {job_arn}]')
 
         wait_for_job_completion(bedrock_client, job_arn)
     except ClientError as e:

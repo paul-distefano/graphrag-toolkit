@@ -32,7 +32,8 @@ The graphrag-toolkit also allows you to set the logging level and apply logging 
 | `extraction_num_threads_per_worker` | The number of threads used by each process in the extract stage | `4` | `EXTRACTION_NUM_THREADS_PER_WORKER` |
 | `extraction_batch_size` | The number of input nodes to be processed in parallel by *all workers* in the extract stage | `4` | `EXTRACTION_BATCH_SIZE` |
 | `build_num_workers` | The number of parallel processes to use when running the build stage | `2` | `BUILD_NUM_WORKERS` |
-| `build_batch_size` | The number of input nodes to be processed in parallel by *each worker* in the build stage | `25` | `BUILD_BATCH_SIZE` |
+| `build_batch_size` | The number of input nodes to be processed in parallel by *each worker* in the build stage | `4` | `BUILD_BATCH_SIZE` |
+| `build_batch_write_size` | The number of elements to be written in a bulk operation to the graph and vector stores (see [Batch writes](#batch-writes)) | `24` | `BUILD_BATCH_WRITE_SIZE` |
 | `batch_writes_enabled` | Determines whether, on a per-worker basis, to write all elements (nodes and edges, or vectors) emitted by a batch of input nodes as a bulk operation, or singly to the graph and vector stores (see [Batch writes](#batch-writes)) | `True` | `BATCH_WRITES_ENABLED` |
 | `enable_cache` | Determines whether the results of LLM calls to models on Amazon Bedrock are cached to the local filesystem (see [Caching Amazon Bedrock LLM responses](#caching-amazon-bedrock-llm-responses)) | `False` | `ENABLE_CACHE` |
 
@@ -83,7 +84,7 @@ When configuring an embedding model, you must also set the `embed_dimensions` co
 
 #### Batch writes
 
-The graphrag-toolkit use microbatching to progress source data through the extract and build stages.
+The graphrag-toolkit uses microbatching to progress source data through the extract and build stages.
 
   - In the extract stage a batch of source nodes is processed in parallel by one or more workers, with each worker performing chunking, proposition extraction and topic/statement/fact/entity extraction over its allocated source nodes. For a given batch of source nodes, the extract stage emits a batch of chunks derived from those source nodes.
   - In the build stage, chunks from the extract stage are broken down into smaller *indexable* nodes representing sources, chunks, topics, statements and facts. These indexable nodes are then processed by the graph construction and vector indexing handlers.

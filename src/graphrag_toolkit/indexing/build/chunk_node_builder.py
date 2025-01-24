@@ -1,11 +1,11 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List, Dict
+from typing import List
 
 from llama_index.core.schema import BaseNode, DEFAULT_TEXT_NODE_TMPL
+from llama_index.core.schema import NodeRelationship
 
-from graphrag_toolkit.indexing.build.source_node_builder import SourceNodeBuilder
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.constants import TOPICS_KEY
 from graphrag_toolkit.storage.constants import INDEX_KEY
@@ -20,37 +20,45 @@ class ChunkNodeBuilder(NodeBuilder):
     def metadata_keys(cls) -> List[str]:
         return [TOPICS_KEY]
     
-    def build_nodes(self, node:BaseNode, other_nodes:Dict[str, BaseNode]):
-        
-        chunk_id = node.node_id
-        chunk_node = node.model_copy()
-        chunk_node.text_template = DEFAULT_TEXT_NODE_TMPL
-        
-        topics = [topic['value'] for topic in node.metadata.get(TOPICS_KEY, {}).get('topics', [])]
+    def build_nodes(self, nodes:List[BaseNode]):
 
-        metadata = {
-            'chunk': {
-                'chunkId': chunk_id  
-            },
-            'topics': topics 
-        }
+        chunk_nodes = []
 
-        source_node = other_nodes.get(SourceNodeBuilder.name(), None)
-        
-        if source_node:
-            metadata['source'] = source_node.metadata['source']
-        
-        metadata[INDEX_KEY] = {
-            'index': 'chunk',
-            'key': self._clean_id(chunk_id)
-        }
+        for node in nodes:
 
-        chunk_node.metadata = metadata
-        chunk_node.excluded_embed_metadata_keys = [INDEX_KEY, 'chunk']
-        chunk_node.excluded_llm_metadata_keys = [INDEX_KEY, 'chunk']
-        
-        return [chunk_node]
-    
-    
+            chunk_id = node.node_id
+            chunk_node = node.model_copy()
+            chunk_node.text_template = DEFAULT_TEXT_NODE_TMPL
+            
+            topics = [topic['value'] for topic in node.metadata.get(TOPICS_KEY, {}).get('topics', [])]
+
+            source_info = node.relationships[NodeRelationship.SOURCE]
+            source_id = source_info.node_id
+
+            metadata = {
+                'source': {
+                     'sourceId': source_id
+                },
+                'chunk': {
+                    'chunkId': chunk_id  
+                },
+                'topics': topics 
+            }  
+                
+            if source_info.metadata:
+                metadata['source']['metadata'] = source_info.metadata
+            
+            metadata[INDEX_KEY] = {
+                'index': 'chunk',
+                'key': self._clean_id(chunk_id)
+            }
+
+            chunk_node.metadata = metadata
+            chunk_node.excluded_embed_metadata_keys = [INDEX_KEY, 'chunk']
+            chunk_node.excluded_llm_metadata_keys = [INDEX_KEY, 'chunk']
+
+            chunk_nodes.append(chunk_node)
+
+        return chunk_nodes
 
     

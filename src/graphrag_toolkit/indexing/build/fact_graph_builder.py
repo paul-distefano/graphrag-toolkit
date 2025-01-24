@@ -2,16 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from lru import LRU
 
 from graphrag_toolkit.indexing.model import Fact
 from graphrag_toolkit.storage.graph_store import GraphStore
-from graphrag_toolkit.storage.graph_utils import search_string_from, label_from, relationship_name_from
+from graphrag_toolkit.storage.graph_utils import search_string_from
 from graphrag_toolkit.indexing.build.graph_builder import GraphBuilder
 from graphrag_toolkit.indexing.constants import DEFAULT_CLASSIFICATION
 
 from llama_index.core.schema import BaseNode
-from llama_index.core.schema import NodeRelationship
 
 logger = logging.getLogger(__name__)
 
@@ -21,17 +19,15 @@ class FactGraphBuilder(GraphBuilder):
     def index_key(cls) -> str:
         return 'fact'
     
-    def build(self, node:BaseNode, graph_client: GraphStore, node_ids:LRU):
+    def build(self, node:BaseNode, graph_client: GraphStore):
             
         fact_metadata = node.metadata.get('fact', {})
-        fact_id = fact_metadata.get('factId', None)
 
-        if fact_id:
+        if fact_metadata:
+
+            fact = Fact.model_validate(fact_metadata)
         
-            logger.debug(f'Inserting fact [fact_id: {fact_id}]')
-
-            source_info = node.relationships.get(NodeRelationship.SOURCE, None)
-            fact = Fact.model_validate(source_info.metadata['fact'])
+            logger.debug(f'Inserting fact [fact_id: {fact.factId}]')
 
             statements = [
                 '// insert facts',
@@ -55,9 +51,9 @@ class FactGraphBuilder(GraphBuilder):
             ])
 
             properties = {
-                'statement_id': fact.statement_id,
-                'fact_id': fact_id,
-                's_id': fact.subject.entity_id,
+                'statement_id': fact.statementId,
+                'fact_id': fact.factId,
+                's_id': fact.subject.entityId,
                 's': fact.subject.value,
                 's_search_str': search_string_from(fact.subject.value),
                 'sc': fact.subject.classification or DEFAULT_CLASSIFICATION,
@@ -82,7 +78,7 @@ class FactGraphBuilder(GraphBuilder):
                 ])
 
                 properties.update({                
-                    'o_id': fact.object.entity_id,
+                    'o_id': fact.object.entityId,
                     'o': fact.object.value,
                     'o_search_str': search_string_from(fact.object.value),
                     'oc': fact.object.classification or DEFAULT_CLASSIFICATION
@@ -103,7 +99,7 @@ class FactGraphBuilder(GraphBuilder):
             ])
 
             properties = {
-                'fact_id': fact_id
+                'fact_id': fact.factId
             }
 
             query = '\n'.join(statements)
@@ -123,7 +119,7 @@ class FactGraphBuilder(GraphBuilder):
                 ])
 
                 properties = {
-                    'fact_id': fact_id
+                    'fact_id': fact.factId
                 }
 
                 query = '\n'.join(statements)

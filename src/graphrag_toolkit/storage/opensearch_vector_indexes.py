@@ -194,9 +194,14 @@ class OpenSearchIndex(VectorIndex):
         result = {
             'score': r.score 
         }
-    
-        for k,v in r.metadata.items():
-            if k != INDEX_KEY:
+
+        if INDEX_KEY in r.metadata:
+            index_name = r.metadata[INDEX_KEY]['index']
+            result[index_name] = r.metadata[index_name]
+            if 'source' in r.metadata:
+                result['source'] = r.metadata['source']
+        else:
+            for k,v in r.metadata.items():
                 result[k] = v
             
         return result
@@ -217,12 +222,6 @@ class OpenSearchIndex(VectorIndex):
                 result[k] = v
             
         return result
-    
-    def _add_metadata(self, source, target, key):
-        i = source.get(key, None)
-        if i:
-            target[key] = i
-        return target
 
     def add_embeddings(self, nodes):
         
@@ -236,20 +235,7 @@ class OpenSearchIndex(VectorIndex):
 
             for node in nodes:
 
-                index_metadata = node.metadata[INDEX_KEY]
-
                 doc:BaseNode = node.copy()
-
-                metadata = {
-                    INDEX_KEY: index_metadata
-                }
-
-                metadata = self._add_metadata(node.metadata, metadata, 'source')  
-
-                for i in EMBEDDING_INDEXES:
-                    metadata = self._add_metadata(node.metadata, metadata, i)  
-
-                doc.metadata = metadata
                 doc.embedding = id_to_embed_map[node.node_id]
 
                 docs.append(doc)
