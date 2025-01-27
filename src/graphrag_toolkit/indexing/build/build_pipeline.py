@@ -120,7 +120,7 @@ class BuildPipeline():
         for source_documents in iter_batch(input_source_documents, self.batch_size):
             node_batches:List[List[BaseNode]] = self._to_node_batches(source_documents)
 
-            logger.info(f'Running build pipeline [batch_size: {self.batch_size}, num_workers: {self.num_workers}, batch_writes_enabled: {self.batch_writes_enabled}, batch_write_size: {self.batch_write_size}]')
+            logger.info(f'Running build pipeline [batch_size: {self.batch_size}, num_workers: {self.num_workers}, job_sizes: {[len(b) for b in node_batches]}, batch_writes_enabled: {self.batch_writes_enabled}, batch_write_size: {self.batch_write_size}]')
 
             output_nodes = asyncio_run(
                 self._arun_pipeline(
