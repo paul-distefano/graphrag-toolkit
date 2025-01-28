@@ -4,9 +4,10 @@
 import logging
 import asyncio
 import multiprocessing
+import math
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial, reduce
-from typing import Any, List, Optional, Sequence
+from typing import Any, List, Optional, Sequence, Iterable
 from pipe import Pipe
 
 from graphrag_toolkit.config import GraphRAGConfig
@@ -99,26 +100,42 @@ class BuildPipeline():
         self.metadata_to_nodes = MetadataToNodes(builders=builders)
         self.node_filter = NodeFilter() if not checkpoint else checkpoint.add_filter(NodeFilter())
     
-    def _to_node_batches(self, source_documents:List[SourceDocument]) -> List[List[BaseNode]]:
+    def _to_node_batches(self, source_doc_batches:Iterable[Iterable[SourceDocument]]) -> List[List[BaseNode]]:
+
+        results = []
+    
+        for source_documents in source_doc_batches:
         
-        chunk_node_batches = [
-            self.node_filter(sd.nodes)
-            for sd in source_documents
-        ]
+            chunk_node_batches = [
+                self.node_filter(source_document.nodes)
+                for source_document in source_documents
+            ]
 
-        node_batches = [
-            self.metadata_to_nodes(b) 
-            for b in chunk_node_batches if b
-        ]
+            node_batches = [
+                self.metadata_to_nodes(chunk_nodes) 
+                for chunk_nodes in chunk_node_batches if chunk_nodes
+            ]
 
-        return node_batches
+            nodes = [
+                node
+                for nodes in node_batches
+                for node in nodes
+            ]   
+        
+            results.append(nodes)
 
-    def build(self, inputs: List[SourceType]):
+        return results
+
+    def build(self, inputs: Iterable[SourceType]):
 
         input_source_documents = source_documents_from_source_types(inputs)
 
         for source_documents in iter_batch(input_source_documents, self.batch_size):
-            node_batches:List[List[BaseNode]] = self._to_node_batches(source_documents)
+
+            num_source_docs_per_batch = math.ceil(len(source_documents)/self.num_workers)
+            source_doc_batches = iter_batch(source_documents, num_source_docs_per_batch)
+            
+            node_batches:List[List[BaseNode]] = self._to_node_batches(source_doc_batches)
 
             logger.info(f'Running build pipeline [batch_size: {self.batch_size}, num_workers: {self.num_workers}, job_sizes: {[len(b) for b in node_batches]}, batch_writes_enabled: {self.batch_writes_enabled}, batch_write_size: {self.batch_write_size}]')
 
@@ -126,6 +143,7 @@ class BuildPipeline():
                 self._arun_pipeline(
                     self.inner_pipeline, 
                     node_batches, 
+                    num_workers=self.num_workers,
                     batch_writes_enabled=self.batch_writes_enabled, 
                     batch_size=self.batch_size,
                     batch_write_size=self.batch_write_size
@@ -140,10 +158,11 @@ class BuildPipeline():
         node_batches:List[BaseNode],
         cache_collection: Optional[str] = None,
         in_place: bool = True,
+        num_workers: int = 1,
         **kwargs: Any,
     ) -> Sequence[BaseNode]:
         loop = asyncio.get_event_loop()
-        with ProcessPoolExecutor(max_workers=len(node_batches)) as p:
+        with ProcessPoolExecutor(max_workers=num_workers) as p:
             tasks = [
                 loop.run_in_executor(
                     p,

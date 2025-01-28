@@ -3,7 +3,7 @@
 
 import logging
 from pipe import Pipe
-from typing import List, Optional, Sequence, Dict
+from typing import List, Optional, Sequence, Dict, Iterable
 
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.indexing.model import SourceType, SourceDocument, source_documents_from_source_types
@@ -28,10 +28,10 @@ class PassThroughDecorator(PipelineDecorator):
     def __init__(self):
         pass
     
-    def handle_input_nodes(self, nodes:List[BaseNode]):
+    def handle_input_docs(self, nodes:Iterable[SourceDocument]):
         return nodes
     
-    def handle_output_node(self, node: BaseNode) -> BaseNode:
+    def handle_output_doc(self, node: SourceDocument) -> SourceDocument:
         return node
 
 
@@ -109,21 +109,20 @@ class ExtractionPipeline():
 
         return list(results.values())
     
-    def extract(self, inputs: List[SourceType]):
+    def extract(self, inputs: Iterable[SourceType]):
 
         input_source_documents = source_documents_from_source_types(inputs)
 
         for source_documents in iter_batch(input_source_documents, self.batch_size):
 
-            nodes = [
+            source_documents = self.id_rewriter.handle_source_docs(source_documents)
+            source_documents = self.extraction_decorator.handle_input_docs(source_documents)
+
+            input_nodes = [
                 n
                 for sd in source_documents
                 for n in sd.nodes
             ]
-            
-            input_nodes = self.id_rewriter(nodes)
-
-            # decorator - input nodes
 
             logger.info(f'Running extraction pipeline [batch_size: {self.batch_size}, num_workers: {self.num_workers}]')
             
@@ -132,6 +131,5 @@ class ExtractionPipeline():
             output_source_documents = self._source_documents_from_base_nodes(output_nodes)
             
             for source_document in output_source_documents:
-                # decorator - output node
-                yield source_document
+                yield self.extraction_decorator.handle_output_doc(source_document)
                 

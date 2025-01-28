@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from pydantic import BaseModel, ConfigDict
-from typing import List, Optional, Union, Dict
+from typing import List, Optional, Union, Dict, Generator, Iterable
 
 from llama_index.core.schema import TextNode, Document, BaseNode
 from llama_index.core.schema import NodeRelationship
@@ -21,30 +21,26 @@ class SourceDocument(BaseModel):
 
 SourceType = Union[SourceDocument, BaseNode]
 
-def source_documents_from_source_types(inputs: List[SourceType]) -> List[SourceDocument]:
+def source_documents_from_source_types(inputs: Iterable[SourceType]) -> Generator[SourceDocument, None, None]:
 
-    results:List[SourceDocument] = []
     chunks_by_source:Dict[str, SourceDocument] = {}
 
-    for input in inputs:
-        if isinstance(input, SourceDocument):
-            results.append(input)
-        elif isinstance(input, Document):
-            results.append(SourceDocument(nodes=[input]))
-        elif isinstance(input, TextNode):
-            source_info = input.relationships[NodeRelationship.SOURCE]
+    for i in inputs:
+        if isinstance(i, SourceDocument):
+            yield i
+        elif isinstance(i, Document):
+            yield SourceDocument(nodes=[i])
+        elif isinstance(i, TextNode):
+            source_info = i.relationships[NodeRelationship.SOURCE]
             source_id = source_info.node_id
             if source_id not in chunks_by_source:
                 chunks_by_source[source_id] = SourceDocument()
-            chunks_by_source[source_id].nodes.append(input)
+            chunks_by_source[source_id].nodes.append(i)
         else:
-            raise ValueError(f'Unexpected source type: {type(input)}')
+            raise ValueError(f'Unexpected source type: {type(i)}')
 
-    results.extend([
-        SourceDocument(nodes=list(nodes)) for nodes in chunks_by_source.values()
-    ])
-
-    return results
+    for nodes in chunks_by_source.values():
+        yield SourceDocument(nodes=list(nodes))
 
 
 class Propositions(BaseModel):

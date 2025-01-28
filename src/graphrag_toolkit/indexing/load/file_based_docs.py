@@ -29,7 +29,7 @@ class FileBasedDocs(NodeHandler):
                  collection_id:Optional[str]=None,
                  metadata_keys:Optional[List[str]]=None):
         super().__init__(
-            chunks_directory=docs_directory,
+            docs_directory=docs_directory,
             collection_id=collection_id or datetime.now().strftime('%Y%m%d-%H%M%S'),
             metadata_keys=metadata_keys
         )

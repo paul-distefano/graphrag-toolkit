@@ -3,18 +3,18 @@
 
 import abc
 import six
-from typing import Sequence
+from typing import Iterable
 
-from llama_index.core.schema import BaseNode
+from graphrag_toolkit.indexing.model import SourceDocument
 
 @six.add_metaclass(abc.ABCMeta)
 class PipelineDecorator():
 
     @abc.abstractmethod
-    def handle_input_nodes(self, nodes:Sequence[BaseNode]):
+    def handle_input_docs(self, docs:Iterable[SourceDocument]) -> Iterable[SourceDocument]:
         pass
 
     @abc.abstractmethod
-    def handle_output_node(self, node: BaseNode) -> BaseNode:
+    def handle_output_doc(self, doc: SourceDocument) -> SourceDocument:
         pass
 

@@ -128,9 +128,8 @@ class BedrockKnowledgeBaseExport():
                 data = io_stream.read().decode('utf-8')
             
         metadata = self.metadata_fn(data) if self.metadata_fn else {}
-        if not metadata:
-            metadata = { 'source': source }
-        elif not metadata['source']:
+
+        if 'source' not in metadata:
             metadata['source'] = source
             
         doc = Document(
@@ -225,7 +224,7 @@ class BedrockKnowledgeBaseExport():
                 chunk.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
                     node_id=source_doc.id_,
                     node_type=NodeRelationship.SOURCE,
-                    metadata=self._with_page_number(source_doc.metadata, page_number),
+                    metadata=source_doc.metadata,
                     hash=source_doc.hash
                 )
                 

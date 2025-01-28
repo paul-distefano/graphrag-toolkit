@@ -69,7 +69,7 @@ class S3BasedDocs(NodeHandler):
     def __iter__(self):
         s3_client = boto3.client('s3', region_name=self.region)
 
-        collection_path = join(self.key_prefix,  self.collection_id)
+        collection_path = join(self.key_prefix,  self.collection_id, '')
 
         logger.debug(f'Getting source documents from S3: [bucket: {self.bucket_name}, key: {collection_path}]')
 
@@ -101,6 +101,8 @@ class S3BasedDocs(NodeHandler):
                     io_stream.seek(0)
                     data = io_stream.read().decode('UTF-8')
                     nodes.append(self._filter_metadata(TextNode.from_json(data)))
+
+            logger.debug(f'Yielding source document [source: {source_doc_prefix}, num_nodes: {len(nodes)}]')
            
             yield SourceDocument(nodes=nodes)
 
