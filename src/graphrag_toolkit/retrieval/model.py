@@ -7,6 +7,7 @@ from typing import List, Optional, Union, Tuple
 class Statement(BaseModel):
     model_config = ConfigDict(strict=True)
 
+    statementId:Optional[str]=None
     statement:str
     facts:List[str]=[]
     details:Optional[str]=None

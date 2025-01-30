@@ -56,7 +56,7 @@ class TraversalBasedBaseRetriever(BaseRetriever):
         WITH {{ sourceId: {self.graph_store.node_id("s.sourceId")}, metadata: s{{.*}}}} AS source,
             t,
             {{ chunkId: {self.graph_store.node_id("c.chunkId")}, value: NULL }} AS cc, 
-            {{ statement: l.value, facts: collect(distinct f.value), details: l.details, chunkId: {self.graph_store.node_id("c.chunkId")}, score: count(l) }} as ll
+            {{ statementId: {self.graph_store.node_id("l.statementId")}, statement: l.value, facts: collect(distinct f.value), details: l.details, chunkId: {self.graph_store.node_id("c.chunkId")}, score: count(l) }} as ll
         WITH source, 
             t, 
             collect(distinct cc) as chunks, 
