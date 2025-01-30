@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from pydantic import BaseModel, ConfigDict, Field, AliasChoices
-from typing import List, Optional, Union, Tuple
+from typing import List, Optional, Union, Dict
 
 class Statement(BaseModel):
     model_config = ConfigDict(strict=True)
@@ -35,7 +35,7 @@ class Source(BaseModel):
     model_config = ConfigDict(strict=True)
     
     sourceId:str
-    metadata:List[Tuple[str, str]]=[]
+    metadata:Dict[str, str]={}
 
 SourceType = Union[str, Source]
 

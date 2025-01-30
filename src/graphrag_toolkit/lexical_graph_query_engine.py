@@ -192,6 +192,20 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
         logger.debug(f'data: {data}')
         
         return data
+    
+    def retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
+
+        query_bundle = QueryBundle(query_bundle) if isinstance(query_bundle, str) else query_bundle
+
+        query_bundle = to_embedded_query(query_bundle, GraphRAGConfig.embed_model)
+                
+        results = self.retriever.retrieve(query_bundle)
+
+        for post_processor in self.post_processors:
+            results = post_processor.postprocess_nodes(results, query_bundle)
+
+        return results
+
  
     def _query(self, query_bundle: QueryBundle) -> RESPONSE_TYPE:
 

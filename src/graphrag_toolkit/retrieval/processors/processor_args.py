@@ -6,7 +6,7 @@ from dateutil.parser import parse
 
 from graphrag_toolkit.retrieval.model import Source
 
-def format_source_metadata(source:Source):
+def reranking_source_metadata_formatter(source:Source):
     def format_value(s):
         try: 
             date = parse(s, fuzzy=False)
@@ -17,7 +17,7 @@ def format_source_metadata(source:Source):
                 return ''
             else:
                 return s
-    return ', '.join([format_value(v) for _,v in source.metadata])
+    return ', '.join([format_value(v) for v in source.metadata.values()])
 
 class ProcessorArgs():
     def __init__(self, **kwargs):
@@ -25,7 +25,6 @@ class ProcessorArgs():
         self.expand_entities = kwargs.get('expand_entities', True)
         self.include_facts = kwargs.get('include_facts', False)
         self.derive_subqueries = kwargs.get('derive_subqueries', False)
-        self.strip_source_metadata = kwargs.get('strip_source_metadata', True) 
         self.debug_results = kwargs.get('debug_results', [])
         self.reranker = kwargs.get('reranker', 'tfidf')
         self.max_statements = kwargs.get('max_statements', 100)
@@ -40,7 +39,7 @@ class ProcessorArgs():
         self.statement_pruning_threshold = kwargs.get('statement_pruning_threshold', 0.01)
         self.results_pruning_threshold = kwargs.get('results_pruning_threshold', 0.08)
         self.num_workers = kwargs.get('num_workers', 10)
-        self.format_source_metadata_fn = kwargs.get('format_source_metadata_fn', format_source_metadata)
+        self.reranking_source_metadata_fn = kwargs.get('reranking_source_metadata_fn', reranking_source_metadata_formatter)
   
     def to_dict(self, new_args:Dict[str, Any]={}):
         args = self.__dict__

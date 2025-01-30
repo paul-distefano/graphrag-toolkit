@@ -99,7 +99,7 @@ class RerankStatements(ProcessorBase):
         values_to_score = []
         
         for search_result in search_results.results:
-            source_str = self.args.format_source_metadata_fn(search_result.source)
+            source_str = self.args.reranking_source_metadata_fn(search_result.source)
             for topic in search_result.topics:
                 topic_str = topic.topic
                 for statement in topic.statements:
@@ -137,7 +137,7 @@ class RerankStatements(ProcessorBase):
             return topic
 
         def rerank_search_result(index:int, search_result:SearchResult):
-            source_str = self.args.format_source_metadata_fn(search_result.source)
+            source_str = self.args.reranking_source_metadata_fn(search_result.source)
             return self._apply_to_topics(search_result, rerank_statements, source_str=source_str)
         
         return self._apply_to_search_results(search_results, rerank_search_result)
