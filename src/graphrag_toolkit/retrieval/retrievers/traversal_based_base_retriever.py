@@ -26,7 +26,8 @@ DEFAULT_PROCESSORS = [
     TruncateResults,
     TruncateStatements,
     ClearStatementStrs,
-    ClearChunks
+    ClearChunks,
+    ClearScores
 ]
 
 DEFAULT_FORMATTING_PROCESSORS = [

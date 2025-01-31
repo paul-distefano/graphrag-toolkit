@@ -4,6 +4,7 @@
 from .processor_args import ProcessorArgs
 from .processor_base import ProcessorBase
 from .clear_chunks import ClearChunks
+from .clear_scores import ClearScores
 from .clear_statement_strs import ClearStatementStrs
 from .dedup_results import DedupResults
 from .disaggregate_results import DisaggregateResults
