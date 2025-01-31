@@ -2,22 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from typing import Dict, Any
-from dateutil.parser import parse
-
-from graphrag_toolkit.retrieval.model import Source
-
-def reranking_source_metadata_formatter(source:Source):
-    def format_value(s):
-        try: 
-            date = parse(s, fuzzy=False)
-            return date.strftime("%B %-d, %Y")
-
-        except ValueError:
-            if s.startswith('http'):
-                return ''
-            else:
-                return s
-    return ', '.join([format_value(v) for v in source.metadata.values()])
 
 class ProcessorArgs():
     def __init__(self, **kwargs):
@@ -39,7 +23,8 @@ class ProcessorArgs():
         self.statement_pruning_threshold = kwargs.get('statement_pruning_threshold', 0.01)
         self.results_pruning_threshold = kwargs.get('results_pruning_threshold', 0.08)
         self.num_workers = kwargs.get('num_workers', 10)
-        self.reranking_source_metadata_fn = kwargs.get('reranking_source_metadata_fn', reranking_source_metadata_formatter)
+        self.reranking_source_metadata_fn = kwargs.get('reranking_source_metadata_fn', None)
+        self.source_formatter = kwargs.get('source_formatter', None)
   
     def to_dict(self, new_args:Dict[str, Any]={}):
         args = self.__dict__

@@ -3,6 +3,7 @@
 
 from .chunk_based_search import ChunkBasedSearch
 from .entity_based_search import EntityBasedSearch
+from .topic_based_search import TopicBasedSearch
 from .traversal_based_retriever import TraversalBasedRetriever, WeightedTraversalBasedRetrieverType
 from .keyword_ranking_search import KeywordRankingSearch
 from .keyword_entity_search import KeywordEntitySearch

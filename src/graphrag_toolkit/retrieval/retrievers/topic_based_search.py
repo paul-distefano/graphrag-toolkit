@@ -16,7 +16,7 @@ from llama_index.core.schema import QueryBundle
 
 logger = logging.getLogger(__name__)
 
-class ChunkBasedSearch(TraversalBasedBaseRetriever):
+class TopicBasedSearch(TraversalBasedBaseRetriever):
     def __init__(self, 
                  graph_store:GraphStore,
                  vector_store:VectorStore,
@@ -32,44 +32,43 @@ class ChunkBasedSearch(TraversalBasedBaseRetriever):
             **kwargs
         )
     
-    def chunk_based_graph_search(self, chunk_id):
+    def topic_based_graph_search(self, topic_id):
 
         cypher = self.create_cypher_query(f'''
-        // chunk-based graph search                                  
-        MATCH (l:Statement)-[:PREVIOUS*0..1]-(:Statement)-[:BELONGS_TO]->(t:Topic)-[:MENTIONED_IN]->(c:Chunk)
-        WHERE {self.graph_store.node_id("c.chunkId")} = $chunkId
+        // topic-based graph search                                  
+        MATCH (l:Statement)-[:PREVIOUS*0..1]-(:Statement)-[:BELONGS_TO]->(t:Topic)
+        WHERE {self.graph_store.node_id("t.topicId")} = $topicId
         ''')
                                           
         properties = {
-            'chunkId': chunk_id,
+            'topicId': topic_id,
             'limit': self.args.query_limit,
             'statementLimit': self.args.intermediate_limit
         }
                                           
         return self.graph_store.execute_query(cypher, properties)
 
-
     def get_start_node_ids(self, query_bundle: QueryBundle) -> List[str]:
 
-        logger.debug('Getting start node ids for chunk-based search...')
+        logger.debug('Getting start node ids for topic-based search...')
 
-        chunks = get_diverse_vss_elements('chunk', query_bundle, self.vector_store, self.args)
+        topics = get_diverse_vss_elements('topic', query_bundle, self.vector_store, self.args)
         
-        return [chunk['chunk']['chunkId'] for chunk in chunks]
+        return [topic['topic']['topicId'] for topic in topics]
     
     def do_graph_search(self, query_bundle: QueryBundle, start_node_ids:List[str]) -> SearchResultCollection:
         
-        chunk_ids = start_node_ids
+        topic_ids = start_node_ids
 
-        logger.debug('Running chunk-based search...')
+        logger.debug('Running topic-based search...')
         
         search_results = []
         
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.args.num_workers) as executor:
 
             futures = [
-                executor.submit(self.chunk_based_graph_search, chunk_id)
-                for chunk_id in chunk_ids
+                executor.submit(self.topic_based_graph_search, topic_id)
+                for topic_id in topic_ids
             ]
             
             executor.shutdown()
@@ -82,7 +81,7 @@ class ChunkBasedSearch(TraversalBasedBaseRetriever):
         
         retriever_name = type(self).__name__
         if retriever_name in self.args.debug_results and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f'''Chunk-based results: {search_results_collection.model_dump_json(
+            logger.debug(f'''Topic-based results: {search_results_collection.model_dump_json(
                     indent=2, 
                     exclude_unset=True, 
                     exclude_defaults=True, 

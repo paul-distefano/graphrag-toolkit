@@ -11,7 +11,6 @@ from typing import Optional, List, Type, Union
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.retrieval.prompts import ANSWER_QUESTION_SYSTEM_PROMPT, ANSWER_QUESTION_USER_PROMPT
-from graphrag_toolkit.retrieval.post_processors.enrich_source_details import EnrichSourceDetails, SourceInfoAccessorType
 from graphrag_toolkit.retrieval.post_processors.bedrock_context_format import BedrockContextFormat
 from graphrag_toolkit.retrieval.retrievers import TraversalBasedRetriever, SemanticGuidedRetriever
 from graphrag_toolkit.retrieval.retrievers import StatementCosineSimilaritySearch, KeywordRankingSearch, SemanticBeamGraphSearch
@@ -35,11 +34,6 @@ logger = logging.getLogger(__name__)
 
 RetrieverType = Union[BaseRetriever, Type[BaseRetriever]]
 PostProcessorsType = Union[BaseNodePostprocessor, List[BaseNodePostprocessor]]
-
-def format_source(source_info_accessor:SourceInfoAccessorType='source'):
-    return EnrichSourceDetails(
-        source_info_accessor=source_info_accessor
-    )
 
 class LexicalGraphQueryEngine(BaseQueryEngine):
 
