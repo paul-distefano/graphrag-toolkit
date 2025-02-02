@@ -12,16 +12,17 @@ from typing import Optional, Any, List, Union
 from falkordb.node import Node
 from falkordb.path import Path
 from falkordb.graph import Graph
+from redis.exceptions import ResponseError
 
 from graphrag_toolkit.storage.graph_store import ( 
     GraphStore, NodeId, 
-    format_id, NonRedactedGraphQueryLogFormatting)
+    format_id, RedactedGraphQueryLogFormatting)
 
 
 
 logger = logging.getLogger(__name__)
 
-def generate_random_string(length: int) -> str:
+def generate_random_alphabetic_string(length: int) -> str:
     characters = string.ascii_letters
     random_string = "".join(random.choice(characters) for _ in range(length))
     return random_string
@@ -30,7 +31,7 @@ def generate_random_string(length: int) -> str:
 class FalkorDBDatabaseClient(GraphStore):
     def __init__(self,
                  endpoint_url: str = None,
-                 database: str = generate_random_string(4),
+                 database: Optional[str] = None,
                  username: str = None,
                  password: str = None,
                  ssl: bool = False,
@@ -38,10 +39,16 @@ class FalkorDBDatabaseClient(GraphStore):
                  *args,
                  **kwargs
                  ) -> None:
-        super().__init__(*args, **kwargs)
         
+        if database is None:
+            database = generate_random_alphabetic_string(4)
 
-        self.log_formatting = NonRedactedGraphQueryLogFormatting()  
+        if not database or not database.isalnum():
+            raise ValueError("Database name must be alphanumeric and non-empty")
+
+        super().__init__(*args, **kwargs)
+
+        self.log_formatting = RedactedGraphQueryLogFormatting()  
         self.endpoint_url = endpoint_url
         self.database = database
         self.username = username
@@ -59,20 +66,24 @@ class FalkorDBDatabaseClient(GraphStore):
                 self.host = parts[0]
                 self.port = int(parts[1])
             except Exception as e:
-                raise ValueError(f"Error parsing endpoint url: {e}")
+                raise ValueError(f"Error parsing endpoint url: {e}") from e
         else:
             self.host = "localhost"
             self.port = 6379
 
         if self._client is None:
-            self._driver = falkordb.FalkorDB(
-                    host=self.host,
-                    port=self.port,
-                    username=self.username,
-                    password=self.password,
-                    ssl=self.ssl,
-                )
-            self._client = self._driver.select_graph(self.database)
+            try:
+                self._driver = falkordb.FalkorDB(
+                        host=self.host,
+                        port=self.port,
+                        username=self.username,
+                        password=self.password,
+                        ssl=self.ssl,
+                    )
+                self._client = self._driver.select_graph(self.database)
+            except Exception as e:
+                logger.error(f"Failed to connect to FalkorDB: {e}")
+                raise ConnectionError(f"Could not establish connection to FalkorDB: {e}")
         return self._client
     
     def node_id(self, id_name: str) -> NodeId:
@@ -80,8 +91,10 @@ class FalkorDBDatabaseClient(GraphStore):
 
     def execute_query(self, 
                       cypher: str, 
-                      parameters: dict = {}, 
+                      parameters: Optional[dict] = None, 
                       correlation_id: Any =None) -> Union[List[List[Node]], List[List[List[Path]]]]:
+        if parameters is None:
+            parameters = {}
 
         query_id = uuid.uuid4().hex[:5]
 
@@ -101,8 +114,8 @@ class FalkorDBDatabaseClient(GraphStore):
                 params=parameters
             )
         except Exception as e:
-            logger.error(f"Query execution failed: {e}")
-            raise
+            logger.error(f"Query execution failed: {e}. Query: {cypher}, Parameters: {parameters}")
+            raise ResponseError(f"Failed to execute query: {e}") from e
 
         end = time.time()
 

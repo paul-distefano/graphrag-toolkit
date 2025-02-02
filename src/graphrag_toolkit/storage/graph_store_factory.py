@@ -61,7 +61,7 @@ class GraphStoreFactory():
             logger.debug(f"Opening FalkorDB database [endpoint: {init_info}]")
             return GraphStoreFactory.for_falkordb(init_info, **kwargs)
         else:
-            logger.debug(f'Opening dummy graph store')
+            logger.debug('Opening dummy graph store')
             return DummyGraphStore()
 
     @staticmethod
