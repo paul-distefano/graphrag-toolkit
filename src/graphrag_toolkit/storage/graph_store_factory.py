@@ -81,7 +81,11 @@ class GraphStoreFactory():
         """
         Initializes and returns the FalkorDB database client.
         """
-        return FalkorDBDatabaseClient(endpoint_url=graph_endpoint, log_formatting=get_log_formatting(kwargs))
+        return FalkorDBDatabaseClient(
+            endpoint_url=graph_endpoint,
+            log_formatting=get_log_formatting(kwargs), 
+            **kwargs
+        )
 
     @staticmethod
     def for_dummy_graph_store(*args, **kwargs):

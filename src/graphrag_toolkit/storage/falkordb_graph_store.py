@@ -14,28 +14,26 @@ from falkordb.path import Path
 from falkordb.graph import Graph
 from redis.exceptions import ResponseError, AuthenticationError
 
+from llama_index.core.bridge.pydantic import PrivateAttr
+
 from graphrag_toolkit.storage.graph_store import ( 
     GraphStore, NodeId, 
     format_id, RedactedGraphQueryLogFormatting)
 
 logger = logging.getLogger(__name__)
 
-def generate_random_alphabetic_string(length: int) -> str:
-    """
-    Generate a cryptographically secure random alphabetic string.
-
-    :param length: Length of the generated string.
-    :return: A random string of uppercase and lowercase letters.
-    :raises ValueError: If length is non-positive.
-    """
-    if length <= 0:
-        raise ValueError("Length must be a positive integer")
-    
-    characters = string.ascii_letters
-    random_string = "".join(secrets.choice(characters) for _ in range(length))
-    return random_string
+DEFAULT_DATABASE_NAME = 'graphrag'
 
 class FalkorDBDatabaseClient(GraphStore):
+    
+    endpoint_url:str
+    database:str
+    username:Optional[str] = None
+    password:Optional[str] = None
+    ssl:Optional[bool] = False
+        
+    _client: Optional[Any] = PrivateAttr(default=None)
+
     """
     Client for interacting with a FalkorDB database.
 
@@ -43,12 +41,10 @@ class FalkorDBDatabaseClient(GraphStore):
     """
     def __init__(self,
                  endpoint_url: str = None,
-                 database: Optional[str] = None,
+                 database: str = DEFAULT_DATABASE_NAME,
                  username: str = None,
                  password: str = None,
                  ssl: bool = False,
-                 _client: Optional[Any] = None,
-                 *args,
                  **kwargs
                  ) -> None:
         """
@@ -66,22 +62,22 @@ class FalkorDBDatabaseClient(GraphStore):
         
         if endpoint_url and not isinstance(endpoint_url, str):
             raise ValueError("Endpoint URL must be a string")
-        
-        if database is None:
-            database = generate_random_alphabetic_string(4)
 
         if not database or not database.isalnum():
             raise ValueError("Database name must be alphanumeric and non-empty")
 
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            endpoint_url=endpoint_url,
+            database=database,
+            username=username,
+            password=password,
+            ssl=ssl,
+            **kwargs
+        )
 
-        self.log_formatting = RedactedGraphQueryLogFormatting()  
-        self.endpoint_url = endpoint_url
-        self.database = database
-        self.username = username
-        self.password = password
-        self.ssl = ssl
-        self._client = _client
+    def __getstate__(self):
+        self._client = None
+        return super().__getstate__()
     
     @property
     def client(self) -> Graph:
@@ -97,24 +93,24 @@ class FalkorDBDatabaseClient(GraphStore):
                 if len(parts) != 2:
                     raise ValueError("Invalid endpoint URL format. Expected format: "
                                      "'falkordb://host:port' or for local use 'falkordb://' ")
-                self.host = parts[0]
-                self.port = int(parts[1])
+                host = parts[0]
+                port = int(parts[1])
             except Exception as e:
                 raise ValueError(f"Error parsing endpoint url: {e}") from e
         else:
-            self.host = "localhost"
-            self.port = 6379
+            host = "localhost"
+            port = 6379
 
         if self._client is None:
             try:
-                self._driver = falkordb.FalkorDB(
-                        host=self.host,
-                        port=self.port,
+                self._client = falkordb.FalkorDB(
+                        host=host,
+                        port=port,
                         username=self.username,
                         password=self.password,
                         ssl=self.ssl,
-                    )
-                self._client = self._driver.select_graph(self.database)
+                    ).select_graph(self.database)
+                
             except ConnectionError as e:
                 logger.error(f"Failed to connect to FalkorDB: {e}")
                 raise ConnectionError(f"Could not establish connection to FalkorDB: {e}") from e
@@ -125,6 +121,7 @@ class FalkorDBDatabaseClient(GraphStore):
                 logger.error(f"Unexpected error while connecting to FalkorDB: {e}")
                 raise ConnectionError(f"Unexpected error while connecting to FalkorDB: {e}") from e
         return self._client
+        
     
     def node_id(self, id_name: str) -> NodeId:
         """
@@ -156,7 +153,7 @@ class FalkorDBDatabaseClient(GraphStore):
         request_log_entry_parameters = self.log_formatting.format_log_entry(
             self._logging_prefix(query_id, correlation_id), 
             cypher, 
-            params=json.dumps(parameters),
+            json.dumps(parameters),
         )
 
         logger.debug(f'[{request_log_entry_parameters.query_ref}] Query: [query: {request_log_entry_parameters.query}, parameters: {request_log_entry_parameters.parameters}]')
