@@ -1,6 +1,31 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+DOMAIN_ENTITY_CLASSIFICATIONS_PROMPT = """
+You are an expert system analyzing text to identify domain-specific entity types. Based on the provided text samples, identify the most significant entity classifications for this domain.
+
+Guidelines:
+1. Identify specific types of entities that appear in or are relevant to the domain
+2. Use clear, concise classification names (1-2 words)
+3. Aim for 10-15 classifications
+4. Format each classification as a single word or multiple words separated by a space
+5. Focus on concrete entities, not abstract concepts
+
+Sample text chunks:
+<chunks>
+{text_chunks}
+</chunks>
+
+Output the classifications between entity_classifications tags, one per line.
+
+Expected format:
+<entity_classifications>
+Classification1
+Classification2
+Classification3
+</entity_classifications>
+"""
+
 EXTRACT_PROPOSITIONS_PROMPT = """
 You are a top-tier algorithm designed for extracting information in structured formats to build a knowledge graph. Your task is to decompose the given text into clear, concise, and context-independent propositions.
 
