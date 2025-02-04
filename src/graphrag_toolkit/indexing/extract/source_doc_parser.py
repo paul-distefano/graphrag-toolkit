@@ -6,13 +6,13 @@ from typing import Iterable, List
 
 from graphrag_toolkit.indexing.model import SourceDocument
 
-from llama_index.core.node_parser.interface import NodeParser
+from llama_index.core.schema import BaseComponent
 
-class SourceDocParser(NodeParser):
+class SourceDocParser(BaseComponent):
      
     @abc.abstractmethod
-    def _handle_source_docs(self, source_documents:Iterable[SourceDocument]) -> List[SourceDocument]:
+    def _parse_source_docs(self, source_documents:Iterable[SourceDocument]) -> List[SourceDocument]:
         pass
 
-    def handle_source_docs(self, source_documents:Iterable[SourceDocument]) -> List[SourceDocument]:
-        return self._handle_source_docs(source_documents)
+    def parse_source_docs(self, source_documents:Iterable[SourceDocument]) -> List[SourceDocument]:
+        return self._parse_source_docs(source_documents)
