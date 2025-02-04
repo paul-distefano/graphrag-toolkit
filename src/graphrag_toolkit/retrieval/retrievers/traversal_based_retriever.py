@@ -12,7 +12,7 @@ from graphrag_toolkit.storage.vector_store import VectorStore
 from graphrag_toolkit.retrieval.retrievers.traversal_based_base_retriever import TraversalBasedBaseRetriever
 from graphrag_toolkit.retrieval.utils.query_decomposition import QueryDecomposition
 from graphrag_toolkit.retrieval.retrievers.entity_based_search import EntityBasedSearch
-from graphrag_toolkit.retrieval.retrievers.topic_based_search import TopicBasedSearch
+from graphrag_toolkit.retrieval.retrievers.chunk_based_search import ChunkBasedSearch
 from graphrag_toolkit.retrieval.retrievers.keyword_entity_search import KeywordEntitySearch
 from graphrag_toolkit.retrieval.processors import *
 from graphrag_toolkit.retrieval.model import SearchResultCollection, SearchResult, ScoredEntity, Entity
@@ -30,7 +30,7 @@ class WeightedTraversalBasedRetriever:
     weight:float=1.0
 
 DEFAULT_TRAVERSAL_BASED_RETRIEVERS = [
-    WeightedTraversalBasedRetriever(retriever=TopicBasedSearch, weight=1.0), 
+    WeightedTraversalBasedRetriever(retriever=ChunkBasedSearch, weight=1.0), 
     WeightedTraversalBasedRetriever(retriever=EntityBasedSearch, weight=0.2)
 ]
 
