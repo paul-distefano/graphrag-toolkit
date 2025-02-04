@@ -17,5 +17,3 @@ class ClearScores(ProcessorBase):
             return search_result
         
         return self._apply_to_search_results(search_results, clear_score)
-
-

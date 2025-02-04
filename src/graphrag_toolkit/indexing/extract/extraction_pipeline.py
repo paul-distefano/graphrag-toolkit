@@ -132,4 +132,3 @@ class ExtractionPipeline():
             
             for source_document in output_source_documents:
                 yield self.extraction_decorator.handle_output_doc(source_document)
-                
