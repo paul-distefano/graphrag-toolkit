@@ -9,6 +9,7 @@ from typing import Sequence, List, Any, Optional, Dict
 from graphrag_toolkit import GraphRAGConfig
 from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.indexing.extract.infer_config import MergeAction
+from graphrag_toolkit.indexing.extract.source_doc_parser import SourceDocParser
 from graphrag_toolkit.indexing.extract import ScopedValueStore, DEFAULT_SCOPE
 from graphrag_toolkit.indexing.constants import DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.prompts import DOMAIN_ENTITY_CLASSIFICATIONS_PROMPT
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_NUM_SAMPLES = 5
 DEFAULT_NUM_ITERATIONS = 1
 
-class InferClassifications(NodeParser):
+class InferClassifications(SourceDocParser):
 
     classification_store:ScopedValueStore = Field(
         description='Classification store'
@@ -94,11 +95,6 @@ class InferClassifications(NodeParser):
             default_classifications=default_classifications or DEFAULT_ENTITY_CLASSIFICATIONS,
             merge_action=merge_action or MergeAction.RETAIN_EXISTING
         )
-        
-    def _postprocess_parsed_nodes(
-        self, nodes: List[BaseNode], parent_doc_map: Dict[str, Document]
-    ) -> List[BaseNode]:
-        return nodes
 
     def _parse_classifications(self, response_text:str) -> Optional[List[str]]:
 
@@ -166,3 +162,15 @@ class InferClassifications(NodeParser):
             self.classification_store.save_scoped_values(self.classification_label, self.classification_scope, self.default_classifications)
 
         return nodes
+    
+    def _parse_source_docs(self, source_documents):
+
+        nodes = [
+            n
+            for sd in source_documents
+            for n in sd.nodes
+        ]
+
+        self._parse_nodes(nodes)
+
+        return source_documents

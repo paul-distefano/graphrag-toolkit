@@ -8,11 +8,13 @@ from typing import List, Optional, Sequence, Dict, Iterable
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.indexing.model import SourceType, SourceDocument, source_documents_from_source_types
 from graphrag_toolkit.indexing.extract.pipeline_decorator import PipelineDecorator
+from graphrag_toolkit.indexing.extract.source_doc_parser import SourceDocParser
 from graphrag_toolkit.indexing.build.checkpoint import Checkpoint
 from graphrag_toolkit.indexing.extract.docs_to_nodes import DocsToNodes
 from graphrag_toolkit.indexing.extract.id_rewriter import IdRewriter
 from graphrag_toolkit.indexing.constants import SOURCE_DOC_KEY
 
+from llama_index.core.node_parser.interface import NodeParser
 from llama_index.core.node_parser import TextSplitter
 from llama_index.core.async_utils import asyncio_run
 from llama_index.core.utils import iter_batch
@@ -39,6 +41,7 @@ class ExtractionPipeline():
 
     @staticmethod
     def create(components: List[TransformComponent], 
+               pre_processors:Optional[List[SourceDocParser]]=None,
                extraction_decorator:PipelineDecorator=None, 
                num_workers=None, 
                batch_size=None, 
@@ -48,6 +51,7 @@ class ExtractionPipeline():
         return Pipe(
             ExtractionPipeline(
                 components=components, 
+                pre_processors=pre_processors,
                 extraction_decorator=extraction_decorator,
                 num_workers=num_workers,
                 batch_size=batch_size,
@@ -58,6 +62,7 @@ class ExtractionPipeline():
     
     def __init__(self, 
                  components: List[TransformComponent], 
+                 pre_processors:Optional[List[SourceDocParser]]=None,
                  extraction_decorator:PipelineDecorator=None, 
                  num_workers=None, 
                  batch_size=None, 
@@ -91,6 +96,7 @@ class ExtractionPipeline():
         logger.debug(f'Extract pipeline components: {[type(c).__name__ for c in components]}')
 
         self.ingestion_pipeline = IngestionPipeline(transformations=components)
+        self.pre_processors = pre_processors or []
         self.extraction_decorator = extraction_decorator or PassThroughDecorator()
         self.num_workers = num_workers
         self.batch_size = batch_size
@@ -112,6 +118,9 @@ class ExtractionPipeline():
     def extract(self, inputs: Iterable[SourceType]):
 
         input_source_documents = source_documents_from_source_types(inputs)
+
+        for pre_processor in self.pre_processors:
+            input_source_documents = pre_processor.parse_source_docs(input_source_documents)
 
         for source_documents in iter_batch(input_source_documents, self.batch_size):
 
