@@ -139,7 +139,7 @@ class LexicalGraphIndex():
                 classification_label=classification_label,
                 classification_scope=classification_scope,
                 classification_store=GraphScopedValueStore(graph_store=self.graph_store),
-                splitter=SentenceSplitter(chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap),
+                splitter=SentenceSplitter(chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap) if config.enable_chunking else None,
                 default_classifications=config.preferred_entity_classifications,
                 num_samples=infer_config.num_samples,
                 num_iterations=infer_config.num_iterations,

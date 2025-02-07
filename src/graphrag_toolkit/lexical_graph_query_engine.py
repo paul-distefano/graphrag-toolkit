@@ -12,7 +12,7 @@ from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.utils import LLMCache, LLMCacheType
 from graphrag_toolkit.retrieval.prompts import ANSWER_QUESTION_SYSTEM_PROMPT, ANSWER_QUESTION_USER_PROMPT
 from graphrag_toolkit.retrieval.post_processors.bedrock_context_format import BedrockContextFormat
-from graphrag_toolkit.retrieval.retrievers import TraversalBasedRetriever, SemanticGuidedRetriever
+from graphrag_toolkit.retrieval.retrievers import CompositeTraversalBasedRetriever, SemanticGuidedRetriever
 from graphrag_toolkit.retrieval.retrievers import StatementCosineSimilaritySearch, KeywordRankingSearch, SemanticBeamGraphSearch
 from graphrag_toolkit.retrieval.retrievers import WeightedTraversalBasedRetrieverType, SemanticGuidedRetrieverType
 from graphrag_toolkit.storage import GraphStoreFactory, GraphStoreType
@@ -44,7 +44,7 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
                                    post_processors:Optional[PostProcessorsType]=None, 
                                    **kwargs):
         
-        retriever = TraversalBasedRetriever(
+        retriever = CompositeTraversalBasedRetriever(
             graph_store, 
             vector_store, 
             retrievers=retrievers,
@@ -134,7 +134,7 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
             else:
                 self.retriever = retriever(graph_store, vector_store, **kwargs)
         else:
-            self.retriever = TraversalBasedRetriever(graph_store, vector_store, **kwargs)
+            self.retriever = CompositeTraversalBasedRetriever(graph_store, vector_store, **kwargs)
 
         if post_processors:
             self.post_processors = post_processors if isinstance(post_processors, list) else [post_processors]

@@ -36,7 +36,7 @@ DEFAULT_TRAVERSAL_BASED_RETRIEVERS = [
 
 WeightedTraversalBasedRetrieverType = Union[WeightedTraversalBasedRetriever, TraversalBasedBaseRetriever, Type[TraversalBasedBaseRetriever]]
 
-class TraversalBasedRetriever(TraversalBasedBaseRetriever):
+class CompositeTraversalBasedRetriever(TraversalBasedBaseRetriever):
 
     def __init__(self, 
                  graph_store:GraphStore, 

@@ -4,7 +4,7 @@
 import re
 import logging
 import random
-from typing import Sequence, List, Any, Optional, Dict
+from typing import Sequence, List, Any, Optional
 
 from graphrag_toolkit import GraphRAGConfig
 from graphrag_toolkit.utils import LLMCache, LLMCacheType
@@ -14,8 +14,7 @@ from graphrag_toolkit.indexing.extract import ScopedValueStore, DEFAULT_SCOPE
 from graphrag_toolkit.indexing.constants import DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.prompts import DOMAIN_ENTITY_CLASSIFICATIONS_PROMPT
 
-from llama_index.core.node_parser.interface import NodeParser
-from llama_index.core.schema import BaseNode, Document
+from llama_index.core.schema import BaseNode
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.bridge.pydantic import Field
 from llama_index.core.prompts import PromptTemplate
@@ -47,7 +46,7 @@ class InferClassifications(SourceDocParser):
         description='Number times to sample documents'
     )
 
-    splitter:SentenceSplitter = Field(
+    splitter:Optional[SentenceSplitter] = Field(
         description='Chunk splitter'
     )
 
@@ -86,7 +85,7 @@ class InferClassifications(SourceDocParser):
             classification_scope=classification_scope or DEFAULT_SCOPE,
             num_samples=num_samples or DEFAULT_NUM_SAMPLES,
             num_iterations=num_iterations or DEFAULT_NUM_ITERATIONS,
-            splitter=splitter or SentenceSplitter(),
+            splitter=splitter,
             llm=llm if llm and isinstance(llm, LLMCache) else LLMCache(
                 llm=llm or GraphRAGConfig.extraction_llm,
                 enable_cache=GraphRAGConfig.enable_cache
@@ -130,7 +129,7 @@ class InferClassifications(SourceDocParser):
             logger.info(f'Domain-specific classifications already exist [label: {self.classification_label}, scope: {self.classification_scope}, classifications: {current_values}]')
             return nodes
 
-        chunks = self.splitter(nodes)
+        chunks = self.splitter(nodes) if self.splitter else nodes
 
         classifications = set()
 
@@ -165,12 +164,16 @@ class InferClassifications(SourceDocParser):
     
     def _parse_source_docs(self, source_documents):
 
+        source_docs = [
+            source_doc for source_doc in source_documents
+        ]
+
         nodes = [
             n
-            for sd in source_documents
+            for sd in source_docs
             for n in sd.nodes
         ]
 
         self._parse_nodes(nodes)
 
-        return source_documents
+        return source_docs

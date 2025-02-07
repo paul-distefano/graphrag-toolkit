@@ -5,30 +5,46 @@ import logging
 import numpy as np
 import re
 import spacy
-from typing import List, Optional, Any
-
+from typing import List, Optional, Any, Callable
 from pydantic import Field
-from typing import Optional
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from graphrag_toolkit import ModelError
+from graphrag_toolkit.retrieval.model import SearchResult
 
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
-from llama_index.core.schema import NodeWithScore, QueryBundle
+from llama_index.core.schema import NodeWithScore, QueryBundle, BaseNode
 
 logger = logging.getLogger(__name__)
+
+def _all_text(node:BaseNode) -> str:
+    return node.text
+
+def _topics_and_statements(node:BaseNode) -> str:
+    lines = []
+    search_result = SearchResult.model_validate_json(node.text)
+    lines.append(search_result.topic)
+    for statement in search_result.statements:
+        lines.append(statement)
+    return '\n'.join(lines)
+
+ALL_TEXT = _all_text
+TOPICS_AND_STATEMENTS = _topics_and_statements
 
 class StatementDiversityPostProcessor(BaseNodePostprocessor):
     """Removes similar statements using TF-IDF similarity."""
     
     similarity_threshold: float = Field(default=0.975)
     nlp: Any = Field(default=None)
+    text_fn: Callable[[BaseNode], str] = Field(default=None)
 
-    def __init__(self, similarity_threshold: float = 0.975):
-        super().__init__()
-        self.similarity_threshold = similarity_threshold
+    def __init__(self, similarity_threshold: float = 0.975, text_fn = None):
+        super().__init__(
+            similarity_threshold=similarity_threshold,
+            text_fn = text_fn or ALL_TEXT
+        )
         try:
             self.nlp = spacy.load("en_core_web_sm", disable=['ner', 'parser'])
             self.nlp.add_pipe('sentencizer')
@@ -63,7 +79,7 @@ class StatementDiversityPostProcessor(BaseNodePostprocessor):
             return nodes
             
         # Preprocess texts
-        texts = [node.node.text for node in nodes]
+        texts = [self.text_fn(node.node) for node in nodes]
         preprocessed_texts = self.preprocess_texts(texts)
 
         # Calculate TF-IDF similarity
