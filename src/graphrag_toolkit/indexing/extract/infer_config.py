@@ -5,7 +5,7 @@ from enum import Enum
 from dataclasses import dataclass
 from typing import Optional
 
-class MergeAction(Enum):
+class OnExistingClassifications(Enum):
     MERGE_EXISTING = 1
     REPLACE_EXISTING = 2
     RETAIN_EXISTING = 3
@@ -14,4 +14,4 @@ class MergeAction(Enum):
 class InferClassificationsConfig:
     num_samples:Optional[int]=5
     num_iterations:Optional[int]=1
-    merge_action:Optional[MergeAction]=MergeAction.RETAIN_EXISTING
+    on_existing_classifications:Optional[OnExistingClassifications]=OnExistingClassifications.RETAIN_EXISTING

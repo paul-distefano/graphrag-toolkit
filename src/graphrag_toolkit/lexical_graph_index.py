@@ -17,7 +17,7 @@ from graphrag_toolkit.indexing.extract import GraphScopedValueStore
 from graphrag_toolkit.indexing.extract import LLMPropositionExtractor, BatchLLMPropositionExtractor
 from graphrag_toolkit.indexing.extract import TopicExtractor, BatchTopicExtractor
 from graphrag_toolkit.indexing.extract import ExtractionPipeline
-from graphrag_toolkit.indexing.extract import InferClassifications, MergeAction, InferClassificationsConfig
+from graphrag_toolkit.indexing.extract import InferClassifications, OnExistingClassifications, InferClassificationsConfig
 from graphrag_toolkit.indexing.build import BuildPipeline
 from graphrag_toolkit.indexing.build import VectorIndexing
 from graphrag_toolkit.indexing.build import GraphConstruction
@@ -143,7 +143,7 @@ class LexicalGraphIndex():
                 default_classifications=config.preferred_entity_classifications,
                 num_samples=infer_config.num_samples,
                 num_iterations=infer_config.num_iterations,
-                merge_action=infer_config.merge_action
+                merge_action=infer_config.on_existing_classifications
             ))
 
         topic_extractor = None

@@ -8,7 +8,7 @@ from typing import Sequence, List, Any, Optional
 
 from graphrag_toolkit import GraphRAGConfig
 from graphrag_toolkit.utils import LLMCache, LLMCacheType
-from graphrag_toolkit.indexing.extract.infer_config import MergeAction
+from graphrag_toolkit.indexing.extract.infer_config import OnExistingClassifications
 from graphrag_toolkit.indexing.extract.source_doc_parser import SourceDocParser
 from graphrag_toolkit.indexing.extract import ScopedValueStore, DEFAULT_SCOPE
 from graphrag_toolkit.indexing.constants import DEFAULT_ENTITY_CLASSIFICATIONS
@@ -62,7 +62,7 @@ class InferClassifications(SourceDocParser):
         'Default classifications'
     )
 
-    merge_action:MergeAction = Field(
+    merge_action:OnExistingClassifications = Field(
         'Action to take if there are existing classifications'
     )
 
@@ -76,7 +76,7 @@ class InferClassifications(SourceDocParser):
                  llm:Optional[LLMCacheType]=None,
                  prompt_template:Optional[str]=None,
                  default_classifications:Optional[List[str]]=None,
-                 merge_action:Optional[MergeAction]=None
+                 merge_action:Optional[OnExistingClassifications]=None
             ):
         
         super().__init__(
@@ -92,7 +92,7 @@ class InferClassifications(SourceDocParser):
             ),
             prompt_template=prompt_template or DOMAIN_ENTITY_CLASSIFICATIONS_PROMPT,
             default_classifications=default_classifications or DEFAULT_ENTITY_CLASSIFICATIONS,
-            merge_action=merge_action or MergeAction.RETAIN_EXISTING
+            merge_action=merge_action or OnExistingClassifications.RETAIN_EXISTING
         )
 
     def _parse_classifications(self, response_text:str) -> Optional[List[str]]:
@@ -125,7 +125,7 @@ class InferClassifications(SourceDocParser):
     ) -> List[BaseNode]:
         
         current_values = self.classification_store.get_scoped_values(self.classification_label, self.classification_scope)
-        if current_values and self.merge_action == MergeAction.RETAIN_EXISTING:
+        if current_values and self.merge_action == OnExistingClassifications.RETAIN_EXISTING:
             logger.info(f'Domain-specific classifications already exist [label: {self.classification_label}, scope: {self.classification_scope}, classifications: {current_values}]')
             return nodes
 
@@ -148,7 +148,7 @@ class InferClassifications(SourceDocParser):
 
             classifications.update(self._parse_classifications(response))
 
-        if current_values and self.merge_action == MergeAction.MERGE_EXISTING:
+        if current_values and self.merge_action == OnExistingClassifications.MERGE_EXISTING:
             classifications.update(current_values)
             
         classifications = list(classifications)
