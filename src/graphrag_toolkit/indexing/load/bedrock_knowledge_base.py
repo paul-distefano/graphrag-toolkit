@@ -8,15 +8,17 @@ import io
 import uuid
 import logging
 import shutil
-import hashlib
 import copy
 import base64
+from pathlib import Path
 from typing import Callable, Dict, Any
 from os.path import join
 from urllib.parse import urlparse
 
+from graphrag_toolkit.indexing.load.file_based_chunks import FileBasedChunks
+from graphrag_toolkit.indexing.model import SourceDocument
+from graphrag_toolkit.indexing.utils.graph_utils import get_hash
 from graphrag_toolkit.indexing.extract.id_rewriter import IdRewriter
-from graphrag_toolkit.indexing.constants import SOURCE_DOC_KEY
 
 from llama_index.core.schema import TextNode, Document
 from llama_index.core.schema import NodeRelationship, RelatedNodeInfo
@@ -54,31 +56,44 @@ class TempDir():
 class BedrockKnowledgeBaseExport():
 
     def __init__(self, 
-                 bucket, 
-                 keys=[], 
-                 region='us-east-1', 
-                 limit=-1, 
-                 output_dir='output', 
+                 region:str, 
+                 bucket_name:str, 
+                 key_prefix:str, 
+                 limit:int=-1, 
+                 output_dir:str='output', 
                  metadata_fn:Callable[[str], Dict[str, Any]]=None,
+                 include_embeddings:bool=True,
+                 include_source_doc:bool=False,
                  **kwargs):
         
-        self.bucket=bucket
-        self.keys=keys if isinstance(keys, list) else [keys]
+        self.bucket_name=bucket_name
+        self.key_prefix=key_prefix
         self.region=region
         self.limit=limit
         self.output_dir = output_dir
-        self.s3 = boto3.client('s3', region_name=self.region)
+        self.s3_client = boto3.client('s3', region_name=self.region)
         self.id_rewriter = IdRewriter()
         self.metadata_fn=metadata_fn
+        self.include_embeddings = include_embeddings
+        self.include_source_doc = include_source_doc
         
     def _kb_chunks(self, kb_export_dir):
+
+        paginator = self.s3_client.get_paginator('list_objects_v2')
+        pages = paginator.paginate(Bucket=self.bucket_name, Prefix=self.key_prefix)
+
+        keys = [
+            obj['Key']
+            for page in pages
+            for obj in page['Contents'] 
+        ]
         
-        for key in self.keys:
+        for key in keys:
         
-            logger.info(f'Loading Amazon Bedrock Knowledge Base export file [bucket: {self.bucket}, key: {key}, region: {self.region}]')
+            logger.info(f'Loading Amazon Bedrock Knowledge Base export file [bucket: {self.bucket_name}, key: {key}, region: {self.region}]')
 
             temp_filepath = join(kb_export_dir, f'{uuid.uuid4().hex}.json')
-            self.s3.download_file(self.bucket, key, temp_filepath)
+            self.s3_client.download_file(self.bucket_name, key, temp_filepath)
 
             with TempFile(temp_filepath) as f:
                 while True:
@@ -97,13 +112,13 @@ class BedrockKnowledgeBaseExport():
 
         key = self._parse_key(source)
 
-        logger.info(f'Loading Amazon Bedrock Knowledge Base underyling source document [source: {source}, bucket: {self.bucket}, key: {key}, region: {self.region}]')
+        logger.debug(f'Loading Amazon Bedrock Knowledge Base underyling source document [source: {source}, bucket: {self.bucket_name}, key: {key}, region: {self.region}]')
             
-        object_metadata = self.s3.head_object(Bucket=self.bucket, Key=key)
+        object_metadata = self.s3_client.head_object(Bucket=self.bucket_name, Key=key)
         content_type = object_metadata.get('ContentType', None)
 
         with io.BytesIO() as io_stream:
-            self.s3.download_fileobj(self.bucket, key, io_stream)
+            self.s3_client.download_fileobj(self.bucket_name, key, io_stream)
         
             io_stream.seek(0)
 
@@ -113,9 +128,8 @@ class BedrockKnowledgeBaseExport():
                 data = io_stream.read().decode('utf-8')
             
         metadata = self.metadata_fn(data) if self.metadata_fn else {}
-        if not metadata:
-            metadata = { 'source': source }
-        elif not metadata['source']:
+
+        if 'source' not in metadata:
             metadata['source'] = source
             
         doc = Document(
@@ -134,31 +148,40 @@ class BedrockKnowledgeBaseExport():
         with open(doc_file_path) as f:
             data = json.load(f)
             return Document.from_dict(data)
-
-    def _get_doc_temp_filename(self, source):
-        return hashlib.md5(source.encode('utf-8')).digest().hex()
     
     def _get_source_doc(self, source_docs_dir, source):
-        
-        publish_doc = False
-        doc = None
-        
-        doc_file_path = join(source_docs_dir, self._get_doc_temp_filename(source))
+                
+        source_id = get_hash(source)
+        doc_directory_path = join(source_docs_dir, source_id, 'document')
+        doc_file_path = join(doc_directory_path, 'source_doc')
         
         if os.path.exists(doc_file_path):
-            doc = self._open_source_doc(doc_file_path)
+            return self._open_source_doc(doc_file_path)
         else:
-            doc = self._download_source_doc(source, doc_file_path)
-            publish_doc = True
+            if not os.path.exists(doc_directory_path):
+                os.makedirs(doc_directory_path)
+            return self._download_source_doc(source, doc_file_path)
+            
+    def _save_chunk(self, source_docs_dir, chunk, source):
 
-        return (publish_doc, doc)
+        chunk = self.id_rewriter([chunk])[0]
+                
+        source_id = get_hash(source)
+        chunks_directory_path = join(source_docs_dir, source_id, 'chunks')
+        chunk_file_path = join(chunks_directory_path, chunk.id_)
+        
+        if not os.path.exists(chunks_directory_path):
+            os.makedirs(chunks_directory_path)
+            
+        with open(chunk_file_path, 'w') as f:
+                f.write(chunk.to_json())
     
     def _get_doc_count(self, source_docs_dir):
         doc_count = len([name for name in os.listdir(source_docs_dir) if os.path.isfile(name)]) - 1
         logger.info(f'doc_count: {doc_count}')
         return doc_count
     
-    def chunks(self):
+    def docs(self):
         return self
     
     def _with_page_number(self, metadata, page_number):
@@ -168,53 +191,59 @@ class BedrockKnowledgeBaseExport():
             return metadata_copy
         else:
             return metadata
-        
-    
+
     def __iter__(self):
 
-        job_dir = join(self.output_dir, 'bedrock-kb', f'{uuid.uuid4().hex}')
-        kb_export_dir = join(job_dir, 'kb-export')
-        source_docs_dir = join(job_dir, 'source-docs')
+        job_dir = join(self.output_dir, 'bedrock-kb-export', f'{uuid.uuid4().hex}')
         
-        logger.info(f'Creating Amazon Bedrock Knowledge Base temp directories [kb_export_dir: {kb_export_dir}, source_docs_dir: {source_docs_dir}]')
+        bedrock_dir = join(job_dir, 'bedrock')
+        llama_index_dir = join(job_dir, 'llama-index')
+        
+        logger.info(f'Creating Amazon Bedrock Knowledge Base temp directories [bedrock_dir: {bedrock_dir}, llama_index_dir: {llama_index_dir}]')
 
-        doc = None
         count = 0
         
-        with TempDir(kb_export_dir) as k:
-            with TempDir(source_docs_dir) as s:
+        with TempDir(job_dir) as j, TempDir(bedrock_dir) as k, TempDir(llama_index_dir) as s:
         
-                for kb_chunk in self._kb_chunks(kb_export_dir):
-                    
-                    bedrock_id = kb_chunk['id']
-                    page_number = kb_chunk.get('x-amz-bedrock-kb-document-page-number', None)
-                    metadata = json.loads(kb_chunk['AMAZON_BEDROCK_METADATA'])
-                    source = metadata['source']
-                    
-                    chunk = TextNode()
-                    
-                    
-                    chunk.text = kb_chunk['AMAZON_BEDROCK_TEXT']
-                    chunk.metadata = metadata
-                    chunk.metadata['bedrock_id'] = bedrock_id
-                    
-                    (publish_doc, doc) = self._get_source_doc(source_docs_dir, source)
-        
-                    chunk.embedding = kb_chunk['bedrock-knowledge-base-default-vector']
-                    chunk.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
-                        node_id=doc.id_,
-                        node_type=NodeRelationship.SOURCE,
-                        metadata=self._with_page_number(doc.metadata, page_number),
-                        hash=doc.hash
-                    )
-                    
-                    logger.debug(f'Emitting chunk for Amazon Bedrock Knowledge Base entry: [source: {source}, doc.id: {doc.id_}, chunk.id: {chunk.id_}, publish_doc: {publish_doc}]')
-                    
-                    if publish_doc:
-                        chunk.metadata[SOURCE_DOC_KEY] = doc
-                    
-                    yield chunk
+            for kb_chunk in self._kb_chunks(bedrock_dir):
 
-                    count += 1
-                    if self.limit > 0 and count >= self.limit:
-                        break
+                bedrock_id = kb_chunk['id']
+                page_number = kb_chunk.get('x-amz-bedrock-kb-document-page-number', None)
+                metadata = json.loads(kb_chunk['AMAZON_BEDROCK_METADATA'])
+                source = metadata['source']
+                
+                source_doc = self._get_source_doc(llama_index_dir, source)
+                
+                chunk = TextNode()
+
+                chunk.text = kb_chunk['AMAZON_BEDROCK_TEXT']
+                chunk.metadata = metadata
+                chunk.metadata['bedrock_id'] = bedrock_id
+                if self.include_embeddings:
+                    chunk.embedding = kb_chunk['bedrock-knowledge-base-default-vector']
+                chunk.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
+                    node_id=source_doc.id_,
+                    node_type=NodeRelationship.SOURCE,
+                    metadata=source_doc.metadata,
+                    hash=source_doc.hash
+                )
+                
+                self._save_chunk(llama_index_dir, chunk, source)
+                    
+            for d in [d for d in Path(llama_index_dir).iterdir() if d.is_dir()]:
+            
+                document = None
+                
+                if self.include_source_doc:
+                    source_doc_file_path = join(d, 'document', 'source_doc')
+                    with open(source_doc_file_path) as f:
+                        document = Document.from_json(f.read())
+                 
+                file_based_chunks = FileBasedChunks(str(d), 'chunks')
+                chunks = [c for c in file_based_chunks.chunks()]
+                
+                yield SourceDocument(refNode=document, nodes=chunks)
+                
+                count += 1
+                if self.limit > 0 and count >= self.limit:
+                    break

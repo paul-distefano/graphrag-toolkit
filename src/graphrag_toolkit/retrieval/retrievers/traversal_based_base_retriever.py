@@ -25,9 +25,15 @@ DEFAULT_PROCESSORS = [
     SortResults,
     TruncateResults,
     TruncateStatements,
+    ClearStatementStrs,
     ClearChunks,
+    ClearScores
+]
+
+DEFAULT_FORMATTING_PROCESSORS = [
     StatementsToStrings,
-    SimplifySingleTopicResults
+    SimplifySingleTopicResults,
+    FormatSources
 ]
 
 class TraversalBasedBaseRetriever(BaseRetriever):
@@ -37,6 +43,7 @@ class TraversalBasedBaseRetriever(BaseRetriever):
                  vector_store:VectorStore,
                  processor_args:Optional[ProcessorArgs]=None,
                  processors:Optional[List[Type[ProcessorBase]]]=None,
+                 formatting_processors:Optional[List[Type[ProcessorBase]]]=None,
                  entities:Optional[List[ScoredEntity]]=None,
                  **kwargs):
         
@@ -45,6 +52,7 @@ class TraversalBasedBaseRetriever(BaseRetriever):
         self.graph_store = graph_store
         self.vector_store = vector_store
         self.processors = processors if processors is not None else DEFAULT_PROCESSORS
+        self.formatting_processors = formatting_processors if formatting_processors is not None else DEFAULT_FORMATTING_PROCESSORS
         self.entities = entities or []
         
     def create_cypher_query(self, match_clause):
@@ -56,7 +64,7 @@ class TraversalBasedBaseRetriever(BaseRetriever):
         WITH {{ sourceId: {self.graph_store.node_id("s.sourceId")}, metadata: s{{.*}}}} AS source,
             t,
             {{ chunkId: {self.graph_store.node_id("c.chunkId")}, value: NULL }} AS cc, 
-            {{ statement: l.value, facts: collect(distinct f.value), details: l.details, chunkId: {self.graph_store.node_id("c.chunkId")}, score: count(l) }} as ll
+            {{ statementId: {self.graph_store.node_id("l.statementId")}, statement: l.value, facts: collect(distinct f.value), details: l.details, chunkId: {self.graph_store.node_id("c.chunkId")}, score: count(l) }} as ll
         WITH source, 
             t, 
             collect(distinct cc) as chunks, 
@@ -78,11 +86,6 @@ class TraversalBasedBaseRetriever(BaseRetriever):
     def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
 
         logger.debug(f'[{type(self).__name__}] Begin retrieve [args: {self.args.to_dict()}]')
-
-        def source_to_dict(source:Source):
-            source_dict = source.model_dump()
-            source_dict['metadata'] = { k:v for k,v in source_dict['metadata'] }
-            return source_dict
         
         start_retrieve = time.time()
         
@@ -94,13 +97,12 @@ class TraversalBasedBaseRetriever(BaseRetriever):
         for processor in self.processors:
             search_results = processor(self.args).process_results(search_results, query_bundle, type(self).__name__)
 
-        end_processing = time.time()
-            
-        sources = [source_to_dict(search_result.source) for search_result in search_results.results]
+        formatted_search_results = search_results.model_copy(deep=True)
         
-        if self.args.strip_source_metadata:
-            for search_result in search_results.results:
-                search_result.source.metadata = []
+        for processor in self.formatting_processors:
+            formatted_search_results = processor(self.args).process_results(formatted_search_results, query_bundle, type(self).__name__)
+        
+        end_processing = time.time()
 
         retrieval_ms = (end_retrieve-start_retrieve) * 1000
         processing_ms = (end_processing-end_retrieve) * 1000
@@ -111,23 +113,15 @@ class TraversalBasedBaseRetriever(BaseRetriever):
         return [
             NodeWithScore(
                 node=TextNode(
-                    text=search_result.model_dump_json(exclude_none=True, exclude_defaults=True, indent=2),
-                    metadata={
-                        'source': source
-                    }
+                    text=formatted_search_result.model_dump_json(exclude_none=True, exclude_defaults=True, indent=2),
+                    metadata=search_result.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=True)
                 ), 
                 score=search_result.score
             ) 
-            for (search_result, source) in zip(search_results.results, sources)
+            for (search_result, formatted_search_result) in zip(search_results.results, formatted_search_results.results)
         ]
     
     def _to_search_results_collection(self, results:List[Any]) -> SearchResultCollection:
-
-        def to_metadata_list(metadata):
-            return [(k, v) for k, v in metadata.items()]
-
-        for result in results:
-            result['result']['source']['metadata'] = to_metadata_list(result['result']['source']['metadata'])
         
         search_results = [
             SearchResult.model_validate(result['result']) 

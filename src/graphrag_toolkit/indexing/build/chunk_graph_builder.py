@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from lru import LRU
 
 from graphrag_toolkit.storage.graph_store import GraphStore
 from graphrag_toolkit.indexing.build.graph_builder import GraphBuilder
@@ -18,7 +17,7 @@ class ChunkGraphBuilder(GraphBuilder):
     def index_key(cls) -> str:
         return 'chunk'
     
-    def build(self, node:BaseNode, graph_client: GraphStore, node_ids:LRU):
+    def build(self, node:BaseNode, graph_client: GraphStore):
             
         chunk_metadata = node.metadata.get('chunk', {})
         chunk_id = chunk_metadata.get('chunkId', None)

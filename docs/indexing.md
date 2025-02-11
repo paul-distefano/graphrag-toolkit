@@ -98,22 +98,22 @@ graph_index.extract_and_build(docs)
 
 Using the `LexicalGraphIndex` you can perform the extract and build stages separately. This is useful if you want to extract the graph once, and then build it multiple times (in different environments, for example.)
 
-When you run the extract and build stages separately, you can persist the extracted chunks to Amazon S3 or to the filesystem at the end of the extract stage, and then consume these same chunks in the build stage. Use the graphrag-toolkit's `S3BasedChunks` and `FileBasedChunks` classes to persist and then retrieve JSON-serialized LlamaIndex nodes.
+When you run the extract and build stages separately, you can persist the extracted documents to Amazon S3 or to the filesystem at the end of the extract stage, and then consume these same documents in the build stage. Use the graphrag-toolkit's `S3BasedDocss` and `FileBasedDocs` classes to persist and then retrieve JSON-serialized LlamaIndex nodes.
 
-The following example shows how to use a `S3BasedChunks` handler to persist extracted chunks to an Amazon S3 bucket at the end of the extract stage:
+The following example shows how to use a `S3BasedDocs` handler to persist extracted documents to an Amazon S3 bucket at the end of the extract stage:
 
 ```
 from graphrag_toolkit import LexicalGraphIndex
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
-from graphrag_toolkit.indexing.load import S3BasedChunks
+from graphrag_toolkit.indexing.load import S3BasedDocs
 
 from llama_index.readers.web import SimpleWebPageReader
 
 import nest_asyncio
 nest_asyncio.apply()
 
-chunks = S3BasedChunks(
+extracted_docs = S3BasedDocs(
     region='us-east-1',
     bucket_name='my-bucket',
     key_prefix='extracted',
@@ -141,21 +141,21 @@ docs = SimpleWebPageReader(
     metadata_fn=lambda url:{'url': url}
 ).load_data(doc_urls)
 
-graph_index.extract(docs, handler=chunks)
+graph_index.extract(docs, handler=extracted_docs)
 ```
 
-Following the extract stage, you can then build the graph from the previously extracted chunks. Whereas in the extract stage the `S3BasedChunks` object acted as a handler to persist extracted chunks, in the build stage the `S3BasedChunks` object acts as a source of LlamaIndex nodes, and is thus passed as the first argument to the `build()` method:
+Following the extract stage, you can then build the graph from the previously extracted documents. Whereas in the extract stage the `S3BasedDocs` object acted as a handler to persist extracted documents, in the build stage the `S3BasedDocs` object acts as a source of LlamaIndex nodes, and is thus passed as the first argument to the `build()` method:
 
 ```
 from graphrag_toolkit import LexicalGraphIndex
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
-from graphrag_toolkit.indexing.load import S3BasedChunks
+from graphrag_toolkit.indexing.load import S3BasedDocs
 
 import nest_asyncio
 nest_asyncio.apply()
 
-chunks = S3BasedChunks(
+docs = S3BasedDocs(
     region='us-east-1',
     bucket_name='my-bucket',
     key_prefix='extracted',
@@ -171,17 +171,17 @@ graph_index = LexicalGraphIndex(
     vector_store
 )
 
-graph_index.build(chunks)
+graph_index.build(docs)
 ```
 
-The `S3BasedChunks` object has the following parameters:
+The `S3BasedDocs` object has the following parameters:
 
 | Parameter  | Description | Mandatory |
 | ------------- | ------------- | ------------- |
 | `region` | AWS Region in which the S3 bucket is located (e.g. `us-east-1`) | Yes |
 | `bucket_name` | Amazon S3 bucket name | Yes |
 | `key_prefix` | S3 key prefix | Yes |
-| `collection_id` | Id for a particular collection of chunks. Optional: if no `collection_id` is supplied, the graphrag-toolkit will create a timestamp value. Extracted chunks will be written to `s3://<bucket>/<key_prefix>/<collection_id>/`. | No |
+| `collection_id` | Id for a particular collection of extracted documents. Optional: if no `collection_id` is supplied, the graphrag-toolkit will create a timestamp value. Extracted documents will be written to `s3://<bucket>/<key_prefix>/<collection_id>/`. | No |
 | `s3_encryption_key_id` | KMS key id (Key ID, Key ARN, or Key Alias) to use for object encryption. Optional: if no `s3_encryption_key_id` is supplied, the graphrag-toolkit will encrypt objects in S3 using Amazon S3 managed keys. | No |
 
 If you use Amazon Web Services KMS keys to encrypt objects in S3, the identity under which the graphrag-toolkit runs should include the following IAM policy. Replace `<kms-key-arn>` with the ARN of the KMS key you want to use to encrypt objects:
@@ -204,13 +204,13 @@ If you use Amazon Web Services KMS keys to encrypt objects in S3, the identity u
 }
 ```
 
-If you want to persist chunks to the local filesystem instead of an S3 bucket, use a `FileBasedChunks` object instead:
+If you want to persist extracted documents to the local filesystem instead of an S3 bucket, use a `FileBasedDocs` object instead:
 
 ```
-from graphrag_toolkit.indexing.load import FileBasedChunks
+from graphrag_toolkit.indexing.load import FileBasedDocs
 
-chunks = FileBasedChunks(
-    chunks_directory='./extracted/',
+chunks = FileBasedDocs(
+    docs_directory='./extracted/',
     collection_id='12345'
 )
 ```
@@ -219,8 +219,8 @@ The `FileBasedChunks` object has the following parameters:
 
 | Parameter  | Description | Mandatory |
 | ------------- | ------------- | ------------- |
-| `chunks_directory` | Root directory for the extracted chunks | Yes |
-| `collection_id` | Id for a particular collection of chunks. Optional: if no `collection_id` is supplied, the graphrag-toolkit will create a timestamp value. Extracted chunks will be written to `/<chunks_directory>/<collection_id>/`. | No |
+| `docs_directory` | Root directory for the extracted documents | Yes |
+| `collection_id` | Id for a particular collection of extracted documents. Optional: if no `collection_id` is supplied, the graphrag-toolkit will create a timestamp value. Extracted documents will be written to `/<docs_directory>/<collection_id>/`. | No |
 
 
 

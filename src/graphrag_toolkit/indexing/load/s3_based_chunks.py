@@ -40,7 +40,7 @@ class S3BasedChunks(NodeHandler):
             key_prefix=key_prefix,
             collection_id=collection_id or datetime.now().strftime('%Y%m%d-%H%M%S'),
             s3_encryption_key_id=s3_encryption_key_id,
-            metadata_keys=metadata_keys or []
+            metadata_keys=metadata_keys
         )
 
     def chunks(self):

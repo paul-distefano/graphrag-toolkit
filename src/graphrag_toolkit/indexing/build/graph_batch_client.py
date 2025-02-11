@@ -5,10 +5,10 @@ from typing import Dict, Any, List
 from graphrag_toolkit.storage.graph_store import GraphStore
 
 class GraphBatchClient():
-    def __init__(self, graph_client:GraphStore, batch_writes_enabled:bool, batch_size:int):
+    def __init__(self, graph_client:GraphStore, batch_writes_enabled:bool, batch_write_size:int):
         self.graph_client = graph_client
         self.batch_writes_enabled = batch_writes_enabled
-        self.batch_size = batch_size
+        self.batch_write_size = batch_write_size
         self.batches = {}
         self.all_nodes = []
 
@@ -35,8 +35,8 @@ class GraphBatchClient():
 
             deduped_parameters = self._dedup(parameters)
             parameter_chunks = [
-                deduped_parameters[x:x+self.batch_size] 
-                for x in range(0, len(deduped_parameters), self.batch_size)
+                deduped_parameters[x:x+self.batch_write_size] 
+                for x in range(0, len(deduped_parameters), self.batch_write_size)
             ]
 
             for p in parameter_chunks:

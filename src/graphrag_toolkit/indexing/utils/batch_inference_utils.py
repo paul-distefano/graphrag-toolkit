@@ -60,7 +60,6 @@ def create_inference_inputs(llm:Bedrock, nodes: List[TextNode], prompts: List[st
         json_outputs.append(json_structure)
     return json_outputs
 
-#@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def create_and_run_batch_job(job_name_prefix:str,
                              bedrock_client: Any, 
                              timestamp:str, 
@@ -104,7 +103,7 @@ def create_and_run_batch_job(job_name_prefix:str,
             )
 
         job_arn = response.get('jobArn')
-        logger.debug(f'Created batch job [job_arn: {job_arn}]')
+        logger.info(f'Created batch job [job_arn: {job_arn}]')
 
         wait_for_job_completion(bedrock_client, job_arn)
     except ClientError as e:

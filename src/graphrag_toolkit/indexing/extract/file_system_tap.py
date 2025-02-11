@@ -5,10 +5,11 @@ import logging
 import os
 import shutil
 import json
-from typing import List
+from typing import List, Iterable
 from os.path import join
 
 from graphrag_toolkit.indexing.extract.pipeline_decorator import PipelineDecorator
+from graphrag_toolkit.indexing.model import SourceDocument
 
 from llama_index.core.schema import Document, BaseNode
 
@@ -24,21 +25,24 @@ class FileSystemTap(PipelineDecorator):
         self.chunks_dir = chunks_dir
         self.sources_dir = sources_dir
 
-    def handle_input_nodes(self, nodes:List[BaseNode]):
-        for doc in nodes:
-            if isinstance(doc, Document):
-                raw_source_output_path = join(self.raw_sources_dir, doc.doc_id)
-                source_output_path = join(self.sources_dir, f'{doc.doc_id}.json')
+    def handle_input_docs(self, docs:Iterable[SourceDocument]) -> Iterable[SourceDocument]:
+        for doc in docs:
+            if doc.refNode and isinstance(doc.refNode, Document):
+                ref_node = doc.refNode
+                raw_source_output_path = join(self.raw_sources_dir, ref_node.doc_id)
+                source_output_path = join(self.sources_dir, f'{ref_node.doc_id}.json')
                 with open(raw_source_output_path, 'w') as f:
-                    f.write(doc.text)
+                    f.write(ref_node.text)
                 with open(source_output_path, 'w') as f:
-                    f.write(doc.to_json())
+                    f.write(ref_node.to_json())
+        return docs
     
-    def handle_output_node(self, node) -> BaseNode:
-        chunk_output_path = join(self.chunks_dir, f'{node.node_id}.json')
-        with open(chunk_output_path, 'w') as f:
-            json.dump(node.to_dict(), f, indent=4)
-        return node    
+    def handle_output_doc(self, doc:SourceDocument) -> SourceDocument:
+        for node in doc.nodes:
+            chunk_output_path = join(self.chunks_dir, f'{node.node_id}.json')
+            with open(chunk_output_path, 'w') as f:
+                json.dump(node.to_dict(), f, indent=4)
+        return doc    
         
     def _prepare_output_directories(self, output_dir, subdirectory_name, clean):
         

@@ -4,13 +4,13 @@
 from typing import List
 from graphrag_toolkit.storage import VectorStore
 from graphrag_toolkit.storage.vector_index import VectorIndex, DummyVectorIndex
-from graphrag_toolkit.storage.constants import EMBEDDING_INDEXES
+from graphrag_toolkit.storage.constants import ALL_EMBEDDING_INDEXES
 
 class BatchVectorIndex():
-    def __init__(self, idx:VectorIndex, batch_size:int):
+    def __init__(self, idx:VectorIndex, batch_write_size:int):
         self.index_name = idx.index_name
         self.index = idx
-        self.batch_size = batch_size
+        self.batch_write_size = batch_write_size
         self.nodes = []
 
     def add_embeddings(self, nodes:List):
@@ -19,8 +19,8 @@ class BatchVectorIndex():
     def write_embeddings_to_index(self):
 
         node_chunks = [
-            self.nodes[x:x+self.batch_size] 
-            for x in range(0, len(self.nodes), self.batch_size)
+            self.nodes[x:x+self.batch_write_size] 
+            for x in range(0, len(self.nodes), self.batch_write_size)
         ]
         
         for nodes in node_chunks:
@@ -28,15 +28,15 @@ class BatchVectorIndex():
 
 
 class VectorBatchClient():
-    def __init__(self, vector_store:VectorStore, batch_writes_enabled:bool, batch_size:int):
-        self.indexes = {i.index_name: BatchVectorIndex(i, batch_size) for i in vector_store.indexes.values()}
+    def __init__(self, vector_store:VectorStore, batch_writes_enabled:bool, batch_write_size:int):
+        self.indexes = {i.index_name: BatchVectorIndex(i, batch_write_size) for i in vector_store.indexes.values()}
         self.batch_writes_enabled = batch_writes_enabled
         self.all_nodes = []
 
     def get_index(self, index_name):
 
-        if index_name not in EMBEDDING_INDEXES:
-            raise ValueError(f'Invalid index name ({index_name}): must be one of {EMBEDDING_INDEXES}')
+        if index_name not in ALL_EMBEDDING_INDEXES:
+            raise ValueError(f'Invalid index name ({index_name}): must be one of {ALL_EMBEDDING_INDEXES}')
         if index_name not in self.indexes:
             return DummyVectorIndex(index_name=index_name)
         
