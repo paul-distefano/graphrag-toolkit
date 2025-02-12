@@ -59,8 +59,8 @@ class TraversalBasedBaseRetriever(BaseRetriever):
 
         return_clause = f'''
         WITH DISTINCT l, t LIMIT $statementLimit
-        MATCH (l:Statement)-[:MENTIONED_IN]->(c:Chunk)-[:EXTRACTED_FROM]->(s:Source)
-        OPTIONAL MATCH (f:Fact)-[:SUPPORTS]->(l:Statement)
+        MATCH (l:`__Statement__`)-[:`__MENTIONED_IN__`]->(c:`__Chunk__`)-[:`__EXTRACTED_FROM__`]->(s:`__Source__`)
+        OPTIONAL MATCH (f:`__Fact__`)-[:`__SUPPORTS__`]->(l:`__Statement__`)
         WITH {{ sourceId: {self.graph_store.node_id("s.sourceId")}, metadata: s{{.*}}}} AS source,
             t,
             {{ chunkId: {self.graph_store.node_id("c.chunkId")}, value: NULL }} AS cc, 

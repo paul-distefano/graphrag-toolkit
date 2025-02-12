@@ -32,7 +32,7 @@ class ChunkGraphBuilder(GraphBuilder):
             ]
 
             statements.extend([
-                f'MERGE (chunk:Chunk{{{graph_client.node_id("chunkId")}: params.chunk_id}})',
+                f'MERGE (chunk:`__Chunk__`{{{graph_client.node_id("chunkId")}: params.chunk_id}})',
                 'ON CREATE SET chunk.value = params.text ON MATCH SET chunk.value = params.text'
             ])
             
@@ -43,8 +43,8 @@ class ChunkGraphBuilder(GraphBuilder):
                 source_id = source_info.node_id
 
                 statements.extend([
-                    f'MERGE (source:Source{{{graph_client.node_id("sourceId")}: params.source_id}})',
-                    'MERGE (chunk)-[:EXTRACTED_FROM]->(source)'
+                    f'MERGE (source:`__Source__`{{{graph_client.node_id("sourceId")}: params.source_id}})',
+                    'MERGE (chunk)-[:`__EXTRACTED_FROM__`]->(source)'
                 ])
 
                 properties = {
@@ -65,17 +65,17 @@ class ChunkGraphBuilder(GraphBuilder):
                 properties[key] = node_id
 
                 if node_relationship == NodeRelationship.PARENT:
-                    statements.append(f'MERGE (parent:Chunk{{{graph_client.node_id("chunkId")}: params.{key}}})')
-                    statements.append('MERGE (chunk)-[:PARENT]->(parent)')
+                    statements.append(f'MERGE (parent:`__Chunk__`{{{graph_client.node_id("chunkId")}: params.{key}}})')
+                    statements.append('MERGE (chunk)-[:`__PARENT__`]->(parent)')
                 if node_relationship == NodeRelationship.CHILD:
-                    statements.append(f'MERGE (child:Chunk{{{graph_client.node_id("chunkId")}: params.{key}}})')
-                    statements.append('MERGE (chunk)-[:CHILD]->(child)')
+                    statements.append(f'MERGE (child:`__Chunk__`{{{graph_client.node_id("chunkId")}: params.{key}}})')
+                    statements.append('MERGE (chunk)-[:`__CHILD__`]->(child)')
                 elif node_relationship == NodeRelationship.PREVIOUS:
-                    statements.append(f'MERGE (previous:Chunk{{{graph_client.node_id("chunkId")}: params.{key}}})')
-                    statements.append('MERGE (chunk)-[:PREVIOUS]->(previous)')
+                    statements.append(f'MERGE (previous:`__Chunk__`{{{graph_client.node_id("chunkId")}: params.{key}}})')
+                    statements.append('MERGE (chunk)-[:`__PREVIOUS__`]->(previous)')
                 elif node_relationship == NodeRelationship.NEXT:
-                    statements.append(f'MERGE (next:Chunk{{{graph_client.node_id("chunkId")}: params.{key}}})')
-                    statements.append('MERGE (chunk)-[:NEXT]->(next)')
+                    statements.append(f'MERGE (next:`__Chunk__`{{{graph_client.node_id("chunkId")}: params.{key}}})')
+                    statements.append('MERGE (chunk)-[:`__NEXT__`]->(next)')
                             
             query = '\n'.join(statements)
 

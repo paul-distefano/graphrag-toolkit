@@ -36,18 +36,18 @@ class FactGraphBuilder(GraphBuilder):
 
             
             statements.extend([
-                f'MERGE (statement:Statement{{{graph_client.node_id("statementId")}: params.statement_id}})',
-                f'MERGE (fact:Fact{{{graph_client.node_id("factId")}: params.fact_id}})',
+                f'MERGE (statement:`__Statement__`{{{graph_client.node_id("statementId")}: params.statement_id}})',
+                f'MERGE (fact:`__Fact__`{{{graph_client.node_id("factId")}: params.fact_id}})',
                 'ON CREATE SET fact.relation = params.p, fact.value = params.fact ON MATCH SET fact.relation = params.p, fact.value = params.fact',
-                'MERGE (fact)-[:SUPPORTS]->(statement)',
+                'MERGE (fact)-[:`__SUPPORTS__`]->(statement)',
             ])
 
             statements.extend([
-                #f'MERGE (subject:Entity:{label_from(fact.subject.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.s_id}})',
-                f'MERGE (subject:Entity{{{graph_client.node_id("entityId")}: params.s_id}})',
+                #f'MERGE (subject:`__Entity__`:{label_from(fact.subject.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.s_id}})',
+                f'MERGE (subject:`__Entity__`{{{graph_client.node_id("entityId")}: params.s_id}})',
                 'ON CREATE SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc',
                 'ON MATCH SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc',
-                'MERGE (subject)-[:SUBJECT]->(fact)'
+                'MERGE (subject)-[:`__SUBJECT__`]->(fact)'
             ])
 
             properties = {
@@ -64,16 +64,16 @@ class FactGraphBuilder(GraphBuilder):
             if fact.object:
 
                 statements.extend([
-                    #f'MERGE (object:Entity:{label_from(fact.object.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.o_id}})',
-                    f'MERGE (object:Entity{{{graph_client.node_id("entityId")}: params.o_id}})',
+                    #f'MERGE (object:`__Entity__`:{label_from(fact.object.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.o_id}})',
+                    f'MERGE (object:`__Entity__`{{{graph_client.node_id("entityId")}: params.o_id}})',
                     'ON CREATE SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc',
                     'ON MATCH SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc'    
                 ])
 
                 statements.extend([
-                    'MERGE (object)-[:OBJECT]->(fact)',
+                    'MERGE (object)-[:`__OBJECT__`]->(fact)',
                     #f'MERGE (subject)-[:{relationship_name_from(fact.predicate.value)}]->(object)',
-                    'MERGE (subject)-[r:RELATION{value: params.p}]->(object)',
+                    'MERGE (subject)-[r:`__RELATION__`{value: params.p}]->(object)',
                     'ON CREATE SET r.count = 1 ON MATCH SET r.count = r.count + 1'
                 ])
 
@@ -94,8 +94,8 @@ class FactGraphBuilder(GraphBuilder):
             ]
 
             statements.extend([
-                f'MATCH (fact:Fact{{{graph_client.node_id("factId")}: params.fact_id}})<-[:SUBJECT]-(:Entity)-[:OBJECT]->(prevFact:Fact)',
-                'MERGE (fact)<-[:NEXT]-(prevFact)'
+                f'MATCH (fact:`__Fact__`{{{graph_client.node_id("factId")}: params.fact_id}})<-[:`__SUBJECT__`]-(:`__Entity__`)-[:`__OBJECT__`]->(prevFact:`__Fact__`)',
+                'MERGE (fact)<-[:`__NEXT__`]-(prevFact)'
             ])
 
             properties = {
@@ -114,8 +114,8 @@ class FactGraphBuilder(GraphBuilder):
                 ]
             
                 statements.extend([
-                    f'MATCH (fact:Fact{{{graph_client.node_id("factId")}: params.fact_id}})<-[:OBJECT]-(:Entity)-[:SUBJECT]->(nextFact:Fact)',
-                    'MERGE (fact)-[:NEXT]->(nextFact)'
+                    f'MATCH (fact:`__Fact__`{{{graph_client.node_id("factId")}: params.fact_id}})<-[:`__OBJECT__`]-(:`__Entity__`)-[:`__SUBJECT__`]->(nextFact:`__Fact__`)',
+                    'MERGE (fact)-[:`__NEXT__`]->(nextFact)'
                 ])
 
                 properties = {

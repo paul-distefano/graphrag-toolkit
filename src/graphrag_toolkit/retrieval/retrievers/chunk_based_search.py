@@ -36,7 +36,7 @@ class ChunkBasedSearch(TraversalBasedBaseRetriever):
 
         cypher = self.create_cypher_query(f'''
         // chunk-based graph search                                  
-        MATCH (l:Statement)-[:PREVIOUS*0..1]-(:Statement)-[:BELONGS_TO]->(t:Topic)-[:MENTIONED_IN]->(c:Chunk)
+        MATCH (l:`__Statement__`)-[:`__PREVIOUS__`*0..1]-(:`__Statement__`)-[:`__BELONGS_TO__`]->(t:`__Topic__`)-[:`__MENTIONED_IN__`]->(c:`__Chunk__`)
         WHERE {self.graph_store.node_id("c.chunkId")} = $chunkId
         ''')
                                           

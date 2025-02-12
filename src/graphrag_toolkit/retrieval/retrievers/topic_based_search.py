@@ -36,10 +36,10 @@ class TopicBasedSearch(TraversalBasedBaseRetriever):
 
         cypher = self.create_cypher_query(f'''
         // topic-based graph search                                  
-        MATCH (f:Fact)-[:NEXT*0..1]-(:Fact)-[:SUPPORTS]->(:Statement)-[:BELONGS_TO]->(tt:Topic)
+        MATCH (f:`__Fact__`)-[:`__NEXT__`*0..1]-(:`__Fact__`)-[:`__SUPPORTS__`]->(:`__Statement__`)-[:`__BELONGS_TO__`]->(tt:`__Topic__`)
         WHERE {self.graph_store.node_id("tt.topicId")} = $topicId
         WITH f LIMIT $statementLimit
-        MATCH (f)-[:SUPPORTS]->(:Statement)-[:PREVIOUS*0..2]-(l:Statement)-[:BELONGS_TO]->(t:Topic)
+        MATCH (f)-[:`__SUPPORTS__`]->(:`__Statement__`)-[:`__PREVIOUS__`*0..2]-(l:`__Statement__`)-[:`__BELONGS_TO__`]->(t:`__Topic__`)
         ''')
                                   
         properties = {

@@ -76,14 +76,14 @@ class EntityBasedSearch(TraversalBasedBaseRetriever):
         
         cypher = self.create_cypher_query(f''' 
         // multiple entity-based graph search                                                                
-        MATCH p=(e1:Entity{{{self.graph_store.node_id("entityId")}:$startId}})-[:RELATION*1..2]-(e2:Entity) 
+        MATCH p=(e1:`__Entity__`{{{self.graph_store.node_id("entityId")}:$startId}})-[:`__RELATION__`*1..2]-(e2:`__Entity__`) 
         WHERE {self.graph_store.node_id("e2.entityId")} in $endIds
         UNWIND nodes(p) AS n
         WITH DISTINCT COLLECT(n) AS entities
-        MATCH (s:Entity)-[:SUBJECT]->(f:Fact)<-[:OBJECT]-(o:Entity),
-            (f)-[:SUPPORTS]->(:Statement)
-            -[:PREVIOUS*0..1]-(l:Statement)
-            -[:BELONGS_TO]->(t:Topic)
+        MATCH (s:`__Entity__`)-[:`__SUBJECT__`]->(f:`__Fact__`)<-[:`__OBJECT__`]-(o:`__Entity__`),
+            (f)-[:`__SUPPORTS__`]->(:`__Statement__`)
+            -[:`__PREVIOUS__`*0..1]-(l:`__Statement__`)
+            -[:`__BELONGS_TO__`]->(t:`__Topic__`)
         WHERE s in entities and o in entities
         ''')
             
@@ -103,11 +103,11 @@ class EntityBasedSearch(TraversalBasedBaseRetriever):
             
         cypher = self.create_cypher_query(f''' 
         // single entity-based graph search                            
-        MATCH (:Entity{{{self.graph_store.node_id("entityId")}:$startId}})
-            -[:SUBJECT]->(f:Fact)
-            -[:SUPPORTS]->(:Statement)
-            -[:PREVIOUS*0..1]-(l:Statement)
-            -[:BELONGS_TO]->(t:Topic)''')
+        MATCH (:`__Entity__`{{{self.graph_store.node_id("entityId")}:$startId}})
+            -[:`__SUBJECT__`]->(f:`__Fact__`)
+            -[:`__SUPPORTS__`]->(:`__Statement__`)
+            -[:`__PREVIOUS__`*0..1]-(l:`__Statement__`)
+            -[:`__BELONGS_TO__`]->(t:`__Topic__`)''')
             
         properties = {
             'startId': entity_id,

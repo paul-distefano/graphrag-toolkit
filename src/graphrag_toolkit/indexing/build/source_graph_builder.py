@@ -28,7 +28,7 @@ class SourceGraphBuilder(GraphBuilder):
             statements = [
                 '// insert source',
                 'UNWIND $params AS params',
-                f"MERGE (source:Source{{{graph_client.node_id('sourceId')}: '{source_id}'}})"
+                f"MERGE (source:`__Source__`{{{graph_client.node_id('sourceId')}: '{source_id}'}})"
             ]
 
             metadata = source_metadata.get('metadata', {})

@@ -24,12 +24,12 @@ class NeptuneIndex(VectorIndex):
         embed_model = embed_model or GraphRAGConfig.embed_model
         dimensions = dimensions or GraphRAGConfig.embed_dimensions
         id_name = f'{index_name}Id'
-        label = string.capwords(index_name)
+        label = f'__{string.capwords(index_name)}__' 
         path = f'({index_name})'
         return_fields = node_result(index_name, neptune_client.node_id(f'{index_name}.{id_name}'))
 
         if index_name == 'chunk':
-            path = '(chunk)-[:EXTRACTED_FROM]->(source:Source)'
+            path = '(chunk)-[:`__EXTRACTED_FROM__`]->(source:`__Source__`)'
             return_fields = f"source:{{sourceId: {neptune_client.node_id('source.sourceId')}, {node_result('source', key_name='metadata')}}},\n{node_result('chunk', neptune_client.node_id('chunk.chunkId'), [])}"
             
         return NeptuneIndex(
@@ -60,7 +60,7 @@ class NeptuneIndex(VectorIndex):
         
         for node in nodes:
         
-            statement = f"MATCH (n:{self.label}) WHERE {self.neptune_client.node_id('n.{self.id_name}')} = $nodeId"
+            statement = f"MATCH (n:`{self.label}`) WHERE {self.neptune_client.node_id('n.{self.id_name}')} = $nodeId"
             
             embedding = id_to_embed_map[node.node_id]
             
@@ -92,7 +92,7 @@ class NeptuneIndex(VectorIndex):
         ]
 
         statements.extend([
-             f"MATCH (n:{self.label}) WHERE {self.neptune_client.node_id('n.{self.id_name}')} = params.nodeId",
+             f"MATCH (n:`{self.label}`) WHERE {self.neptune_client.node_id('n.{self.id_name}')} = params.nodeId",
              'WITH n, params.embedding AS embedding',
              'WITH n CALL neptune.algo.vectors.upsert(n, embedding) YIELD success RETURN success'
         ])
@@ -143,7 +143,7 @@ class NeptuneIndex(VectorIndex):
         for i in ids:
 
             cypher = f'''
-            MATCH (n:{self.label})  WHERE {self.neptune_client.node_id('n.{self.id_name}')} = $elementId
+            MATCH (n:`{self.label}`)  WHERE {self.neptune_client.node_id('n.{self.id_name}')} = $elementId
             CALL neptune.algo.vectors.get(
                 n
             )

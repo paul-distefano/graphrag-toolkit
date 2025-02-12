@@ -35,11 +35,11 @@ class SemanticBeamGraphSearch(SemanticGuidedBaseRetriever):
     def get_neighbors(self, statement_id: str) -> List[str]:
         """Get neighboring statements through entity connections."""
         cypher = f"""
-        MATCH (e:Entity)-[:SUBJECT|OBJECT]->(:Fact)-[:SUPPORTS]->(s:Statement)
+        MATCH (e:`__Entity__`)-[:`__SUBJECT__`|`__OBJECT__`]->(:`__Fact__`)-[:`__SUPPORTS__`]->(s:`__Statement__`)
         WHERE {self.graph_store.node_id('s.statementId')} = $statementId
         WITH s, COLLECT(DISTINCT e) AS entities
         UNWIND entities AS entity
-        MATCH (entity)-[:SUBJECT|OBJECT]->(:Fact)-[:SUPPORTS]->(e_neighbors:Statement)
+        MATCH (entity)-[:`__SUBJECT__`|`__OBJECT__`]->(:`__Fact__`)-[:`__SUPPORTS__`]->(e_neighbors:`__Statement__`)
         RETURN DISTINCT {self.graph_store.node_id('e_neighbors.statementId')} as statementId
         """
         

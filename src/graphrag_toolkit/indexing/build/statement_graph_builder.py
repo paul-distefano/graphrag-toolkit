@@ -41,7 +41,7 @@ class StatementGraphBuilder(GraphBuilder):
                 ]
 
                 statements.extend([
-                    f'MERGE (statement:Statement{{{graph_client.node_id("statementId")}: params.statement_id}})',
+                    f'MERGE (statement:`__Statement__`{{{graph_client.node_id("statementId")}: params.statement_id}})',
                     'ON CREATE SET statement.value=params.value, statement.details=params.details ON MATCH SET statement.value=params.value, statement.details=params.details' 
                 ])
 
@@ -53,22 +53,22 @@ class StatementGraphBuilder(GraphBuilder):
 
                 if statement.chunkId:
                     statements.extend([
-                        f'MERGE (chunk:Chunk{{{graph_client.node_id("chunkId")}: params.chunk_id}})',
-                        'MERGE (statement)-[:MENTIONED_IN]->(chunk)'
+                        f'MERGE (chunk:`__Chunk__`{{{graph_client.node_id("chunkId")}: params.chunk_id}})',
+                        'MERGE (statement)-[:`__MENTIONED_IN__`]->(chunk)'
                     ])
                     properties['chunk_id'] = statement.chunkId
 
                 if statement.topicId:
                     statements.extend([
-                        f'MERGE (topic:Topic{{{graph_client.node_id("topicId")}: params.topic_id}})',
-                        'MERGE (statement)-[:BELONGS_TO]->(topic)'
+                        f'MERGE (topic:`__Topic__`{{{graph_client.node_id("topicId")}: params.topic_id}})',
+                        'MERGE (statement)-[:`__BELONGS_TO__`]->(topic)'
                     ])
                     properties['topic_id'] = statement.topicId
 
                 if prev_statement:
                     statements.extend([
-                        f'MERGE (prev_statement:Statement{{{graph_client.node_id("statementId")}: params.prev_statement_id}})',
-                        'MERGE (statement)-[:PREVIOUS]->(prev_statement)'
+                        f'MERGE (prev_statement:`__Statement__`{{{graph_client.node_id("statementId")}: params.prev_statement_id}})',
+                        'MERGE (statement)-[:`__PREVIOUS__`]->(prev_statement)'
                     ])
                     properties['prev_statement_id'] = prev_statement.statementId
                 

@@ -36,12 +36,12 @@ class TopicGraphBuilder(GraphBuilder):
             chunk_ids =  [ {'chunk_id': chunkId} for chunkId in topic.chunkIds]
 
             statements.extend([
-                f'MERGE (topic:Topic{{{graph_client.node_id("topicId")}: params.topic_id}})',
+                f'MERGE (topic:`__Topic__`{{{graph_client.node_id("topicId")}: params.topic_id}})',
                 'ON CREATE SET topic.value=params.title ON MATCH SET topic.value=params.title',
                 'WITH topic, params',
                 'UNWIND params.chunk_ids as chunkIds',
-                f'MERGE (chunk:Chunk{{{graph_client.node_id("chunkId")}: chunkIds.chunk_id}})',
-                'MERGE (topic)-[:MENTIONED_IN]->(chunk)'
+                f'MERGE (chunk:`__Chunk__`{{{graph_client.node_id("chunkId")}: chunkIds.chunk_id}})',
+                'MERGE (topic)-[:`__MENTIONED_IN__`]->(chunk)'
             ])
 
             properties = {

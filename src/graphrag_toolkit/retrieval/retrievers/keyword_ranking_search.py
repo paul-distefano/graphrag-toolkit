@@ -83,10 +83,10 @@ class KeywordRankingSearch(SemanticGuidedBaseRetriever):
             # 2. Find statements matching any keyword
             cypher = f"""
             UNWIND $keywords AS keyword
-            MATCH (e:Entity)
+            MATCH (e:`__Entity__`)
             WHERE toLower(e.value) = toLower(keyword)
             WITH e, keyword
-            MATCH (e)-[:SUBJECT|OBJECT]->(:Fact)-[:SUPPORTS]->(statement:Statement)
+            MATCH (e)-[:`__SUBJECT__`|`__OBJECT__`]->(:`__Fact__`)-[:`__SUPPORTS__`]->(statement:`__Statement__`)
             WITH statement, COLLECT(DISTINCT keyword) as matched_keywords
             RETURN {{
                 statement: {{

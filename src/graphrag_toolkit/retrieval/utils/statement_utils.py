@@ -45,7 +45,7 @@ def get_top_k(query_embedding, statement_embeddings, top_k):
 
 def get_statements_query(graph_store, statement_ids):
     cypher = f'''
-    MATCH (statement:Statement)-[:MENTIONED_IN]->(chunk:Chunk)-[:EXTRACTED_FROM]->(source:Source) WHERE {graph_store.node_id("statement.statementId")} in $statement_ids
+    MATCH (statement:`__Statement__`)-[:`__MENTIONED_IN__`]->(chunk:`__Chunk__`)-[:`__EXTRACTED_FROM__`]->(source:`__Source__`) WHERE {graph_store.node_id("statement.statementId")} in $statement_ids
     RETURN {{
         {node_result('statement', graph_store.node_id("statement.statementId"))},
         source: {{

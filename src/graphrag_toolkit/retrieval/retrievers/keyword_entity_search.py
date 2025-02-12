@@ -56,13 +56,13 @@ class KeywordEntitySearch(BaseRetriever):
         
             cypher = f"""
             // expand entities
-            MATCH (entity:Entity)
-            -[:SUBJECT|OBJECT]->(:Fact)<-[:SUBJECT|OBJECT]-
-            (other:Entity)
+            MATCH (entity:`__Entity__`)
+            -[:`__SUBJECT__`|`__OBJECT__`]->(:`__Fact__`)<-[:`__SUBJECT__`|`__OBJECT__`]-
+            (other:`__Entity__`)
             WHERE  {self.graph_store.node_id('entity.entityId')} IN $entityIds
             AND NOT {self.graph_store.node_id('other.entityId')} IN $excludeEntityIds
             WITH entity, other
-            MATCH (other)-[r:SUBJECT|OBJECT]->()
+            MATCH (other)-[r:`__SUBJECT__`|`__OBJECT__`]->()
             WITH entity, other, count(r) AS score ORDER BY score DESC
             RETURN {{
                 {node_result('entity', self.graph_store.node_id('entity.entityId'), properties=['value', 'class'])},
@@ -92,7 +92,7 @@ class KeywordEntitySearch(BaseRetriever):
       
         cypher = f"""
         // expand entities: score entities by number of facts
-        MATCH (entity:Entity)-[r:SUBJECT]->(f:Fact)
+        MATCH (entity:`__Entity__`)-[r:`__SUBJECT__`]->(f:`__Fact__`)
         WHERE {self.graph_store.node_id('entity.entityId')} IN $entityIds
         WITH entity, count(r) AS score
         RETURN {{
@@ -137,7 +137,7 @@ class KeywordEntitySearch(BaseRetriever):
 
                 cypher = f"""
                 // get entities for keywords
-                MATCH (entity:Entity)-[r:SUBJECT|OBJECT]->(:Fact)
+                MATCH (entity:`__Entity__`)-[r:`__SUBJECT__`|`__OBJECT__`]->(:`__Fact__`)
                 WHERE entity.search_str = $keyword and entity.class STARTS WITH $classification
                 WITH entity, count(r) AS score ORDER BY score DESC
                 RETURN {{
@@ -152,7 +152,7 @@ class KeywordEntitySearch(BaseRetriever):
             else:
                 cypher = f"""
                 // get entities for keywords
-                MATCH (entity:Entity)-[r:SUBJECT|OBJECT]->(:Fact)
+                MATCH (entity:`__Entity__`)-[r:`__SUBJECT__`|`__OBJECT__`]->(:`__Fact__`)
                 WHERE entity.search_str = $keyword
                 WITH entity, count(r) AS score ORDER BY score DESC
                 RETURN {{
