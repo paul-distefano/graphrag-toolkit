@@ -2,14 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import falkordb
-import string
-import secrets
 import json
 import logging
 import time
 import uuid
 from typing import Optional, Any, List, Union
 from falkordb.node import Node
+from falkordb.edge import Edge
 from falkordb.path import Path
 from falkordb.graph import Graph
 from redis.exceptions import ResponseError, AuthenticationError
@@ -23,6 +22,7 @@ from graphrag_toolkit.storage.graph_store import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_DATABASE_NAME = 'graphrag'
+QUERY_RESULT_TYPE = Union[List[List[Node]], List[List[List[Path]]], List[List[Edge]]]
 
 class FalkorDBDatabaseClient(GraphStore):
     
@@ -135,7 +135,7 @@ class FalkorDBDatabaseClient(GraphStore):
     def execute_query(self, 
                       cypher: str, 
                       parameters: Optional[dict] = None, 
-                      correlation_id: Any = None) -> Union[List[List[Node]], List[List[List[Path]]]]:
+                      correlation_id: Any = None) -> QUERY_RESULT_TYPE:
         """
         Execute a Cypher query on the FalkorDB instance.
 
@@ -174,7 +174,16 @@ class FalkorDBDatabaseClient(GraphStore):
 
         end = time.time()
 
-        results = response.result_set
+        results = None
+
+        if response.header:
+            key = response.header[0][1]
+            results = [
+                {key: json.loads(json.dumps(n[0]))}
+                for n in response.result_set
+            ]
+        else:
+            results = response.result_set
 
         if logger.isEnabledFor(logging.DEBUG):
             response_log_entry_parameters = self.log_formatting.format_log_entry(
