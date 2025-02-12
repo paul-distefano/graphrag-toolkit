@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from typing import Any
 
 from graphrag_toolkit.indexing.model import Statement
 from graphrag_toolkit.storage.graph_store import GraphStore
@@ -18,7 +19,7 @@ class StatementGraphBuilder(GraphBuilder):
     def index_key(cls) -> str:
         return 'statement'
     
-    def build(self, node:BaseNode, graph_client: GraphStore):
+    def build(self, node:BaseNode, graph_client: GraphStore, **kwargs:Any):
             
         statement_metadata = node.metadata.get('statement', {})
         

@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from typing import Any
 
 from graphrag_toolkit.indexing.model import Fact
 from graphrag_toolkit.storage.graph_store import GraphStore
+from graphrag_toolkit.storage.graph_utils import label_from, relationship_name_from
 from graphrag_toolkit.indexing.build.graph_builder import GraphBuilder
 from graphrag_toolkit.indexing.constants import DEFAULT_CLASSIFICATION
 
@@ -18,7 +20,7 @@ class GraphSummaryBuilder(GraphBuilder):
     def index_key(cls) -> str:
         return 'fact'
     
-    def build(self, node:BaseNode, graph_client: GraphStore):
+    def build(self, node:BaseNode, graph_client: GraphStore, **kwargs:Any):
             
         fact_metadata = node.metadata.get('fact', {})
         
@@ -43,9 +45,9 @@ class GraphSummaryBuilder(GraphBuilder):
                 properties = {
                     'sc_id': f'sys_class_{fact.subject.classification or DEFAULT_CLASSIFICATION}',
                     'oc_id': f'sys_class_{fact.object.classification or DEFAULT_CLASSIFICATION}',
-                    'sc': fact.subject.classification or DEFAULT_CLASSIFICATION,
-                    'oc': fact.object.classification or DEFAULT_CLASSIFICATION,
-                    'p': fact.predicate.value,
+                    'sc': label_from(fact.subject.classification or DEFAULT_CLASSIFICATION),
+                    'oc': label_from(fact.object.classification or DEFAULT_CLASSIFICATION),
+                    'p': relationship_name_from(fact.predicate.value),
                 }
 
                 query = '\n'.join(statements)

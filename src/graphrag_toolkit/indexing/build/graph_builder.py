@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import abc
-from typing import Dict
+from typing import Dict, Any
 
 from graphrag_toolkit.storage.graph_store import GraphStore
 
@@ -19,5 +19,5 @@ class GraphBuilder(BaseComponent):
         pass
 
     @abc.abstractmethod
-    def build(self, node:BaseNode, graph_client: GraphStore):
+    def build(self, node:BaseNode, graph_client: GraphStore, **kwargs:Any):
         pass

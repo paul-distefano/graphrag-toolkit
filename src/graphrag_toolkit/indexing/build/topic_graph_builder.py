@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from typing import Any
 
 from graphrag_toolkit.indexing.model import Topic
 from graphrag_toolkit.storage.graph_store import GraphStore
@@ -17,7 +18,7 @@ class TopicGraphBuilder(GraphBuilder):
     def index_key(cls) -> str:
         return 'topic'
     
-    def build(self, node:BaseNode, graph_client: GraphStore):
+    def build(self, node:BaseNode, graph_client: GraphStore, **kwargs:Any):
             
         topic_metadata = node.metadata.get('topic', {})
 

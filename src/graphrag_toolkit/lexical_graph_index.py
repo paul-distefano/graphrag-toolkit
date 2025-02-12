@@ -1,7 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 from pipe import Pipe
 from dataclasses import dataclass, field
 
@@ -171,7 +171,8 @@ class LexicalGraphIndex():
             nodes:List[BaseNode]=[],
             handler:Optional[NodeHandler]=None,
             checkpoint:Optional[Checkpoint]=None,
-            show_progress:Optional[bool]=False) -> None:
+            show_progress:Optional[bool]=False,
+            **kwargs:Any) -> None:
         """
         Run a series of transformations on a set of nodes to extract graph elements.
 
@@ -195,7 +196,8 @@ class LexicalGraphIndex():
             pre_processors=self.extraction_pre_processors,
             show_progress=show_progress,
             checkpoint=checkpoint,
-            num_workers=1 if self.allow_batch_inference else None
+            num_workers=1 if self.allow_batch_inference else None,
+            **kwargs
         )
 
         build_pipeline = BuildPipeline.create(
@@ -205,7 +207,8 @@ class LexicalGraphIndex():
             show_progress=show_progress,
             checkpoint=checkpoint,
             num_workers=1,
-            batch_size=5
+            batch_size=5,
+            **kwargs
         )
 
         if handler:
@@ -218,7 +221,8 @@ class LexicalGraphIndex():
             nodes:List[BaseNode]=[],
             handler:Optional[NodeHandler]=None,
             checkpoint:Optional[Checkpoint]=None,
-            show_progress:Optional[bool]=False) -> None:
+            show_progress:Optional[bool]=False,
+            **kwargs:Any) -> None:
         """
         Build a graph and vector index from previously extracted nodes.
 
@@ -243,7 +247,8 @@ class LexicalGraphIndex():
                 VectorIndexing.for_vector_store(self.vector_store)
             ],
             show_progress=show_progress,
-            checkpoint=checkpoint
+            checkpoint=checkpoint,
+            **kwargs
         )
 
         sink_fn = sink if not handler else Pipe(handler.accept)
@@ -254,7 +259,8 @@ class LexicalGraphIndex():
             nodes:List[BaseNode]=[], 
             handler:Optional[NodeHandler]=None,
             checkpoint:Optional[Checkpoint]=None,
-            show_progress:Optional[bool]=False
+            show_progress:Optional[bool]=False,
+            **kwargs:Any
         ) -> None:
         """
         Extract graph elements from a set of nodes and then build a graph and vector index.
@@ -277,7 +283,8 @@ class LexicalGraphIndex():
             pre_processors=self.extraction_pre_processors,
             show_progress=show_progress,
             checkpoint=checkpoint,
-            num_workers=1 if self.allow_batch_inference else None
+            num_workers=1 if self.allow_batch_inference else None,
+            **kwargs
         )
         
         build_pipeline = BuildPipeline.create(
@@ -286,7 +293,8 @@ class LexicalGraphIndex():
                 VectorIndexing.for_vector_store(self.vector_store)
             ],
             show_progress=show_progress,
-            checkpoint=checkpoint
+            checkpoint=checkpoint,
+            **kwargs
         )
 
         sink_fn = sink if not handler else Pipe(handler.accept)

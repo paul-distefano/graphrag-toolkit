@@ -41,7 +41,8 @@ class BuildPipeline():
                batch_write_size:Optional[int]=None, 
                builders:Optional[List[NodeBuilder]]=[], 
                show_progress=False, 
-               checkpoint:Optional[Checkpoint]=None
+               checkpoint:Optional[Checkpoint]=None,
+               **kwargs:Any
             ):
         return Pipe(
             BuildPipeline(
@@ -52,7 +53,8 @@ class BuildPipeline():
                 batch_write_size=batch_write_size,
                 builders=builders,
                 show_progress=show_progress,
-                checkpoint=checkpoint
+                checkpoint=checkpoint,
+                **kwargs
             ).build
         )
     
@@ -64,7 +66,8 @@ class BuildPipeline():
                  batch_write_size:Optional[int]=None, 
                  builders:Optional[List[NodeBuilder]]=[], 
                  show_progress=False, 
-                 checkpoint:Optional[Checkpoint]=None
+                 checkpoint:Optional[Checkpoint]=None,
+                 **kwargs:Any
             ):
         
         components = components or []
@@ -99,6 +102,7 @@ class BuildPipeline():
         self.batch_write_size = batch_write_size
         self.metadata_to_nodes = MetadataToNodes(builders=builders)
         self.node_filter = NodeFilter() if not checkpoint else checkpoint.add_filter(NodeFilter())
+        self.pipeline_kwargs = kwargs
     
     def _to_node_batches(self, source_doc_batches:Iterable[Iterable[SourceDocument]]) -> List[List[BaseNode]]:
 
@@ -146,7 +150,8 @@ class BuildPipeline():
                     num_workers=self.num_workers,
                     batch_writes_enabled=self.batch_writes_enabled, 
                     batch_size=self.batch_size,
-                    batch_write_size=self.batch_write_size
+                    batch_write_size=self.batch_write_size,
+                    **self.pipeline_kwargs
                 )) 
             for node in output_nodes:
                 yield node       

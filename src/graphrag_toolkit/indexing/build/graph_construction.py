@@ -70,10 +70,11 @@ class GraphConstruction(NodeHandler):
                 builders_dict[b.index_key()] = []
             builders_dict[b.index_key()].append(b)
 
-        batch_writes_enabled = kwargs['batch_writes_enabled']
-        batch_write_size = kwargs['batch_write_size']
+        batch_writes_enabled = kwargs.pop('batch_writes_enabled')
+        batch_write_size = kwargs.pop('batch_write_size')
 
         logger.debug(f'Batch config: [batch_writes_enabled: {batch_writes_enabled}, batch_write_size: {batch_write_size}]')
+        logger.debug(f'Graph construction kwargs: {kwargs}')
 
         with GraphBatchClient(self.graph_client, batch_writes_enabled=batch_writes_enabled, batch_write_size=batch_write_size) as batch_client:
         
@@ -92,7 +93,7 @@ class GraphConstruction(NodeHandler):
 
                         if builders:
                             for builder in builders:
-                                builder.build(node, batch_client)
+                                builder.build(node, batch_client, **kwargs)
                         else:
                             logger.debug(f'No builders for node [index: {index}]')
 

@@ -3,7 +3,7 @@
 
 import logging
 from pipe import Pipe
-from typing import List, Optional, Sequence, Dict, Iterable
+from typing import List, Optional, Sequence, Dict, Iterable, Any
 
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.indexing.model import SourceType, SourceDocument, source_documents_from_source_types
@@ -46,7 +46,8 @@ class ExtractionPipeline():
                num_workers=None, 
                batch_size=None, 
                show_progress=False, 
-               checkpoint:Optional[Checkpoint]=None):
+               checkpoint:Optional[Checkpoint]=None,
+               **kwargs:Any):
         
         return Pipe(
             ExtractionPipeline(
@@ -56,7 +57,8 @@ class ExtractionPipeline():
                 num_workers=num_workers,
                 batch_size=batch_size,
                 show_progress=show_progress,
-                checkpoint=checkpoint
+                checkpoint=checkpoint,
+                **kwargs
             ).extract
         )
     
@@ -67,7 +69,8 @@ class ExtractionPipeline():
                  num_workers=None, 
                  batch_size=None, 
                  show_progress=False, 
-                 checkpoint:Optional[Checkpoint]=None):
+                 checkpoint:Optional[Checkpoint]=None,
+                 **kwargs:Any):
         
         components = components or []
         num_workers = num_workers or GraphRAGConfig.extraction_num_workers
@@ -102,6 +105,7 @@ class ExtractionPipeline():
         self.batch_size = batch_size
         self.show_progress = show_progress
         self.id_rewriter = IdRewriter()
+        self.pipeline_kwargs = kwargs
     
     def _source_documents_from_base_nodes(self, nodes:Sequence[BaseNode]) -> List[SourceDocument]:
         results:Dict[str, SourceDocument] = {}
@@ -135,7 +139,7 @@ class ExtractionPipeline():
 
             logger.info(f'Running extraction pipeline [batch_size: {self.batch_size}, num_workers: {self.num_workers}]')
             
-            output_nodes = asyncio_run(self.ingestion_pipeline.arun(nodes=input_nodes, num_workers=self.num_workers, show_progress=self.show_progress))
+            output_nodes = asyncio_run(self.ingestion_pipeline.arun(nodes=input_nodes, num_workers=self.num_workers, show_progress=self.show_progress, **self.pipeline_kwargs))
 
             output_source_documents = self._source_documents_from_base_nodes(output_nodes)
             

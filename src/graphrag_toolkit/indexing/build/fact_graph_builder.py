@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from typing import Any
 
 from graphrag_toolkit.indexing.model import Fact
 from graphrag_toolkit.storage.graph_store import GraphStore
-from graphrag_toolkit.storage.graph_utils import search_string_from
+from graphrag_toolkit.storage.graph_utils import search_string_from, label_from, relationship_name_from
 from graphrag_toolkit.indexing.build.graph_builder import GraphBuilder
 from graphrag_toolkit.indexing.constants import DEFAULT_CLASSIFICATION
 
@@ -19,9 +20,10 @@ class FactGraphBuilder(GraphBuilder):
     def index_key(cls) -> str:
         return 'fact'
     
-    def build(self, node:BaseNode, graph_client: GraphStore):
+    def build(self, node:BaseNode, graph_client: GraphStore, **kwargs:Any):
             
         fact_metadata = node.metadata.get('fact', {})
+        include_domain_labels = kwargs.pop('include_domain_labels', True)
 
         if fact_metadata:
 
@@ -42,9 +44,12 @@ class FactGraphBuilder(GraphBuilder):
                 'MERGE (fact)-[:`__SUPPORTS__`]->(statement)',
             ])
 
+            if include_domain_labels:
+                statements.append(f'MERGE (subject:`__Entity__`:{label_from(fact.subject.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.s_id}})')
+            else:
+                statements.append(f'MERGE (subject:`__Entity__`{{{graph_client.node_id("entityId")}: params.s_id}})')
+
             statements.extend([
-                #f'MERGE (subject:`__Entity__`:{label_from(fact.subject.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.s_id}})',
-                f'MERGE (subject:`__Entity__`{{{graph_client.node_id("entityId")}: params.s_id}})',
                 'ON CREATE SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc',
                 'ON MATCH SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc',
                 'MERGE (subject)-[:`__SUBJECT__`]->(fact)'
@@ -63,16 +68,21 @@ class FactGraphBuilder(GraphBuilder):
 
             if fact.object:
 
+                if include_domain_labels:
+                    statements.append(f'MERGE (object:`__Entity__`:{label_from(fact.object.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.o_id}})')
+                else:
+                    statements.append(f'MERGE (object:`__Entity__`{{{graph_client.node_id("entityId")}: params.o_id}})')
+
                 statements.extend([
-                    #f'MERGE (object:`__Entity__`:{label_from(fact.object.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.o_id}})',
-                    f'MERGE (object:`__Entity__`{{{graph_client.node_id("entityId")}: params.o_id}})',
                     'ON CREATE SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc',
                     'ON MATCH SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc'    
                 ])
 
+                if include_domain_labels: 
+                    statements.append(f'MERGE (subject)-[:{relationship_name_from(fact.predicate.value)}]->(object)')
+
                 statements.extend([
                     'MERGE (object)-[:`__OBJECT__`]->(fact)',
-                    #f'MERGE (subject)-[:{relationship_name_from(fact.predicate.value)}]->(object)',
                     'MERGE (subject)-[r:`__RELATION__`{value: params.p}]->(object)',
                     'ON CREATE SET r.count = 1 ON MATCH SET r.count = r.count + 1'
                 ])

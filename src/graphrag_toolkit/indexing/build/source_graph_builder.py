@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from typing import Any
 
 from graphrag_toolkit.storage.graph_store import GraphStore
 from graphrag_toolkit.indexing.build.graph_builder import GraphBuilder
@@ -16,7 +17,7 @@ class SourceGraphBuilder(GraphBuilder):
     def index_key(cls) -> str:
         return 'source'
     
-    def build(self, node:BaseNode, graph_client: GraphStore):
+    def build(self, node:BaseNode, graph_client: GraphStore, **kwargs:Any):
             
         source_metadata = node.metadata.get('source', {})
         source_id = source_metadata.get('sourceId', None)
