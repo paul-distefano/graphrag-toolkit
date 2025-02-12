@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from lru import LRU
 
 from graphrag_toolkit.indexing.model import Statement
 from graphrag_toolkit.storage.graph_store import GraphStore
@@ -19,17 +18,15 @@ class StatementGraphBuilder(GraphBuilder):
     def index_key(cls) -> str:
         return 'statement'
     
-    def build(self, node:BaseNode, graph_client: GraphStore, node_ids:LRU):
+    def build(self, node:BaseNode, graph_client: GraphStore):
             
         statement_metadata = node.metadata.get('statement', {})
-        statement_id = statement_metadata.get('statementId', None)
+        
+        if statement_metadata:
 
-        if statement_id:
-            logger.debug(f'Inserting statement [statement_id: {statement_id}]')
+            statement = Statement.model_validate(statement_metadata)
 
-            source_info = node.relationships.get(NodeRelationship.SOURCE, None)
-            chunk_id = source_info.node_id
-            statement = Statement.model_validate(source_info.metadata.get('statement', None))
+            logger.debug(f'Inserting statement [statement_id: {statement.statementId}]')
 
             prev_statement = None
             prev_info = node.relationships.get(NodeRelationship.PREVIOUS, None)
@@ -49,31 +46,31 @@ class StatementGraphBuilder(GraphBuilder):
                 ])
 
                 properties = {
-                    'statement_id': statement_id,
+                    'statement_id': statement.statementId,
                     'value': statement.value,
                     'details': '\n'.join(s for s in statement.details)
                 }
 
-                if chunk_id:
+                if statement.chunkId:
                     statements.extend([
                         f'MERGE (chunk:Chunk{{{graph_client.node_id("chunkId")}: params.chunk_id}})',
                         'MERGE (statement)-[:MENTIONED_IN]->(chunk)'
                     ])
-                    properties['chunk_id'] = chunk_id
+                    properties['chunk_id'] = statement.chunkId
 
-                if statement.topic_id:
+                if statement.topicId:
                     statements.extend([
                         f'MERGE (topic:Topic{{{graph_client.node_id("topicId")}: params.topic_id}})',
                         'MERGE (statement)-[:BELONGS_TO]->(topic)'
                     ])
-                    properties['topic_id'] = statement.topic_id
+                    properties['topic_id'] = statement.topicId
 
                 if prev_statement:
                     statements.extend([
                         f'MERGE (prev_statement:Statement{{{graph_client.node_id("statementId")}: params.prev_statement_id}})',
                         'MERGE (statement)-[:PREVIOUS]->(prev_statement)'
                     ])
-                    properties['prev_statement_id'] = prev_statement.statement_id
+                    properties['prev_statement_id'] = prev_statement.statementId
                 
                 query = '\n'.join(statements)
 

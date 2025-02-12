@@ -68,6 +68,7 @@ LOGGING = {
             '()': ModuleFilter,
             'info': {
                 'include_modules': [
+                    '*'
                 ],
                 'exclude_modules': [ 
                     'opensearch',

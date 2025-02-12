@@ -23,10 +23,10 @@ def vector_info_resolver(vector_index_info:str=None):
         return (OPENSEARCH_SERVERLESS, vector_index_info[len(OPENSEARCH_SERVERLESS):])
     elif vector_index_info.startswith(NEPTUNE_ANALYTICS):
         return (NEPTUNE_ANALYTICS, vector_index_info[len(NEPTUNE_ANALYTICS):]) 
-    elif vector_index_info.endswith(OPENSEARCH_SERVERLESS_DNS):
+    elif vector_index_info.startswith('https://') and vector_index_info.endswith(OPENSEARCH_SERVERLESS_DNS):
         return (OPENSEARCH_SERVERLESS, vector_index_info)
     else:
-        return (NEPTUNE_ANALYTICS, vector_index_info) 
+        raise ValueError(f'Incorrectly formatted vector index connection info: {vector_index_info}')
     
 class VectorIndexFactory():
 
@@ -41,10 +41,12 @@ class VectorIndexFactory():
         elif vector_index_type == NEPTUNE_ANALYTICS:
             logger.debug(f"Opening Neptune Analytics vector index [index_name: {index_name}, graph_id: {init_info}]")
             return VectorIndexFactory.for_neptune_analytics(index_name, init_info, **kwargs)
-        else:
+        elif vector_index_type == DUMMY_VECTOR_STORE:
             logger.debug(f"Opening dummy vector store [index_name: {index_name}]")
             return VectorIndexFactory.for_dummy_vector_index(index_name, **kwargs)
-    
+        else:
+            raise ValueError(f'Unrecognized vector index type: {vector_index_type}. Check that the vector index connection info is formatted correctly: {vector_index_info}.')
+
     @staticmethod
     def for_opensearch(index_name, endpoint, **kwargs):
         return OpenSearchIndex.for_index(index_name, endpoint, **kwargs)

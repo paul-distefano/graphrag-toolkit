@@ -4,13 +4,15 @@
 import logging
 import asyncio
 import multiprocessing
+import math
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial, reduce
-from typing import Any, List, Optional, Sequence
+from typing import Any, List, Optional, Sequence, Iterable
 from pipe import Pipe
 
 from graphrag_toolkit.config import GraphRAGConfig
 from graphrag_toolkit.indexing import NodeHandler
+from graphrag_toolkit.indexing.model import SourceType, SourceDocument, source_documents_from_source_types
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.build.checkpoint import Checkpoint, CheckpointWriter
 from graphrag_toolkit.indexing.build.metadata_to_nodes import MetadataToNodes
@@ -36,6 +38,7 @@ class BuildPipeline():
                num_workers:Optional[int]=None, 
                batch_size:Optional[int]=None, 
                batch_writes_enabled:Optional[bool]=None, 
+               batch_write_size:Optional[int]=None, 
                builders:Optional[List[NodeBuilder]]=[], 
                show_progress=False, 
                checkpoint:Optional[Checkpoint]=None
@@ -46,6 +49,7 @@ class BuildPipeline():
                 num_workers=num_workers,
                 batch_size=batch_size,
                 batch_writes_enabled=batch_writes_enabled,
+                batch_write_size=batch_write_size,
                 builders=builders,
                 show_progress=show_progress,
                 checkpoint=checkpoint
@@ -57,6 +61,7 @@ class BuildPipeline():
                  num_workers:Optional[int]=None, 
                  batch_size:Optional[int]=None, 
                  batch_writes_enabled:Optional[bool]=None, 
+                 batch_write_size:Optional[int]=None, 
                  builders:Optional[List[NodeBuilder]]=[], 
                  show_progress=False, 
                  checkpoint:Optional[Checkpoint]=None
@@ -66,6 +71,7 @@ class BuildPipeline():
         num_workers = num_workers or GraphRAGConfig.build_num_workers
         batch_size = batch_size or GraphRAGConfig.build_batch_size
         batch_writes_enabled = batch_writes_enabled or GraphRAGConfig.batch_writes_enabled
+        batch_write_size = batch_write_size or GraphRAGConfig.build_batch_write_size
 
         for c in components:
             if isinstance(c, NodeHandler):
@@ -90,84 +96,60 @@ class BuildPipeline():
         self.num_workers = num_workers
         self.batch_size = batch_size
         self.batch_writes_enabled = batch_writes_enabled
+        self.batch_write_size = batch_write_size
         self.metadata_to_nodes = MetadataToNodes(builders=builders)
         self.node_filter = NodeFilter() if not checkpoint else checkpoint.add_filter(NodeFilter())
     
-    def build(self, nodes: List[BaseNode]):
+    def _to_node_batches(self, source_doc_batches:Iterable[Iterable[SourceDocument]]) -> List[List[BaseNode]]:
 
-        for chunks in iter_batch(nodes, (self.num_workers * self.batch_size)):
-            
-            (parent_batch, child_batches) = self._prepare_batches(chunks)
-
-            if parent_batch:
-                if self.inner_pipeline.transformations:
-                    logger.info(f'Running build pipeline [num_jobs: 1, job_sizes: [{len(parent_batch)}], batch_size: {self.batch_size}, num_workers: {self.num_workers}]]')
-                parent_batch_results = asyncio_run(
-                    self._arun_pipeline(
-                        self.inner_pipeline, 
-                        [parent_batch], 
-                        batch_writes_enabled=self.batch_writes_enabled, 
-                        batch_size=self.batch_size
-                    ))
-                for node in parent_batch_results:
-                    yield node
-            
-            if child_batches:
-                if self.inner_pipeline.transformations:
-                    logger.info(f'Running build pipeline [num_jobs: {len(child_batches)}, job_sizes: {[len(b) for b in child_batches]}, batch_size: {self.batch_size}, num_workers: {self.num_workers}]')
-                child_batches_results = asyncio_run(
-                    self._arun_pipeline(
-                        self.inner_pipeline, 
-                        child_batches, 
-                        batch_writes_enabled=self.batch_writes_enabled, 
-                        batch_size=self.batch_size
-                    ))
-                for node in child_batches_results:
-                    yield node
-
-    def _create_batches_for_chunks(self, chunks:List[BaseNode]) -> List[List[BaseNode]]:
-        
-        batches = []
-        batch = []
-
-        for i, c in enumerate(chunks):
-            if i % self.batch_size == 0:
-                if batch:
-                    batches.append(batch)
-                    batch = []
-            nodes = self.metadata_to_nodes([c])
-            batch.extend(nodes)
-        if batch:
-            batches.append(batch)
-
-        return batches
+        results = []
     
-    def _prepare_batches(self, chunks:List[BaseNode]):
+        for source_documents in source_doc_batches:
+        
+            chunk_node_batches = [
+                self.node_filter(source_document.nodes)
+                for source_document in source_documents
+            ]
 
-        filtered_chunks = self.node_filter(chunks)
-        batches = self._create_batches_for_chunks(filtered_chunks)
+            node_batches = [
+                self.metadata_to_nodes(chunk_nodes) 
+                for chunk_nodes in chunk_node_batches if chunk_nodes
+            ]
 
-        node_counters = {}
-        for batch in batches:
-            for node in batch:
-                if node.node_id not in node_counters:
-                    node_counters[node.node_id] = 0
-                if INDEX_KEY in node.metadata:
-                    node_counters[node.node_id] += 1
+            nodes = [
+                node
+                for nodes in node_batches
+                for node in nodes
+            ]   
+        
+            results.append(nodes)
 
-        duplicates = {}
-        output_batches = []
+        return results
 
-        for batch in batches:
-            output_batch = []
-            for node in batch:
-                if node_counters[node.node_id] > 1:
-                    duplicates[node.node_id] = node
-                else:
-                    output_batch.append(node)
-            output_batches.append(output_batch)
+    def build(self, inputs: Iterable[SourceType]):
 
-        return (list(duplicates.values()), output_batches)
+        input_source_documents = source_documents_from_source_types(inputs)
+
+        for source_documents in iter_batch(input_source_documents, self.batch_size):
+
+            num_source_docs_per_batch = math.ceil(len(source_documents)/self.num_workers)
+            source_doc_batches = iter_batch(source_documents, num_source_docs_per_batch)
+            
+            node_batches:List[List[BaseNode]] = self._to_node_batches(source_doc_batches)
+
+            logger.info(f'Running build pipeline [batch_size: {self.batch_size}, num_workers: {self.num_workers}, job_sizes: {[len(b) for b in node_batches]}, batch_writes_enabled: {self.batch_writes_enabled}, batch_write_size: {self.batch_write_size}]')
+
+            output_nodes = asyncio_run(
+                self._arun_pipeline(
+                    self.inner_pipeline, 
+                    node_batches, 
+                    num_workers=self.num_workers,
+                    batch_writes_enabled=self.batch_writes_enabled, 
+                    batch_size=self.batch_size,
+                    batch_write_size=self.batch_write_size
+                )) 
+            for node in output_nodes:
+                yield node       
 
 
     async def _arun_pipeline(
@@ -176,10 +158,11 @@ class BuildPipeline():
         node_batches:List[BaseNode],
         cache_collection: Optional[str] = None,
         in_place: bool = True,
+        num_workers: int = 1,
         **kwargs: Any,
     ) -> Sequence[BaseNode]:
         loop = asyncio.get_event_loop()
-        with ProcessPoolExecutor(max_workers=len(node_batches)) as p:
+        with ProcessPoolExecutor(max_workers=num_workers) as p:
             tasks = [
                 loop.run_in_executor(
                     p,
@@ -191,9 +174,9 @@ class BuildPipeline():
                         cache_collection=cache_collection,
                         **kwargs
                     ),
-                    batch,
+                    nodes,
                 )
-                for batch in node_batches
+                for nodes in node_batches
             ]
             result: List[List[BaseNode]] = await asyncio.gather(*tasks)
             nodes = reduce(lambda x, y: x + y, result, [])

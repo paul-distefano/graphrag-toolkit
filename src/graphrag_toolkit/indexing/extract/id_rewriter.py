@@ -3,9 +3,10 @@
 
 import hashlib
 import uuid
-from typing import Any, List, Sequence, Optional
+from typing import Any, List, Sequence, Optional, Iterable
 
 from graphrag_toolkit.indexing.build.checkpoint import DoNotCheckpoint
+from graphrag_toolkit.indexing.model import SourceDocument
 
 from llama_index.core.schema import BaseNode, Document
 from llama_index.core.node_parser import NodeParser
@@ -76,3 +77,11 @@ class IdRewriter(NodeParser, DoNotCheckpoint):
             update_ids(n) 
             for n in results
         ]
+    
+    def handle_source_docs(self, source_documents:Iterable[SourceDocument]) -> List[SourceDocument]:
+        for source_document in source_documents:
+            if source_document.refNode:
+                source_document.refNode = self._parse_nodes([source_document.refNode])[0]
+            source_document.nodes = self._parse_nodes(source_document.nodes)
+        return source_documents
+    

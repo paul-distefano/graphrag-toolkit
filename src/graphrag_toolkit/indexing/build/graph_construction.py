@@ -2,9 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from lru import LRU
 from tqdm import tqdm
-from typing import Optional, Any, List, Union
+from typing import Any, List, Union
 
 from graphrag_toolkit.indexing.build.graph_builder import GraphBuilder
 from graphrag_toolkit.indexing.node_handler import NodeHandler
@@ -19,7 +18,7 @@ from graphrag_toolkit.indexing.build.statement_graph_builder import StatementGra
 from graphrag_toolkit.indexing.build.fact_graph_builder import FactGraphBuilder
 from graphrag_toolkit.indexing.build.graph_summary_builder import GraphSummaryBuilder
 
-from llama_index.core.bridge.pydantic import PrivateAttr, Field
+from llama_index.core.bridge.pydantic import Field
 from llama_index.core.schema import BaseNode
 
 logger = logging.getLogger(__name__)
@@ -62,17 +61,6 @@ class GraphConstruction(NodeHandler):
         description='Graph builders',
         default_factory=default_builders
     )
-    _node_ids: Optional[Any] = PrivateAttr(default=None)
-
-    def __getstate__(self):
-        self._node_ids = None
-        return super().__getstate__()
-    
-    @property
-    def node_ids(self):
-        if self._node_ids is None:
-            self._node_ids = LRU(1000)
-        return self._node_ids
 
     def accept(self, nodes: List[BaseNode], **kwargs: Any):
 
@@ -83,22 +71,19 @@ class GraphConstruction(NodeHandler):
             builders_dict[b.index_key()].append(b)
 
         batch_writes_enabled = kwargs['batch_writes_enabled']
-        batch_size = kwargs['batch_size']
+        batch_write_size = kwargs['batch_write_size']
 
-        logger.debug(f'Batch config: [batch_writes_enabled: {batch_writes_enabled}, batch_size: {batch_size}]')
+        logger.debug(f'Batch config: [batch_writes_enabled: {batch_writes_enabled}, batch_write_size: {batch_write_size}]')
 
-        with GraphBatchClient(self.graph_client, batch_writes_enabled=batch_writes_enabled, batch_size=batch_size) as batch_client:
+        with GraphBatchClient(self.graph_client, batch_writes_enabled=batch_writes_enabled, batch_write_size=batch_write_size) as batch_client:
         
-            node_iterable = nodes if not self.show_progress else tqdm(nodes, desc=f'Building graph [batch_writes_enabled: {batch_writes_enabled}]')
+            node_iterable = nodes if not self.show_progress else tqdm(nodes, desc=f'Building graph [batch_writes_enabled: {batch_writes_enabled}, batch_write_size: {batch_write_size}]')
 
             for node in node_iterable:
 
                 node_id = node.node_id
                 
-                if self.node_ids.has_key(node_id):
-                    logger.debug(f'Ignoring duplicate node [node_id: {node_id}]')
-
-                elif [key for key in [INDEX_KEY] if key in node.metadata]:
+                if [key for key in [INDEX_KEY] if key in node.metadata]:
                     
                     try:
                     
@@ -106,8 +91,8 @@ class GraphConstruction(NodeHandler):
                         builders = builders_dict.get(index, None)
 
                         if builders:
-                            [builder.build(node, batch_client, self.node_ids) for builder in builders]
-                            self.node_ids[node_id] = None
+                            for builder in builders:
+                                builder.build(node, batch_client)
                         else:
                             logger.debug(f'No builders for node [index: {index}]')
 

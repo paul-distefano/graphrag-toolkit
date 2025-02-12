@@ -31,8 +31,12 @@ def node_result(node_ref:str,
     
     property_selectors = []
     
-    if node_id and not node_id.is_property_based:
-        property_selectors.append(f'{node_id.key}: {node_id}')
+    if node_id:
+        if node_id.is_property_based:
+            if node_id.key not in properties and '*' not in properties:
+                property_selectors.append(f'.{node_id.key}')
+        else:
+            property_selectors.append(f'{node_id.key}: {node_id}')
     
     property_selectors.extend(['.{}'.format(p) for p in properties])
         

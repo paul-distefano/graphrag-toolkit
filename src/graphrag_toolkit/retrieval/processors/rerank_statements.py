@@ -5,8 +5,10 @@ import logging
 import time
 import tfidf_matcher as tm
 from typing import List, Dict
+from dateutil.parser import parse
 
 from graphrag_toolkit import GraphRAGConfig
+from graphrag_toolkit.retrieval.model import Source
 from graphrag_toolkit.retrieval.processors import ProcessorBase, ProcessorArgs
 from graphrag_toolkit.retrieval.post_processors import SentenceReranker
 from graphrag_toolkit.retrieval.model import SearchResultCollection, SearchResult, Topic, ScoredEntity
@@ -16,10 +18,23 @@ from llama_index.core.node_parser import TokenTextSplitter
 
 logger = logging.getLogger(__name__)
 
+def default_reranking_source_metadata_fn(source:Source):
+    def format_value(s):
+        try: 
+            date = parse(s, fuzzy=False)
+            return date.strftime("%B %-d, %Y")
+        except ValueError:
+            if s.startswith('http'):
+                return ''
+            else:
+                return s
+    return ', '.join([format_value(v) for v in source.metadata.values()])
+
 class RerankStatements(ProcessorBase):
     def __init__(self, args:ProcessorArgs, reranking_model=None):
         self.reranking_model = reranking_model or GraphRAGConfig.reranking_model
         super().__init__(args)
+        self.reranking_source_metadata_fn = self.args.reranking_source_metadata_fn or default_reranking_source_metadata_fn
 
     def _score_values_with_tfidf(self, values:List[str], query:QueryBundle, entities:List[ScoredEntity]):
 
@@ -99,7 +114,7 @@ class RerankStatements(ProcessorBase):
         values_to_score = []
         
         for search_result in search_results.results:
-            source_str = self.args.format_source_metadata_fn(search_result.source)
+            source_str = self.reranking_source_metadata_fn(search_result.source)
             for topic in search_result.topics:
                 topic_str = topic.topic
                 for statement in topic.statements:
@@ -137,7 +152,7 @@ class RerankStatements(ProcessorBase):
             return topic
 
         def rerank_search_result(index:int, search_result:SearchResult):
-            source_str = self.args.format_source_metadata_fn(search_result.source)
+            source_str = self.reranking_source_metadata_fn(search_result.source)
             return self._apply_to_topics(search_result, rerank_statements, source_str=source_str)
         
         return self._apply_to_search_results(search_results, rerank_search_result)

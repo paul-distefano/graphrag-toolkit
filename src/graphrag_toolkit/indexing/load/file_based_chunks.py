@@ -30,7 +30,7 @@ class FileBasedChunks(NodeHandler):
         super().__init__(
             chunks_directory=chunks_directory,
             collection_id=collection_id or datetime.now().strftime('%Y%m%d-%H%M%S'),
-            metadata_keys=metadata_keys or []
+            metadata_keys=metadata_keys
         )
         self._prepare_directory()
 

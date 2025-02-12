@@ -36,7 +36,7 @@ DEFAULT_TRAVERSAL_BASED_RETRIEVERS = [
 
 WeightedTraversalBasedRetrieverType = Union[WeightedTraversalBasedRetriever, TraversalBasedBaseRetriever, Type[TraversalBasedBaseRetriever]]
 
-class TraversalBasedRetriever(TraversalBasedBaseRetriever):
+class CompositeTraversalBasedRetriever(TraversalBasedBaseRetriever):
 
     def __init__(self, 
                  graph_store:GraphStore, 
@@ -62,10 +62,6 @@ class TraversalBasedRetriever(TraversalBasedBaseRetriever):
         def weighted_arg(v, weight, factor):
             multiplier = min(1, weight * factor)
             return  math.ceil(v * multiplier)
-        
-        sub_args = self.args.to_dict({
-            'strip_source_metadata': False
-        })
 
         retrievers = []
 
@@ -91,9 +87,7 @@ class TraversalBasedRetriever(TraversalBasedBaseRetriever):
             if not isinstance(wr, WeightedTraversalBasedRetriever):
                 wr = WeightedTraversalBasedRetriever(retriever=wr, weight=1.0)
             
-            sub_args = self.args.to_dict({
-                'strip_source_metadata': False
-            })
+            sub_args = self.args.to_dict()
 
             sub_args['intermediate_limit'] = weighted_arg(self.args.intermediate_limit, wr.weight, 2)
             sub_args['limit_per_query'] = weighted_arg(self.args.query_limit, wr.weight, 1)
@@ -103,6 +97,9 @@ class TraversalBasedRetriever(TraversalBasedBaseRetriever):
                             self.graph_store, 
                             self.vector_store,
                             processors=[
+                                # No processing - just raw results
+                            ],
+                            formatting_processors=[
                                 # No processing - just raw results
                             ],
                             entities=entities,

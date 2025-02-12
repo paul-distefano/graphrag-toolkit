@@ -10,6 +10,7 @@ from graphrag_toolkit import ModelError
 from graphrag_toolkit.utils.bedrock_utils import *
 
 from llama_index.core.llms.llm import LLM
+from llama_index.llms.bedrock import Bedrock
 from llama_index.core.bridge.pydantic import BaseModel, Field
 from llama_index.core.prompts import BasePromptTemplate
 
@@ -63,6 +64,13 @@ class LLMCache(BaseModel):
             logger.info('%s%s%s', c_green, response, c_norm)
             
         return response
+    
+    @property
+    def model(self):
+        if not isinstance(self.llm, Bedrock):
+            raise ModelError(f'Invaid LLM type: {type(self.llm)} does not support model')
+        return self.llm.model
+
     
 LLMCacheType = Union[LLM, LLMCache]
     

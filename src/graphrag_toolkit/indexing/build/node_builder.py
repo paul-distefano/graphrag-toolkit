@@ -18,13 +18,10 @@ class NodeBuilder(BaseComponent):
     @abc.abstractmethod
     def metadata_keys(cls) -> List[str]:
         pass
-    
-    @abc.abstractmethod
-    def build_nodes(self, node:BaseNode, other_nodes:Dict[str, BaseNode]) -> List[BaseNode]:
-        pass
 
-    def allow_emit_node(self, node:BaseNode) -> bool:
-        return True if node else False
+    @abc.abstractmethod
+    def build_nodes(self, nodes:List[BaseNode]) -> List[BaseNode]:
+        pass
     
     def _clean_id(self, s):
         return ''.join(c for c in s if c.isalnum())

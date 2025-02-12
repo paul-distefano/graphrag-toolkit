@@ -2,15 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import abc
-import logging
 from typing import Dict
-from lru import LRU
 
 from graphrag_toolkit.storage.graph_store import GraphStore
 
 from llama_index.core.schema import BaseComponent, BaseNode
-
-logger = logging.getLogger(__name__)
 
 class GraphBuilder(BaseComponent):
 
@@ -23,5 +19,5 @@ class GraphBuilder(BaseComponent):
         pass
 
     @abc.abstractmethod
-    def build(self, node:BaseNode, graph_client: GraphStore, node_ids:LRU):
+    def build(self, node:BaseNode, graph_client: GraphStore):
         pass

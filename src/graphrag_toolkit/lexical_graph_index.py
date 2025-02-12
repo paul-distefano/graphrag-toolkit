@@ -17,6 +17,7 @@ from graphrag_toolkit.indexing.extract import GraphScopedValueStore
 from graphrag_toolkit.indexing.extract import LLMPropositionExtractor, BatchLLMPropositionExtractor
 from graphrag_toolkit.indexing.extract import TopicExtractor, BatchTopicExtractor
 from graphrag_toolkit.indexing.extract import ExtractionPipeline
+from graphrag_toolkit.indexing.extract import InferClassifications, OnExistingClassifications, InferClassificationsConfig
 from graphrag_toolkit.indexing.build import BuildPipeline
 from graphrag_toolkit.indexing.build import VectorIndexing
 from graphrag_toolkit.indexing.build import GraphConstruction
@@ -24,7 +25,7 @@ from graphrag_toolkit.indexing.build import Checkpoint
 from graphrag_toolkit.indexing.build.null_builder import NullBuilder
 
 from llama_index.core.node_parser import SentenceSplitter
-from llama_index.core.schema import BaseNode, TransformComponent, NodeRelationship
+from llama_index.core.schema import BaseNode, NodeRelationship
 
 DEFAULT_INDEX_NAME = 'default-index'
 DEFAULT_EXTRACTION_DIR = 'output'
@@ -36,9 +37,8 @@ class ExtractionConfig:
     chunk_overlap:Optional[int]=20
     enable_proposition_extraction:Optional[bool]=True
     preferred_entity_classifications:Optional[List[str]]=field(default_factory=lambda:DEFAULT_ENTITY_CLASSIFICATIONS)
+    infer_entity_classifications:Optional[Union[InferClassificationsConfig, bool]]=False
     batch_config:Optional[BatchConfig]=None
-
-ExtractionPipelineConfigType = Union[ExtractionConfig, List[TransformComponent]]
 
 def get_topic_scope(node:BaseNode):
     source = node.relationships.get(NodeRelationship.SOURCE, None)
@@ -60,9 +60,8 @@ class LexicalGraphIndex():
             Unique name of the index. Defaults to DEFAULT_INDEX_NAME.
         extraction_dir (List[TransformComponent], optional):
             Directory to which intermediate artefacts (e.g. checkpoints) will be written. Defaults to DEFAULT_EXTRACTION_DIR.
-        extraction_config (Optional[ExtractionPipelineConfigType], optional):
-            Either an ExtractionConfig instance, or a list of TransformComponents. 
-            If None, defaults to using a SentenceSplitter, LLMPropositionExtractor and TopicExtractor.
+        extraction_config (Optional[ExtractionConfig], optional):
+            If None, defaults to using default ExtractionConfig values.
 
     Examples:
         ```python
@@ -82,49 +81,51 @@ class LexicalGraphIndex():
             vector_store:Optional[VectorStoreType]=None,
             index_name:Optional[str]=None,
             extraction_dir:Optional[str]=None,
-            extraction_config:Optional[ExtractionPipelineConfigType]=None,
+            extraction_config:Optional[ExtractionConfig]=None,
         ):
 
         self.graph_store = GraphStoreFactory.for_graph_store(graph_store)
         self.vector_store = VectorStoreFactory.for_vector_store(vector_store)
         self.index_name = index_name or DEFAULT_INDEX_NAME
         self.extraction_dir = extraction_dir or DEFAULT_EXTRACTION_DIR
+        self.extraction_config = extraction_config or ExtractionConfig()
 
-        allow_batch_inference = False
-        if extraction_config and isinstance(extraction_config, ExtractionConfig):
-            allow_batch_inference = extraction_config.batch_config is not None
-        self.allow_batch_inference = allow_batch_inference
+        (pre_processors, components) = self._configure_extraction_pipeline(self.extraction_config)
 
-        if not extraction_config or isinstance(extraction_config, ExtractionConfig):
-            self.extraction_pipeline_config = self._configure_extraction_pipeline(extraction_config)
-        else:
-            self.extraction_pipeline_config = extraction_config
+        self.extraction_pre_processors = pre_processors
+        self.extraction_components = components
+        self.allow_batch_inference = self.extraction_config.batch_config is not None
 
-    def _configure_extraction_pipeline(self, extraction_pipeline_config:Optional[ExtractionConfig]):
+
+    def _configure_extraction_pipeline(self, config:ExtractionConfig):
         
-        config = extraction_pipeline_config or ExtractionConfig()
+        pre_processors = []
         components = []
 
         if config.enable_chunking:
             components.append(SentenceSplitter(chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap))
         
         if config.enable_proposition_extraction:
-            if self.allow_batch_inference:
+            if config.batch_config:
                 components.append(BatchLLMPropositionExtractor(batch_config=config.batch_config))
             else:
                 components.append(LLMPropositionExtractor())
 
         entity_classification_provider = None
         topic_provider = None
+
+        classification_label = f'{self.index_name}_EntityClassification'
+        classification_scope = DEFAULT_SCOPE
         
         if isinstance(self.graph_store, DummyGraphStore):
             entity_classification_provider = FixedScopedValueProvider(scoped_values={DEFAULT_SCOPE: config.preferred_entity_classifications})
             topic_provider = FixedScopedValueProvider(scoped_values={DEFAULT_SCOPE: []})
         else:
+            initial_scope_values = [] if config.infer_entity_classifications else config.preferred_entity_classifications
             entity_classification_provider = ScopedValueProvider(
-                label=f'{self.index_name}_EntityClassification',
+                label=classification_label,
                 scoped_value_store=GraphScopedValueStore(graph_store=self.graph_store),
-                initial_scoped_values = { DEFAULT_SCOPE: config.preferred_entity_classifications }
+                initial_scoped_values = { classification_scope: initial_scope_values }
             )           
             topic_provider = ScopedValueProvider(
                 label=f'{self.index_name}_StatementTopic',
@@ -132,9 +133,22 @@ class LexicalGraphIndex():
                 scope_func=get_topic_scope
             )
 
+        if config.infer_entity_classifications:
+            infer_config = config.infer_entity_classifications if isinstance(config.infer_entity_classifications, InferClassificationsConfig) else InferClassificationsConfig()
+            pre_processors.append(InferClassifications(
+                classification_label=classification_label,
+                classification_scope=classification_scope,
+                classification_store=GraphScopedValueStore(graph_store=self.graph_store),
+                splitter=SentenceSplitter(chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap) if config.enable_chunking else None,
+                default_classifications=config.preferred_entity_classifications,
+                num_samples=infer_config.num_samples,
+                num_iterations=infer_config.num_iterations,
+                merge_action=infer_config.on_existing_classifications
+            ))
+
         topic_extractor = None
 
-        if self.allow_batch_inference:
+        if config.batch_config:
             topic_extractor = BatchTopicExtractor(
                 batch_config=config.batch_config,
                 source_metadata_field=PROPOSITIONS_KEY if config.enable_proposition_extraction else None,
@@ -150,7 +164,7 @@ class LexicalGraphIndex():
 
         components.append(topic_extractor)
 
-        return components
+        return (pre_processors, components)
         
     def extract(
             self,
@@ -177,7 +191,8 @@ class LexicalGraphIndex():
         """
 
         extraction_pipeline = ExtractionPipeline.create(
-            components=self.extraction_pipeline_config,
+            components=self.extraction_components,
+            pre_processors=self.extraction_pre_processors,
             show_progress=show_progress,
             checkpoint=checkpoint,
             num_workers=1 if self.allow_batch_inference else None
@@ -258,7 +273,8 @@ class LexicalGraphIndex():
         """
 
         extraction_pipeline = ExtractionPipeline.create(
-            components=self.extraction_pipeline_config,
+            components=self.extraction_components,
+            pre_processors=self.extraction_pre_processors,
             show_progress=show_progress,
             checkpoint=checkpoint,
             num_workers=1 if self.allow_batch_inference else None

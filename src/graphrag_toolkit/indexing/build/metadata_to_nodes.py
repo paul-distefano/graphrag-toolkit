@@ -7,6 +7,7 @@ from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.build.source_node_builder import SourceNodeBuilder
 from graphrag_toolkit.indexing.build.chunk_node_builder import ChunkNodeBuilder
 from graphrag_toolkit.indexing.build.topic_node_builder import TopicNodeBuilder
+from graphrag_toolkit.indexing.build.statement_node_builder import StatementNodeBuilder
 
 from llama_index.core.schema import BaseNode
 from llama_index.core.bridge.pydantic import Field
@@ -34,7 +35,8 @@ class MetadataToNodes(TransformComponent):
         return [
             SourceNodeBuilder(),
             ChunkNodeBuilder(),
-            TopicNodeBuilder()
+            TopicNodeBuilder(),
+            StatementNodeBuilder()
         ]
         
     @classmethod
@@ -45,34 +47,15 @@ class MetadataToNodes(TransformComponent):
 
         results = []
 
-        metadata_keys = [
-            metadata_key
-            for builder in self.builders
-            for metadata_key in builder.metadata_keys()
-        ]
-        
-        for input_node in input_nodes:
-            if [key for key in metadata_keys if key in input_node.metadata]:
-                
-                try:
-
-                    local_context = {}
-
-                    for builder in self.builders:
-                        output_nodes = builder.build_nodes(input_node, local_context)
-                        
-                        local_context[builder.name()] = output_nodes[0] if (output_nodes and len(output_nodes) == 1) else output_nodes
-                        
-                        for output_node in output_nodes:
-                            if builder.allow_emit_node(output_node):
-                                results.append(output_node)
-
-
-                except Exception as e:
+        for builder in self.builders:
+            try:
+                filtered_input_nodes = [node for node in input_nodes if any(key in builder.metadata_keys() for key in node.metadata)]
+                results.extend(builder.build_nodes(filtered_input_nodes))
+            except Exception as e:
                     logger.exception('An error occurred while building nodes from metadata')
                     raise e
             
-            results.append(input_node) # Always add the original nodes after derived nodes
+        results.extend(input_nodes) # Always add the original nodes after derived nodes    
 
         logger.debug(f'Accepted {len(input_nodes)} chunks, emitting {len(results)} nodes')
 
