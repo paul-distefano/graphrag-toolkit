@@ -76,9 +76,6 @@ class GraphStoreFactory():
 
     @staticmethod
     def for_neptune_analytics(graph_id, **kwargs):
-        log_formatting = kwargs.pop('log_formattings', RedactedGraphQueryLogFormatting())
-        if not isinstance(log_formatting, GraphQueryLogFormatting):
-            raise ValueError('log_formatting must be of type GraphQueryLogFormatting')
         return NeptuneAnalyticsClient(graph_id=graph_id, log_formatting=get_log_formatting(kwargs))
 
     @staticmethod
