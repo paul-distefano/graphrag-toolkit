@@ -22,7 +22,7 @@ The code examples here are formatted to run in a Jupyter notebook. If you’re b
 
 To use batch inference in the extract stage of the indexing process, create a `BatchConfig` object and supply it to the `LexicalGraphIndex` as part of the [`ExtractionConfig`](./indexing.md#configuring-the-extract-and-build-stages): 
 
-```
+```python
 import os
 
 from graphrag_toolkit import LexicalGraphIndex

@@ -39,7 +39,7 @@ The graphrag-toolkit also allows you to set the logging level and apply logging 
 
 To set a configuration parameter in your application code:
 
-```
+```python
 from graphrag_toolkit import GraphRAGConfig
 
 GraphRAGConfig.response_llm = 'anthropic.claude-3-haiku-20240307-v1:0' 
@@ -103,7 +103,7 @@ The graphrag_toolkit's `set_logging_config` method allows you to set the [loggin
 
 The following example sets the logging level to `DEBUG`, but also applies a filter that specifies that only messages from the storage module are to be emitted:
 
-```
+```python
 from graphrag_toolkit import set_logging_config
 
 set_logging_config(
@@ -114,7 +114,7 @@ set_logging_config(
 
 The following example sets the logging level to `DEBUG`, together with a filter that specifies that only messages from the storage module are to be emitted, and another filter that excludes messages from the graph store factory within the storage module:
 
-```
+```python
 from graphrag_toolkit import set_logging_config
 
 set_logging_config(

@@ -22,7 +22,7 @@ The graphrag-toolkit requires Python 3.10 or greater.
 
 ### Indexing
 
-```
+```python
 import os
 
 from graphrag_toolkit import LexicalGraphIndex
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
 ### Querying
 
-```
+```python
 from graphrag_toolkit import LexicalGraphQueryEngine
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
