@@ -4,17 +4,17 @@
 
 ### Topics
 
-  - [Overview](#overview)
-  - [Graph store](#graph-store)
-    - [Neptune Database and Neptune Analytics graph stores](#neptune-database-and-neptune-analytics-graph-stores)
-  - [Vector store](#vector-store)
-    - [Amazon OpenSearch Serverless and Neptune Analytics vector stores](#amazon-opensearch-serverless-and-neptune-analytics-vector-stores)
+- [Overview](#overview)
+- [Graph store](#graph-store)
+  - [Neptune Database and Neptune Analytics graph stores](#neptune-database-and-neptune-analytics-graph-stores)
+- [Vector store](#vector-store)
+  - [Amazon OpenSearch Serverless and Neptune Analytics vector stores](#amazon-opensearch-serverless-and-neptune-analytics-vector-stores)
 
 ### Overview
 
 The graphrag-toolkit uses two separate stores: a `GraphStore` and a `VectorStore`. A `VectorStore` acts as a container for a collection of `VectorIndex`. When constructing or querying a graph, you must provide instances of both a graph store and vector store.
 
-The toolkit provides graph store implementations for both [Amazon Neptune Analytics](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html) and [Amazon Neptune Database](https://docs.aws.amazon.com/neptune/latest/userguide/intro.html), and vector store implementations for Neptune Analytics and [Amazon OpenSearch Serverless](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless.html). The graphrag-toolkit provides several convenient factory methods for creating instances of these stores. These factory methods accept formatted store identifiers, described below.
+The toolkit provides graph store implementations for both [Amazon Neptune Analytics](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html) and [Amazon Neptune Database](https://docs.aws.amazon.com/neptune/latest/userguide/intro.html), and now [FalkorDB](https://docs.falkordb.com/)**,** along with vector store implementations for Neptune Analytics and [Amazon OpenSearch Serverless](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless.html). The graphrag-toolkit provides several convenient factory methods for creating instances of these stores. These factory methods accept formatted store identifiers, described below.
 
 > This early release of the toolkit provides support for Amazon Neptune and Amazon OpenSearch Serverless, but we welcome alternative store implementations. The store APIs and the ways in which the stores are used have been designed to anticipate alternative implementations. However, the proof is in the development: if you experience issues developing an alternative store, [let us know](https://github.com/awslabs/graphrag-toolkit/issues).
 
@@ -52,6 +52,30 @@ neptune_connection_info = 'neptune-graph://g-jbzzaqb209'
 graph_store = GraphStoreFactory.for_graph_store(neptune_connection_info)
 ```
 
+### FalkorDB Graph Store
+
+You can now use the `GraphStoreFactory.for_graph_store()` static factory method to create an instance of a FalkorDB graph store.
+
+To create a [FalkorDB Cloud](https://app.falkordb.cloud/) graph store, supply a connection string that begins `falkordb://`, followed by the FalkorDB endpoint:
+
+```python
+from graphrag_toolkit.storage import GraphStoreFactory
+
+falkordb_connection_info = 'falkordb://your-falkordb-endpoint'
+
+graph_store = GraphStoreFactory.for_graph_store(falkordb_connection_info)
+```
+
+To create a local FalkorDB graph store, supply a connection string that has only `falkordb://`;
+
+```python
+from graphrag_toolkit.storage import GraphStoreFactory
+
+falkordb_connection_info = 'falkordb://'
+
+graph_store = GraphStoreFactory.for_graph_store(falkordb_connection_info)
+```
+
 ### Vector store
 
 A vector store is a collection of vector indexes. The graphrag-toolkit uses up to two vector indexes: a chunk index and a statement index. The chunk index is typically much smaller than the statement index. If you want to use the [SemanticGuidedRetriever](./querying.md#semanticguidedretriever), you will need to enable the statement index. If you want to use the [TraversalBasedRetriever](./querying.md#traversalbasedretriever), you will need to enable the chunk index. If you want to use both retrievers, you will need to enable both indexes. (The `VectorStoreFactory` described below enables both indexes by default.)
@@ -85,4 +109,3 @@ By default, the `VectorStoreFactory` will enable both the statement index and th
 ```
 vector_store = VectorStoreFactory.for_vector_store(opensearch_connection_info, index_names=['chunk'])
 ```
-
