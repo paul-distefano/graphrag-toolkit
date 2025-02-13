@@ -59,7 +59,7 @@ Use `LexicalGraphIndex.extract_and_build()` to extract and build a graph in a ma
 
 The extraction stage consumes LlamaIndex nodes – either documents, which will be chunked during extraction, or pre-chunked text nodes. Use a LlamaIndex reader to [load source documents](https://docs.llamaindex.ai/en/stable/understanding/loading/loading/). The example below uses a LlamaIndex `SimpleWebReader` to load several HTML pages.
 
-```
+```python
 import os
 
 from graphrag_toolkit import LexicalGraphIndex
@@ -102,7 +102,7 @@ When you run the extract and build stages separately, you can persist the extrac
 
 The following example shows how to use a `S3BasedDocs` handler to persist extracted documents to an Amazon S3 bucket at the end of the extract stage:
 
-```
+```python
 from graphrag_toolkit import LexicalGraphIndex
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
@@ -146,7 +146,7 @@ graph_index.extract(docs, handler=extracted_docs)
 
 Following the extract stage, you can then build the graph from the previously extracted documents. Whereas in the extract stage the `S3BasedDocs` object acted as a handler to persist extracted documents, in the build stage the `S3BasedDocs` object acts as a source of LlamaIndex nodes, and is thus passed as the first argument to the `build()` method:
 
-```
+```python
 from graphrag_toolkit import LexicalGraphIndex
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
@@ -206,7 +206,7 @@ If you use Amazon Web Services KMS keys to encrypt objects in S3, the identity u
 
 If you want to persist extracted documents to the local filesystem instead of an S3 bucket, use a `FileBasedDocs` object instead:
 
-```
+```python
 from graphrag_toolkit.indexing.load import FileBasedDocs
 
 chunks = FileBasedDocs(
@@ -230,7 +230,7 @@ You can configure the number of workers and batch sizes for the extract and buil
 
 Besides configuring the workers and batch sizes, you can also configure the extraction process with regard to chunking, proposition extraction and entity classification by passing an instance of `ExtractionConfig` to the `LexicalGraphIndex` constructor:
 
-```
+```python
 from graphrag_toolkit import LexicalGraphIndex, ExtractionConfig
 
 ...
@@ -270,7 +270,7 @@ To avoid having to reprocess chunks that have been successfully processed in a p
 
 The following example passes a checkpoint to the `extract_and_build()` method:
 
-```
+```python
 from graphrag_toolkit.indexing.build import Checkpoint
 
 checkpoint = Checkpoint('my-checkpoint')
@@ -290,7 +290,7 @@ The graphrag-toolkit does not clean up checkpoints. If you use checkpoints, peri
 
 If you want more control over the extract and build stages, then instead of using a `LexicalGraphIndex`, you can use the extract and build pipelines directly: 
 
-```
+```python
 import os
 
 from graphrag_toolkit.storage import GraphStoreFactory

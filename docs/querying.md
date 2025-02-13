@@ -25,6 +25,8 @@ The `SemanticGuidedRetriever` uses a *statement* vector index, whereas the `Trav
 
 In the current release the output formats of the two retrievers are different. Future releases of the graphrag-toolkit will seek to align the outputs.
 
+> The [FalkorDB graph store](./storage-model.md#falkordb-graph-store) currently supports the `SemanticGuidedRetriever`. It does not support the `TraversalBasedRetriever`](./querying.md#traversalbasedretriever)`.
+
 #### Code examples
 
 The code examples here are formatted to run in a Jupyter notebook. If you’re building an application with a main entry point, put your application logic inside a method, and add an [`if __name__ == '__main__'` block](./faq.md#runtimeerror-please-use-nest_asyncioapply-to-allow-nested-event-loops).
@@ -33,7 +35,7 @@ The code examples here are formatted to run in a Jupyter notebook. If you’re b
 
 The following example uses a `TraversalBasedRetriever` with all its default settings to query the graph:
 
-```
+```python
 from graphrag_toolkit import LexicalGraphQueryEngine
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
@@ -68,7 +70,7 @@ When combining these two retrievers, the `TraversalBasedRetriever` weights their
 
 To configure the `TraversalBasedRetriever` with just one or other of these subretrievers, you can pass an instance of the subretriever, or the type of subretriever, to the factory method:
 
-```
+```python
 from graphrag_toolkit.retrieval.retrievers import ChunkBasedSearch
 
 ...
@@ -144,7 +146,7 @@ You can configure the `TraversalBasedRetriever` by passing named arguments to th
 
 The example below shows how to configure the `TraversalBasedRetriever` to return ten results:
 
-```
+```python
 query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
     graph_store, 
     vector_store,
@@ -166,7 +168,7 @@ You can use the traversal-based reranking *in combination* with any reranking ap
 
 The following example uses a `SemanticGuidedRetriever` with all its default settings to query the graph:
 
-```
+```python
 from graphrag_toolkit import LexicalGraphQueryEngine
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
@@ -262,7 +264,7 @@ You must initialize a `RerankingBeamGraphSearch` instance with a reranker. The t
 
 The example below uses a `SentenceReranker` with a `RerankingBeamGraphSearch` to rerank statements while conducting the beam search:
 
-```
+```python
 from graphrag_toolkit import LexicalGraphQueryEngine
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
@@ -324,7 +326,7 @@ The example below uses a `BGEReranker` with a `RerankingBeamGraphSearch` to rera
 
 There will be a delay the first time this runs while the reranker downloads tensors.
 
-```
+```python
 from graphrag_toolkit import LexicalGraphQueryEngine
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
@@ -397,7 +399,7 @@ There are a number of postprocessors you can use to further improve and format r
 
 The example below uses a `StatementDiversityPostProcessor`, `SentenceReranker` and `StatementEnhancementPostProcessor`. If you're running on a GPU device, you can replace the `SentenceReranker` with a `BGEReranker`.
 
-```
+```python
 from graphrag_toolkit import LexicalGraphQueryEngine
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory

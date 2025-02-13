@@ -34,7 +34,7 @@ You can use the `GraphStoreFactory.for_graph_store()` static factory method to c
 
 To create a Neptune Database graph store, supply a connection string that begins `neptune-db://`, followed by an [endpoint](https://docs.aws.amazon.com/neptune/latest/userguide/feature-overview-endpoints.html):
 
-```
+```python
 from graphrag_toolkit.storage import GraphStoreFactory
 
 neptune_connection_info = 'neptune-db://mydbcluster.cluster-123456789012.us-east-1.neptune.amazonaws.com:8182'
@@ -52,9 +52,11 @@ neptune_connection_info = 'neptune-graph://g-jbzzaqb209'
 graph_store = GraphStoreFactory.for_graph_store(neptune_connection_info)
 ```
 
-### FalkorDB Graph Store
+#### FalkorDB graph store
 
 You can now use the `GraphStoreFactory.for_graph_store()` static factory method to create an instance of a FalkorDB graph store.
+
+The FalkorDB graph store currently supports the [SemanticGuidedRetriever](./querying.md#semanticguidedretriever). It does not support the [TraversalBasedRetriever](./querying.md#traversalbasedretriever).
 
 To create a [FalkorDB Cloud](https://app.falkordb.cloud/) graph store, supply a connection string that begins `falkordb://`, followed by the FalkorDB endpoint:
 
@@ -64,6 +66,21 @@ from graphrag_toolkit.storage import GraphStoreFactory
 falkordb_connection_info = 'falkordb://your-falkordb-endpoint'
 
 graph_store = GraphStoreFactory.for_graph_store(falkordb_connection_info)
+```
+
+You may also need to pass a username and password, and specify whether or not to use SSL:
+
+```python
+from graphrag_toolkit.storage import GraphStoreFactory
+
+falkordb_connection_info = 'falkordb://<your-falkordb-endpoint>'
+
+graph_store = GraphStoreFactory.for_graph_store(
+    falkordb_connection_info,
+    username='<username>',
+    password='<password>',
+    ssl=True
+)
 ```
 
 To create a local FalkorDB graph store, supply a connection string that has only `falkordb://`;
@@ -86,7 +103,7 @@ You can use the `VectorStoreFactory.for_vector_store()` static factory method to
 
 To create an Amazon OpenSearch Serverless vector store, supply a connection string that begins `aoss://`, followed the https endpoint of the OpenSearch Serverless collection:
 
-```
+```python
 from graphrag_toolkit.storage import VectorStoreFactory
 
 opensearch_connection_info = 'aoss://https://123456789012.us-east-1.aoss.amazonaws.com'
@@ -96,7 +113,7 @@ vector_store = VectorStoreFactory.for_vector_store(opensearch_connection_info)
 
 To create a Neptune Analytics vector store, supply a connection string that begins `neptune-graph://`, followed by the graph's identifier:
 
-```
+```python
 from graphrag_toolkit.storage import VectorStoreFactory
 
 neptune_connection_info = 'neptune-graph://g-jbzzaqb209'
