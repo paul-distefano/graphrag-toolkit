@@ -24,8 +24,8 @@ class StatementNodeBuilder(NodeBuilder):
     
     def build_nodes(self, nodes:List[BaseNode]):
 
-        statement_nodes = []
-        fact_nodes = []
+        statement_nodes = {}
+        fact_nodes = {}
 
         for node in nodes:
 
@@ -55,41 +55,45 @@ class StatementNodeBuilder(NodeBuilder):
                 prev_statement = None
                 
                 for statement in topic.statements:
-                    
-                    statement.statementId = node_id_from(topic_id, statement.value)
-                    statement.topicId = topic_id    
-                    statement.chunkId = chunk_id
-                    
-                    statement_metadata = {
-                        'source': source_metadata,
-                        'statement': statement.model_dump(),
-                        INDEX_KEY: {
-                            'index': 'statement',
-                            'key': self._clean_id(statement.statementId)
-                        }
-                    }
 
-                    statement_details = '\n'.join(statement.details)
+                    statement_id = node_id_from(topic_id, statement.value)
+     
+                    if statement_id not in statement_nodes:
 
-                    statement_node = TextNode(
-                        id_ = statement.statementId,
-                        text = f'{statement.value}\n\n{statement_details}' if statement_details else statement.value,
-                        metadata = statement_metadata,
-                        excluded_embed_metadata_keys = [INDEX_KEY, 'statement'],
-                        excluded_llm_metadata_keys = [INDEX_KEY, 'statement']
-                    )
-
-                    if prev_statement:
-                        statement_node.relationships[NodeRelationship.PREVIOUS] = RelatedNodeInfo(
-                            node_id=prev_statement.statementId,
-                            metadata={
-                                'statement': prev_statement.model_dump()
+                        statement.statementId = statement_id
+                        statement.topicId = topic_id    
+                        statement.chunkId = chunk_id
+                        
+                        statement_metadata = {
+                            'source': source_metadata,
+                            'statement': statement.model_dump(),
+                            INDEX_KEY: {
+                                'index': 'statement',
+                                'key': self._clean_id(statement_id)
                             }
-                        ) 
+                        }
 
-                    prev_statement = statement
+                        statement_details = '\n'.join(statement.details)
 
-                    statement_nodes.append(statement_node)
+                        statement_node = TextNode(
+                            id_ = statement_id,
+                            text = f'{statement.value}\n\n{statement_details}' if statement_details else statement.value,
+                            metadata = statement_metadata,
+                            excluded_embed_metadata_keys = [INDEX_KEY, 'statement'],
+                            excluded_llm_metadata_keys = [INDEX_KEY, 'statement']
+                        )
+
+                        if prev_statement:
+                            statement_node.relationships[NodeRelationship.PREVIOUS] = RelatedNodeInfo(
+                                node_id=prev_statement.statementId,
+                                metadata={
+                                    'statement': prev_statement.model_dump()
+                                }
+                            ) 
+
+                        prev_statement = statement
+
+                        statement_nodes[statement_id] = statement_node
             
                     for fact in statement.facts:
 
@@ -103,33 +107,37 @@ class StatementNodeBuilder(NodeBuilder):
                         
                         fact_id = node_id_from(fact_value)
 
-                        fact.factId = fact_id
-                        fact.statementId = statement.statementId
+                        lookup_id = f'{statement_id}-{fact_id}'
 
-                        fact.subject.entityId = node_id_from(fact.subject.value, fact.subject.classification)
-                        if fact.object:
-                            fact.object.entityId = node_id_from(fact.object.value, fact.object.classification)
-                        
-                        fact_metadata = {
-                            'fact': fact.model_dump(),
-                            INDEX_KEY: {
-                                'index': 'fact',
-                                'key': self._clean_id(fact_id)
+                        if lookup_id not in fact_nodes:
+
+                            fact.factId = fact_id
+                            fact.statementId = statement_id
+
+                            fact.subject.entityId = node_id_from(fact.subject.value, fact.subject.classification)
+                            if fact.object:
+                                fact.object.entityId = node_id_from(fact.object.value, fact.object.classification)
+                            
+                            fact_metadata = {
+                                'fact': fact.model_dump(),
+                                INDEX_KEY: {
+                                    'index': 'fact',
+                                    'key': self._clean_id(fact_id)
+                                }
                             }
-                        }
 
-                        fact_node = TextNode( # don't specify id here - each fact node should be indexable because facts can be associated with multiple claims
-                            text = fact_value,
-                            metadata = fact_metadata,
-                            excluded_embed_metadata_keys = [INDEX_KEY, 'fact'],
-                            excluded_llm_metadata_keys = [INDEX_KEY, 'fact']
-                        )
+                            fact_node = TextNode( # don't specify id here - each fact node should be indexable because facts can be associated with multiple statements
+                                text = fact_value,
+                                metadata = fact_metadata,
+                                excluded_embed_metadata_keys = [INDEX_KEY, 'fact'],
+                                excluded_llm_metadata_keys = [INDEX_KEY, 'fact']
+                            )
 
-                        fact_nodes.append(fact_node)
+                            fact_nodes[lookup_id] = fact_node
 
         results = []
 
-        results.extend(statement_nodes)
-        results.extend(fact_nodes)
+        results.extend(statement_nodes.values())
+        results.extend(fact_nodes.values())
         
         return results

@@ -25,14 +25,19 @@ class TopicNodeBuilder(NodeBuilder):
     def _add_chunk_id(self, node:TextNode, chunk_id:str):
         
         topic = Topic.model_validate(node.metadata['topic'])
-        topic.chunkIds.append(chunk_id)
+
+        existing_chunk_ids = dict.fromkeys(topic.chunkIds)
+        existing_chunk_ids[chunk_id] = None
+
+        topic.chunkIds = list(existing_chunk_ids.keys())
+
         node.metadata['topic'] = topic.model_dump(exclude_none=True)
         
         return node
     
     def _add_statements(self, node:TextNode, statements:List[Statement]):
         
-        existing_statements = { s : None for s in node.metadata['statements'] }
+        existing_statements = dict.fromkeys(node.metadata['statements'])
                 
         for statement in statements:
             existing_statements[statement.value] = None
