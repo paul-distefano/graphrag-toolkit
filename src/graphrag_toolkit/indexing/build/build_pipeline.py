@@ -16,6 +16,7 @@ from graphrag_toolkit.indexing.model import SourceType, SourceDocument, source_d
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.build.checkpoint import Checkpoint, CheckpointWriter
 from graphrag_toolkit.indexing.build.metadata_to_nodes import MetadataToNodes
+from graphrag_toolkit.indexing.build.filter import Filter
 from graphrag_toolkit.storage.constants import INDEX_KEY
 
 from llama_index.core.async_utils import asyncio_run
@@ -42,6 +43,7 @@ class BuildPipeline():
                builders:Optional[List[NodeBuilder]]=[], 
                show_progress=False, 
                checkpoint:Optional[Checkpoint]=None,
+               filter:Optional[Filter]=None,
                **kwargs:Any
             ):
         return Pipe(
@@ -54,6 +56,7 @@ class BuildPipeline():
                 builders=builders,
                 show_progress=show_progress,
                 checkpoint=checkpoint,
+                filter=filter,
                 **kwargs
             ).build
         )
@@ -67,6 +70,7 @@ class BuildPipeline():
                  builders:Optional[List[NodeBuilder]]=[], 
                  show_progress=False, 
                  checkpoint:Optional[Checkpoint]=None,
+                 filter:Optional[Filter]=None,
                  **kwargs:Any
             ):
         
@@ -75,7 +79,7 @@ class BuildPipeline():
         batch_size = batch_size or GraphRAGConfig.build_batch_size
         batch_writes_enabled = batch_writes_enabled or GraphRAGConfig.batch_writes_enabled
         batch_write_size = batch_write_size or GraphRAGConfig.build_batch_write_size
-
+        
         for c in components:
             if isinstance(c, NodeHandler):
                 c.show_progress = show_progress
@@ -100,7 +104,7 @@ class BuildPipeline():
         self.batch_size = batch_size
         self.batch_writes_enabled = batch_writes_enabled
         self.batch_write_size = batch_write_size
-        self.metadata_to_nodes = MetadataToNodes(builders=builders)
+        self.metadata_to_nodes = MetadataToNodes(builders=builders, filter=filter)
         self.node_filter = NodeFilter() if not checkpoint else checkpoint.add_filter(NodeFilter())
         self.pipeline_kwargs = kwargs
     

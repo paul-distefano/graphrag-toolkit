@@ -5,6 +5,7 @@ import abc
 from typing import Dict, List
 from llama_index.core.schema import BaseNode, BaseComponent
 
+from graphrag_toolkit.indexing.build.filter import Filter
 from graphrag_toolkit.indexing.constants import DEFAULT_CLASSIFICATION
 
 class NodeBuilder(BaseComponent):
@@ -20,7 +21,7 @@ class NodeBuilder(BaseComponent):
         pass
 
     @abc.abstractmethod
-    def build_nodes(self, nodes:List[BaseNode]) -> List[BaseNode]:
+    def build_nodes(self, nodes:List[BaseNode], filter:Filter) -> List[BaseNode]:
         pass
     
     def _clean_id(self, s):

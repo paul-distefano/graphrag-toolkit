@@ -30,21 +30,39 @@ class GraphSummaryBuilder(GraphBuilder):
 
             if fact.subject and fact.object:
 
-                statements = [
-                    '// insert graph summary',
-                    'UNWIND $params AS params',
-                    f'MERGE (sc:`__SYS_Class__`{{{graph_client.node_id("sysClassId")}: params.sc_id}})',
-                    'ON CREATE SET sc.value = params.sc, sc.count = 1 ON MATCH SET sc.count = sc.count + 1',
-                    f'MERGE (oc:`__SYS_Class__`{{{graph_client.node_id("sysClassId")}: params.oc_id}})',
-                    'ON CREATE SET oc.value = params.oc, oc.count = 1 ON MATCH SET oc.count = oc.count + 1',
-                    'MERGE (sc)-[r:`__SYS_RELATION__`{value: params.p}]->(oc)',
-                    'ON CREATE SET r.count = 1 ON MATCH SET r.count = r.count + 1'
-                    
-                ]
+                sc_id = f'sys_class_{fact.subject.classification or DEFAULT_CLASSIFICATION}'
+                oc_id = f'sys_class_{fact.object.classification or DEFAULT_CLASSIFICATION}'
+
+                statements = []
+
+                if sc_id == oc_id:
+
+                    statements.extend( [
+                        '// insert graph summary',
+                        'UNWIND $params AS params',
+                        f'MERGE (sc:`__SYS_Class__`{{{graph_client.node_id("sysClassId")}: params.sc_id}})',
+                        'ON CREATE SET sc.value = params.sc, sc.count = 2 ON MATCH SET sc.count = sc.count + 2',                       
+                        'MERGE (sc)-[r:`__SYS_RELATION__`{value: params.p}]->(sc)',
+                        'ON CREATE SET r.count = 2 ON MATCH SET r.count = r.count + 2'                      
+                    ])
+
+                else:
+
+                    statements.extend( [
+                        '// insert graph summary',
+                        'UNWIND $params AS params',
+                        f'MERGE (sc:`__SYS_Class__`{{{graph_client.node_id("sysClassId")}: params.sc_id}})',
+                        'ON CREATE SET sc.value = params.sc, sc.count = 1 ON MATCH SET sc.count = sc.count + 1',
+                        f'MERGE (oc:`__SYS_Class__`{{{graph_client.node_id("sysClassId")}: params.oc_id}})',
+                        'ON CREATE SET oc.value = params.oc, oc.count = 1 ON MATCH SET oc.count = oc.count + 1',
+                        'MERGE (sc)-[r:`__SYS_RELATION__`{value: params.p}]->(oc)',
+                        'ON CREATE SET r.count = 1 ON MATCH SET r.count = r.count + 1'
+                        
+                    ])
 
                 properties = {
-                    'sc_id': f'sys_class_{fact.subject.classification or DEFAULT_CLASSIFICATION}',
-                    'oc_id': f'sys_class_{fact.object.classification or DEFAULT_CLASSIFICATION}',
+                    'sc_id': sc_id,
+                    'oc_id': oc_id,
                     'sc': label_from(fact.subject.classification or DEFAULT_CLASSIFICATION),
                     'oc': label_from(fact.object.classification or DEFAULT_CLASSIFICATION),
                     'p': relationship_name_from(fact.predicate.value),

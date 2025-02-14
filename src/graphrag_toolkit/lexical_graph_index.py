@@ -22,6 +22,7 @@ from graphrag_toolkit.indexing.build import BuildPipeline
 from graphrag_toolkit.indexing.build import VectorIndexing
 from graphrag_toolkit.indexing.build import GraphConstruction
 from graphrag_toolkit.indexing.build import Checkpoint
+from graphrag_toolkit.indexing.build import Filter
 from graphrag_toolkit.indexing.build.null_builder import NullBuilder
 
 from llama_index.core.node_parser import SentenceSplitter
@@ -220,6 +221,7 @@ class LexicalGraphIndex():
             self,
             nodes:List[BaseNode]=[],
             handler:Optional[NodeHandler]=None,
+            filter:Optional[Filter]=None,
             checkpoint:Optional[Checkpoint]=None,
             show_progress:Optional[bool]=False,
             **kwargs:Any) -> None:
@@ -228,7 +230,8 @@ class LexicalGraphIndex():
 
         Args:
             nodes (List[BaseNode], optional): Set of previously extracted nodes.
-            handle (Optional[NodeHandler], optional): Handles nodes emitted at the end of the build process.
+            handler (Optional[NodeHandler], optional): Handles nodes emitted at the end of the build process.
+            filter (Optional[Filter], optional): Filters out topics and statements
             checkpoint (Optional[Checkpoint], optional): Nodes that are successfully processed by all stages of the build process
                 are checkpointed to the extraction directory, so that they are not reprocessed on subsequent invocations.
             show_progress (bool, optional): Shows execution progress bar(s). Defaults to False.
@@ -248,6 +251,7 @@ class LexicalGraphIndex():
             ],
             show_progress=show_progress,
             checkpoint=checkpoint,
+            filter=filter,
             **kwargs
         )
 

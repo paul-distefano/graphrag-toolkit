@@ -30,8 +30,14 @@ def _topics_and_statements(node:BaseNode) -> str:
         lines.append(statement)
     return '\n'.join(lines)
 
+def _topics(node:BaseNode) -> str:
+    lines = []
+    search_result = SearchResult.model_validate_json(node.text)
+    return search_result.topic
+
 ALL_TEXT = _all_text
 TOPICS_AND_STATEMENTS = _topics_and_statements
+TOPICS = _topics
 
 class StatementDiversityPostProcessor(BaseNodePostprocessor):
     """Removes similar statements using TF-IDF similarity."""

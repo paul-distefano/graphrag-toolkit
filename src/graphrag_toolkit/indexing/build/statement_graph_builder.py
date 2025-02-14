@@ -54,21 +54,24 @@ class StatementGraphBuilder(GraphBuilder):
 
                 if statement.chunkId:
                     statements.extend([
-                        f'MERGE (chunk:`__Chunk__`{{{graph_client.node_id("chunkId")}: params.chunk_id}})',
+                        'WITH statement, params',
+                        f'MATCH (chunk:`__Chunk__`{{{graph_client.node_id("chunkId")}: params.chunk_id}})',
                         'MERGE (statement)-[:`__MENTIONED_IN__`]->(chunk)'
                     ])
                     properties['chunk_id'] = statement.chunkId
 
                 if statement.topicId:
                     statements.extend([
-                        f'MERGE (topic:`__Topic__`{{{graph_client.node_id("topicId")}: params.topic_id}})',
+                        'WITH statement, params',
+                        f'MATCH (topic:`__Topic__`{{{graph_client.node_id("topicId")}: params.topic_id}})',
                         'MERGE (statement)-[:`__BELONGS_TO__`]->(topic)'
                     ])
                     properties['topic_id'] = statement.topicId
 
                 if prev_statement:
                     statements.extend([
-                        f'MERGE (prev_statement:`__Statement__`{{{graph_client.node_id("statementId")}: params.prev_statement_id}})',
+                        'WITH statement, params',
+                        f'MATCH (prev_statement:`__Statement__`{{{graph_client.node_id("statementId")}: params.prev_statement_id}})',
                         'MERGE (statement)-[:`__PREVIOUS__`]->(prev_statement)'
                     ])
                     properties['prev_statement_id'] = prev_statement.statementId

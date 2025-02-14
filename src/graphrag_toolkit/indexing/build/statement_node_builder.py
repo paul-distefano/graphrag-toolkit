@@ -6,6 +6,7 @@ from typing import List
 from llama_index.core.schema import TextNode, BaseNode
 from llama_index.core.schema import NodeRelationship, RelatedNodeInfo
 
+from graphrag_toolkit.indexing.build.filter import Filter
 from graphrag_toolkit.indexing.utils.graph_utils import node_id_from
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.model import TopicCollection
@@ -22,7 +23,7 @@ class StatementNodeBuilder(NodeBuilder):
     def metadata_keys(cls) -> List[str]:
         return [TOPICS_KEY]
     
-    def build_nodes(self, nodes:List[BaseNode]):
+    def build_nodes(self, nodes:List[BaseNode], filter:Filter):
 
         statement_nodes = {}
         fact_nodes = {}
@@ -55,6 +56,9 @@ class StatementNodeBuilder(NodeBuilder):
                 prev_statement = None
                 
                 for statement in topic.statements:
+
+                    if filter.ignore_statement(statement.value):
+                        continue
 
                     statement_id = node_id_from(topic_id, statement.value)
      

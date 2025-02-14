@@ -3,6 +3,7 @@
 
 import logging
 from typing import List, Any
+from graphrag_toolkit.indexing.build.filter import Filter
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.build.source_node_builder import SourceNodeBuilder
 from graphrag_toolkit.indexing.build.chunk_node_builder import ChunkNodeBuilder
@@ -10,26 +11,17 @@ from graphrag_toolkit.indexing.build.topic_node_builder import TopicNodeBuilder
 from graphrag_toolkit.indexing.build.statement_node_builder import StatementNodeBuilder
 
 from llama_index.core.schema import BaseNode
-from llama_index.core.bridge.pydantic import Field
-from llama_index.core.schema import TransformComponent
 
 logger = logging.getLogger(__name__)
 
-class MetadataToNodes(TransformComponent):
-    
-    builders: List[NodeBuilder] = Field(
-        description='Node builders'
-    )
-    
-    def __init__(self, builders:List[NodeBuilder]=[]):
+class MetadataToNodes():
 
-        builders = builders or self.default_builders()
+    def __init__(self, builders:List[NodeBuilder]=[], filter:Filter=None):
 
-        logger.debug(f'Node builders: {[type(b).__name__ for b in builders]}')
+        self.builders = builders or self.default_builders()
+        self.filter = filter or Filter()
 
-        super().__init__(
-            builders=builders
-        )
+        logger.debug(f'Node builders: {[type(b).__name__ for b in self.builders]}')
     
     def default_builders(self):
         return [
@@ -50,7 +42,7 @@ class MetadataToNodes(TransformComponent):
         for builder in self.builders:
             try:
                 filtered_input_nodes = [node for node in input_nodes if any(key in builder.metadata_keys() for key in node.metadata)]
-                results.extend(builder.build_nodes(filtered_input_nodes))
+                results.extend(builder.build_nodes(filtered_input_nodes, self.filter))
             except Exception as e:
                     logger.exception('An error occurred while building nodes from metadata')
                     raise e

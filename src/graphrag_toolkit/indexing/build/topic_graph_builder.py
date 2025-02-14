@@ -41,7 +41,7 @@ class TopicGraphBuilder(GraphBuilder):
                 'ON CREATE SET topic.value=params.title ON MATCH SET topic.value=params.title',
                 'WITH topic, params',
                 'UNWIND params.chunk_ids as chunkIds',
-                f'MERGE (chunk:`__Chunk__`{{{graph_client.node_id("chunkId")}: chunkIds.chunk_id}})',
+                f'MATCH (chunk:`__Chunk__`{{{graph_client.node_id("chunkId")}: chunkIds.chunk_id}})',
                 'MERGE (topic)-[:`__MENTIONED_IN__`]->(chunk)'
             ])
 
