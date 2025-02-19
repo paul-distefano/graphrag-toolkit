@@ -44,7 +44,8 @@ class ChunkGraphBuilder(GraphBuilder):
                 source_id = source_info.node_id
 
                 statements.extend([
-                    f'MERGE (source:`__Source__`{{{graph_client.node_id("sourceId")}: params.source_id}})',
+                    'WITH params, chunk',
+                    f'MATCH (source:`__Source__`{{{graph_client.node_id("sourceId")}: params.source_id}})',
                     'MERGE (chunk)-[:`__EXTRACTED_FROM__`]->(source)'
                 ])
 
