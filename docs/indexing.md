@@ -291,22 +291,20 @@ The graphrag-toolkit does not clean up checkpoints. If you use checkpoints, peri
 If you want more control over the extract and build stages, then instead of using a `LexicalGraphIndex`, you can use the extract and build pipelines directly: 
 
 ```python
-import os
-
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
 from graphrag_toolkit.indexing import sink
-from graphrag_toolkit.indexing import PROPOSITIONS_KEY
+from graphrag_toolkit.indexing.constants import PROPOSITIONS_KEY, DEFAULT_ENTITY_CLASSIFICATIONS
+from graphrag_toolkit.indexing.extract import ExtractionPipeline
 from graphrag_toolkit.indexing.extract import LLMPropositionExtractor
 from graphrag_toolkit.indexing.extract import TopicExtractor
 from graphrag_toolkit.indexing.extract import GraphScopedValueStore
 from graphrag_toolkit.indexing.extract import ScopedValueProvider, DEFAULT_SCOPE
-from graphrag_toolkit.indexing.extract import ExtractionPipeline
-from graphrag_toolkit.indexing.extract.constants import DEFAULT_ENTITY_CLASSIFICATIONS
 from graphrag_toolkit.indexing.build import Checkpoint
 from graphrag_toolkit.indexing.build import BuildPipeline
 from graphrag_toolkit.indexing.build import VectorIndexing
 from graphrag_toolkit.indexing.build import GraphConstruction
+
 
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.readers.web import SimpleWebPageReader
@@ -367,7 +365,7 @@ build_pipeline = BuildPipeline.create(
         vector_indexing
     ],
     num_workers=2,
-    batch_size=25,
+    batch_size=10,
     batch_writes_enabled=True,
     checkpoint=checkpoint,
     show_progress=True   
@@ -386,6 +384,6 @@ docs = SimpleWebPageReader(
     metadata_fn=lambda url:{'url': url}
 ).load_data(doc_urls)
 
-# Run the build and exraction stages
-docs | extraction_pipeline | build_pipeline | sink  
+# Run the build and extraction stages
+docs | extraction_pipeline | build_pipeline | sink 
 ```
