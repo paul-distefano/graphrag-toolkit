@@ -50,7 +50,7 @@ class GraphBatchClient():
     def _dedup(self, parameters:List):
         params_map = {}
         for p in parameters:
-            params_map[str(p)] = p
+            params_map[str(p).lower()] = p
         return list(params_map.values())
     
     def __enter__(self):

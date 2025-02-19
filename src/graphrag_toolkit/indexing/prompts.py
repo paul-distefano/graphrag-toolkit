@@ -80,7 +80,7 @@ Try to capture as much information from the text as possible without sacrificing
 ## Topic Extraction:
    1. Read the entire set of propositions and then extract a list of specific topics. Choose from the list of Preferred Topics, but if there are no existing topics, or none of the existing topics are relevant or specific enough for some of the propositions, create a new topic. Topic names should provide a clear, highly descriptive summary of the content.  
    2. Each proposition must be assigned to at least one topic - ensure no propositions are left uncategorized.
-   3. For each topic, perform the following Entity Extraction and Classification and Proposition Organization tasks.
+   3. For each topic, perform the following Entity Extraction and Classification and Claims Extraction tasks.
 
 ## Entity Extraction and Classification:
    1. Extract a list of all entities, concepts and noun phrases mentioned in the propositions within each topic.
@@ -98,13 +98,12 @@ Try to capture as much information from the text as possible without sacrificing
    6. Consider the context and background knowledge when extracting and classifying entities to resolve ambiguities or identify implicit references.
    7. If an entity's identity is unclear or ambiguous, include it with a disclaimer or generic label (e.g., 'unknown_person').
       
-## Proposition Organization:
-   1. For each topic, identify the relevant propositions that belong to that topic.
-   2. Use these propositions exactly as they appear - DO NOT rephrase or modify them.
-   3. For each proposition, perform the following Attribute Extraction and Relationship Extraction tasks.
+## Claims Extraction:
+   1. For each topic extract a list of individual claims belonging to that topic. 
+   2. For each claim, perform the following Attribute Extraction and Relationship Extraction tasks.
 
 ## Attribute Extraction:
-   1. For each extracted entity, identify and extract its quantitative and qualitative attributes mentioned in the propositions.
+   1. For each extracted entity, identify and extract its quantitative and qualitative attributes mentioned in the claims.
       - Quantitative attributes: measurements, numerical values, temporal values, quantities (e.g., age, height, weight, size, date, time).
       - Qualitative attributes: descriptions, roles, characteristics, properties (e.g., color, occupation, nationality, season).
    2. Represent entity-attribute relationships in the format: entity|RELATIONSHIP|attribute
@@ -118,7 +117,7 @@ Try to capture as much information from the text as possible without sacrificing
    Example: John Doe|OCCUPATION|software engineer
 
 ## Relationship Extraction:
-   1. Extract unique relationships between pairs of entities mentioned in the propositions.
+   1. Extract unique relationships between pairs of extracted entities mentioned in the claims.
    2. Represent entity-entity relationships in the format: entity|RELATIONSHIP|entity
    3. Ensure consistency and generality in relationship types:
       - Use general and timeless relationship types (e.g., 'PROFESSOR' instead of 'BECAME_PROFESSOR').
@@ -139,7 +138,7 @@ topic: topic
     entity|classification
     entity|classification
   
-  proposition: [exact proposition text]      
+  claim: claim     
     entity-attribute relationships:
     entity|RELATIONSHIP|attribute
     entity|RELATIONSHIP|attribute
@@ -148,7 +147,7 @@ topic: topic
     entity|RELATIONSHIP|entity
     entity|RELATIONSHIP|entity
     
-  proposition: [exact proposition text]    
+  claim: claim    
     entity-attribute relationships:
     entity|RELATIONSHIP|attribute
     entity|RELATIONSHIP|attribute
@@ -166,8 +165,6 @@ topic: topic
    - Consistent: Use consistent entity labels, types, relationship types, and adhere to the specified format
 
 ## Strict Compliance:
-   - Use propositions exactly as provided - do not rephrase or modify them
-   - Assign every proposition to at least one topic
    - Follow the specified format exactly
    - Do not provide any other explanatory text
    - Extract only information explicitly stated in the propositions

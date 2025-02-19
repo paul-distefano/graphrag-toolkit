@@ -23,13 +23,13 @@ class EntityGraphBuilder(GraphBuilder):
     def build(self, node:BaseNode, graph_client: GraphStore, **kwargs:Any):
             
         fact_metadata = node.metadata.get('fact', {})
-        include_domain_labels = kwargs.pop('include_domain_labels', True)
+        include_domain_labels = kwargs.pop('include_domain_labels', False)
 
         if fact_metadata:
 
             fact = Fact.model_validate(fact_metadata)
         
-            logger.debug(f'Inserting fact [fact_id: {fact.factId}]')
+            logger.debug(f'Inserting entities for fact [fact_id: {fact.factId}]')
 
             statements = [
                 '// insert entities',
@@ -42,8 +42,7 @@ class EntityGraphBuilder(GraphBuilder):
                 statements.append(f'MERGE (subject:`__Entity__`{{{graph_client.node_id("entityId")}: params.s_id}})')
 
             statements.extend([
-                'ON CREATE SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc',
-                'ON MATCH SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc'
+                'ON CREATE SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc'
             ])
 
             properties = {
@@ -53,7 +52,7 @@ class EntityGraphBuilder(GraphBuilder):
                 'sc': fact.subject.classification or DEFAULT_CLASSIFICATION
             }
 
-            if fact.object:
+            if fact.object and fact.object.entityId != fact.subject.entityId:
 
                 if include_domain_labels:
                     statements.append(f'MERGE (object:`__Entity__`:{label_from(fact.object.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.o_id}})')
@@ -61,22 +60,14 @@ class EntityGraphBuilder(GraphBuilder):
                     statements.append(f'MERGE (object:`__Entity__`{{{graph_client.node_id("entityId")}: params.o_id}})')
 
                 statements.extend([
-                    'ON CREATE SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc',
-                    'ON MATCH SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc'    
-                ])
-
-               
-                statements.extend([
-                    'MERGE (subject)-[r:`__RELATION__`{value: params.p}]->(object)',
-                    'ON CREATE SET r.count = 1 ON MATCH SET r.count = r.count + 1'
+                    'ON CREATE SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc'  
                 ])
 
                 properties.update({                
                     'o_id': fact.object.entityId,
                     'o': fact.object.value,
                     'o_search_str': search_string_from(fact.object.value),
-                    'oc': fact.object.classification or DEFAULT_CLASSIFICATION,
-                    'p': fact.predicate.value
+                    'oc': fact.object.classification or DEFAULT_CLASSIFICATION
                 })
         
             query = '\n'.join(statements)

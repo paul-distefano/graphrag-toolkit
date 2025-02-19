@@ -40,7 +40,7 @@ class SourceGraphBuilder(GraphBuilder):
         
             if clean_metadata:
                 all_properties = ', '.join(f'source.{key} = params.{key}' for key,_ in clean_metadata.items())
-                statements.append(f'ON CREATE SET {all_properties} ON MATCH SET {all_properties}')
+                statements.append(f'ON CREATE SET {all_properties}')
             
             query = '\n'.join(statements)
             

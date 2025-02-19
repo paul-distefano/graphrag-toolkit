@@ -17,6 +17,7 @@ from graphrag_toolkit.indexing.build.topic_graph_builder import TopicGraphBuilde
 from graphrag_toolkit.indexing.build.statement_graph_builder import StatementGraphBuilder
 from graphrag_toolkit.indexing.build.fact_graph_builder import FactGraphBuilder
 from graphrag_toolkit.indexing.build.entity_graph_builder import EntityGraphBuilder
+from graphrag_toolkit.indexing.build.entity_relation_graph_builder import EntityRelationGraphBuilder
 from graphrag_toolkit.indexing.build.graph_summary_builder import GraphSummaryBuilder
 
 from llama_index.core.bridge.pydantic import Field
@@ -31,6 +32,7 @@ def default_builders() -> List[GraphBuilder]:
             TopicGraphBuilder(),
             StatementGraphBuilder(),
             EntityGraphBuilder(),
+            EntityRelationGraphBuilder(),
             FactGraphBuilder(),
             GraphSummaryBuilder()
         ]

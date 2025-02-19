@@ -25,21 +25,34 @@ from graphrag_toolkit.indexing.build import Checkpoint
 from graphrag_toolkit.indexing.build import Filter
 from graphrag_toolkit.indexing.build.null_builder import NullBuilder
 
-from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.node_parser import SentenceSplitter, NodeParser
 from llama_index.core.schema import BaseNode, NodeRelationship
 
 DEFAULT_INDEX_NAME = 'default-index'
 DEFAULT_EXTRACTION_DIR = 'output'
 
-@dataclass
-class ExtractionConfig:
-    enable_chunking:Optional[bool]=True
-    chunk_size:Optional[int]=256
-    chunk_overlap:Optional[int]=20
-    enable_proposition_extraction:Optional[bool]=True
-    preferred_entity_classifications:Optional[List[str]]=field(default_factory=lambda:DEFAULT_ENTITY_CLASSIFICATIONS)
-    infer_entity_classifications:Optional[Union[InferClassificationsConfig, bool]]=False
-    batch_config:Optional[BatchConfig]=None
+class ExtractionConfig():
+    def __init__(self, 
+                 enable_proposition_extraction:bool=True,
+                 preferred_entity_classifications:List[str]=DEFAULT_ENTITY_CLASSIFICATIONS,
+                 infer_entity_classifications:Union[InferClassificationsConfig, bool]=False):
+        
+        self.enable_proposition_extraction = enable_proposition_extraction
+        self.preferred_entity_classifications = preferred_entity_classifications
+        self.infer_entity_classifications = infer_entity_classifications
+
+class IndexingConfig():
+    def __init__(self,
+                 chunking:Optional[List[NodeParser]]=[],
+                 extraction:Optional[ExtractionConfig]=None,
+                 batch_config:Optional[BatchConfig]=None):
+        
+        if chunking is not None and len(chunking) == 0:
+            chunking.append(SentenceSplitter(chunk_size=256, chunk_overlap=20))
+        
+        self.chunking = chunking
+        self.extraction = extraction or ExtractionConfig()
+        self.batch_config = batch_config
 
 def get_topic_scope(node:BaseNode):
     source = node.relationships.get(NodeRelationship.SOURCE, None)
@@ -61,8 +74,8 @@ class LexicalGraphIndex():
             Unique name of the index. Defaults to DEFAULT_INDEX_NAME.
         extraction_dir (List[TransformComponent], optional):
             Directory to which intermediate artefacts (e.g. checkpoints) will be written. Defaults to DEFAULT_EXTRACTION_DIR.
-        extraction_config (Optional[ExtractionConfig], optional):
-            If None, defaults to using default ExtractionConfig values.
+        indexing_config (Optional[IndexingConfig], optional):
+            If None, defaults to using default IndexingConfig values.
 
     Examples:
         ```python
@@ -82,31 +95,32 @@ class LexicalGraphIndex():
             vector_store:Optional[VectorStoreType]=None,
             index_name:Optional[str]=None,
             extraction_dir:Optional[str]=None,
-            extraction_config:Optional[ExtractionConfig]=None,
+            indexing_config:Optional[IndexingConfig]=None,
         ):
 
         self.graph_store = GraphStoreFactory.for_graph_store(graph_store)
         self.vector_store = VectorStoreFactory.for_vector_store(vector_store)
         self.index_name = index_name or DEFAULT_INDEX_NAME
         self.extraction_dir = extraction_dir or DEFAULT_EXTRACTION_DIR
-        self.extraction_config = extraction_config or ExtractionConfig()
+        self.indexing_config = indexing_config or IndexingConfig()
 
-        (pre_processors, components) = self._configure_extraction_pipeline(self.extraction_config)
+        (pre_processors, components) = self._configure_extraction_pipeline(self.indexing_config)
 
         self.extraction_pre_processors = pre_processors
         self.extraction_components = components
-        self.allow_batch_inference = self.extraction_config.batch_config is not None
+        self.allow_batch_inference = self.indexing_config.batch_config is not None
 
 
-    def _configure_extraction_pipeline(self, config:ExtractionConfig):
+    def _configure_extraction_pipeline(self, config:IndexingConfig):
         
         pre_processors = []
         components = []
 
-        if config.enable_chunking:
-            components.append(SentenceSplitter(chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap))
+        if config.chunking:
+            for c in config.chunking:
+                components.append(c)
         
-        if config.enable_proposition_extraction:
+        if config.extraction.enable_proposition_extraction:
             if config.batch_config:
                 components.append(BatchLLMPropositionExtractor(batch_config=config.batch_config))
             else:
@@ -119,10 +133,10 @@ class LexicalGraphIndex():
         classification_scope = DEFAULT_SCOPE
         
         if isinstance(self.graph_store, DummyGraphStore):
-            entity_classification_provider = FixedScopedValueProvider(scoped_values={DEFAULT_SCOPE: config.preferred_entity_classifications})
+            entity_classification_provider = FixedScopedValueProvider(scoped_values={DEFAULT_SCOPE: config.extraction.preferred_entity_classifications})
             topic_provider = FixedScopedValueProvider(scoped_values={DEFAULT_SCOPE: []})
         else:
-            initial_scope_values = [] if config.infer_entity_classifications else config.preferred_entity_classifications
+            initial_scope_values = [] if config.extraction.infer_entity_classifications else config.extraction.preferred_entity_classifications
             entity_classification_provider = ScopedValueProvider(
                 label=classification_label,
                 scoped_value_store=GraphScopedValueStore(graph_store=self.graph_store),
@@ -134,14 +148,14 @@ class LexicalGraphIndex():
                 scope_func=get_topic_scope
             )
 
-        if config.infer_entity_classifications:
-            infer_config = config.infer_entity_classifications if isinstance(config.infer_entity_classifications, InferClassificationsConfig) else InferClassificationsConfig()
+        if config.extraction.infer_entity_classifications:
+            infer_config = config.extraction.infer_entity_classifications if isinstance(config.extraction.infer_entity_classifications, InferClassificationsConfig) else InferClassificationsConfig()
             pre_processors.append(InferClassifications(
                 classification_label=classification_label,
                 classification_scope=classification_scope,
                 classification_store=GraphScopedValueStore(graph_store=self.graph_store),
-                splitter=SentenceSplitter(chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap) if config.enable_chunking else None,
-                default_classifications=config.preferred_entity_classifications,
+                splitter=SentenceSplitter(chunk_size=256, chunk_overlap=20) if config.chunking else None,
+                default_classifications=config.extraction.preferred_entity_classifications,
                 num_samples=infer_config.num_samples,
                 num_iterations=infer_config.num_iterations,
                 merge_action=infer_config.on_existing_classifications
@@ -152,13 +166,13 @@ class LexicalGraphIndex():
         if config.batch_config:
             topic_extractor = BatchTopicExtractor(
                 batch_config=config.batch_config,
-                source_metadata_field=PROPOSITIONS_KEY if config.enable_proposition_extraction else None,
+                source_metadata_field=PROPOSITIONS_KEY if config.extraction.enable_proposition_extraction else None,
                 entity_classification_provider=entity_classification_provider,
                 topic_provider=topic_provider
             )
         else:
             topic_extractor = TopicExtractor(
-                source_metadata_field=PROPOSITIONS_KEY if config.enable_proposition_extraction else None,
+                source_metadata_field=PROPOSITIONS_KEY if config.extraction.enable_proposition_extraction else None,
                 entity_classification_provider=entity_classification_provider,
                 topic_provider=topic_provider
             )

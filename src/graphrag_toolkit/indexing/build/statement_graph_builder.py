@@ -43,7 +43,7 @@ class StatementGraphBuilder(GraphBuilder):
 
                 statements.extend([
                     f'MERGE (statement:`__Statement__`{{{graph_client.node_id("statementId")}: params.statement_id}})',
-                    'ON CREATE SET statement.value=params.value, statement.details=params.details ON MATCH SET statement.value=params.value, statement.details=params.details' 
+                    'ON CREATE SET statement.value=params.value, statement.details=params.details' 
                 ])
 
                 properties = {

@@ -38,7 +38,7 @@ class TopicGraphBuilder(GraphBuilder):
 
             statements.extend([
                 f'MERGE (topic:`__Topic__`{{{graph_client.node_id("topicId")}: params.topic_id}})',
-                'ON CREATE SET topic.value=params.title ON MATCH SET topic.value=params.title',
+                'ON CREATE SET topic.value=params.title',
                 'WITH topic, params',
                 'UNWIND params.chunk_ids as chunkIds',
                 f'MATCH (chunk:`__Chunk__`{{{graph_client.node_id("chunkId")}: chunkIds.chunk_id}})',

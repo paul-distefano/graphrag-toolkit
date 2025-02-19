@@ -16,7 +16,7 @@ def search_string_from(value:str):
     return value.lower()
 
 def label_from(value:str):
-    value = SEARCH_STRING_PATTERN.sub('', value)
+    value = SEARCH_STRING_PATTERN.sub(' ', value)
     return string.capwords(value).replace(' ', '')
 
 def relationship_name_from(value:str):
