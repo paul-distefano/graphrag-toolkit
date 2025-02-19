@@ -179,7 +179,7 @@ class LexicalGraphIndex():
 
         Args:
             nodes (List[BaseNode], optional): Set of nodes from which graph elements are to be extracted.
-            handle (Optional[NodeHandler], optional): Handles nodes emitted at the end of the series of transformations. 
+            handler (Optional[NodeHandler], optional): Handles nodes emitted at the end of the series of transformations. 
             checkpoint (Optional[Checkpoint], optional): Nodes that are successfully processed by all transformations are 
                 checkpointed to the extraction directory, so that they are not reprocessed on subsequent invocations.
             show_progress (bool, optional): Shows execution progress bar(s). Defaults to False.
@@ -262,6 +262,7 @@ class LexicalGraphIndex():
             self, 
             nodes:List[BaseNode]=[], 
             handler:Optional[NodeHandler]=None,
+            filter:Optional[Filter]=None,
             checkpoint:Optional[Checkpoint]=None,
             show_progress:Optional[bool]=False,
             **kwargs:Any
@@ -271,7 +272,8 @@ class LexicalGraphIndex():
 
         Args:
             nodes (List[BaseNode], optional): Set of nodes from which graph elements are to be extracted.
-            handle (Optional[NodeHandler], optional): Handles nodes emitted at the end of the build process.
+            handler (Optional[NodeHandler], optional): Handles nodes emitted at the end of the build process.
+            filter (Optional[Filter], optional): Filters out topics and statements
             checkpoint (Optional[Checkpoint], optional): Nodes that are successfully processed by all stages of the build process
                 are checkpointed to the extraction directory, so that they are not reprocessed on subsequent invocations.
             show_progress (bool, optional): Shows execution progress bar(s). Defaults to False.
@@ -298,6 +300,7 @@ class LexicalGraphIndex():
             ],
             show_progress=show_progress,
             checkpoint=checkpoint,
+            filter=filter,
             **kwargs
         )
 
