@@ -23,7 +23,7 @@ class FactGraphBuilder(GraphBuilder):
     def build(self, node:BaseNode, graph_client: GraphStore, **kwargs:Any):
             
         fact_metadata = node.metadata.get('fact', {})
-        include_domain_labels = kwargs.pop('include_domain_labels', True)
+        include_domain_labels = kwargs.pop('include_domain_labels', False)
 
         if fact_metadata:
 
@@ -38,17 +38,19 @@ class FactGraphBuilder(GraphBuilder):
 
             
             statements.extend([
-                f'MATCH (statement:`__Statement__`{{{graph_client.node_id("statementId")}: params.statement_id}})',
+                f'MERGE (statement:`__Statement__`{{{graph_client.node_id("statementId")}: params.statement_id}})',
                 f'MERGE (fact:`__Fact__`{{{graph_client.node_id("factId")}: params.fact_id}})',
-                'ON CREATE SET fact.relation = params.p, fact.value = params.fact ON MATCH SET fact.relation = params.p, fact.value = params.fact',
+                'ON CREATE SET fact.relation = params.p, fact.value = params.fact',
+                'ON MATCH SET fact.relation = params.p, fact.value = params.fact',
                 'MERGE (fact)-[:`__SUPPORTS__`]->(statement)',
             ])
 
-            statements.extend([
-                'WITH fact, params',
-                f'MATCH (subject:`__Entity__`{{{graph_client.node_id("entityId")}: params.s_id}})'
-                'MERGE (subject)-[:`__SUBJECT__`]->(fact)'
-            ])
+            if include_domain_labels:
+                statements.append(f'MERGE (subject:`__Entity__`:{label_from(fact.subject.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.s_id}})')
+            else:
+                statements.append(f'MERGE (subject:`__Entity__`{{{graph_client.node_id("entityId")}: params.s_id}})')
+
+            statements.append(f'MERGE (subject)-[:`__SUBJECT__`]->(fact)')
 
             properties = {
                 'statement_id': fact.statementId,
@@ -59,11 +61,12 @@ class FactGraphBuilder(GraphBuilder):
 
             if fact.object:
 
-                statements.extend([
-                    'WITH fact, params',
-                    f'MATCH (object:`__Entity__`{{{graph_client.node_id("entityId")}: params.o_id}})'
-                    'MERGE (object)-[:`__OBJECT__`]->(fact)'
-                ])
+                if include_domain_labels:
+                    statements.append(f'MERGE (object:`__Entity__`:{label_from(fact.object.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.o_id}})')
+                else:
+                    statements.append(f'MERGE (object:`__Entity__`{{{graph_client.node_id("entityId")}: params.o_id}})')
+
+                statements.append(f'MERGE (object)-[:`__OBJECT__`]->(fact)')
 
                 properties.update({                
                     'o_id': fact.object.entityId

@@ -51,6 +51,9 @@ class StatementNodeBuilder(NodeBuilder):
 
             for topic in topics.topics:
 
+                if filter.ignore_topic(topic.value):
+                    continue
+
                 topic_id = node_id_from(source_id, topic.value) # topic identity defined by source, not chunk, so that we can connect same topic to multiple chunks in scope of single source
 
                 prev_statement = None

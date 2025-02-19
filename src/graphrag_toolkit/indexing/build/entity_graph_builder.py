@@ -42,7 +42,8 @@ class EntityGraphBuilder(GraphBuilder):
                 statements.append(f'MERGE (subject:`__Entity__`{{{graph_client.node_id("entityId")}: params.s_id}})')
 
             statements.extend([
-                'ON CREATE SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc'
+                'ON CREATE SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc',
+                'ON MATCH SET subject.value = params.s, subject.search_str = params.s_search_str, subject.class = params.sc',
             ])
 
             properties = {
@@ -60,7 +61,8 @@ class EntityGraphBuilder(GraphBuilder):
                     statements.append(f'MERGE (object:`__Entity__`{{{graph_client.node_id("entityId")}: params.o_id}})')
 
                 statements.extend([
-                    'ON CREATE SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc'  
+                    'ON CREATE SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc',
+                    'ON MATCH SET object.value = params.o, object.search_str = params.o_search_str, object.class = params.oc', 
                 ])
 
                 properties.update({                

@@ -38,9 +38,14 @@ class EntityRelationGraphBuilder(GraphBuilder):
                     'UNWIND $params AS params'
                 ]
 
+                if include_domain_labels:
+                    statements.append(f'MERGE (subject:`__Entity__`:{label_from(fact.subject.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.s_id}})')
+                    statements.append(f'MERGE (object:`__Entity__`:{label_from(fact.object.classification or DEFAULT_CLASSIFICATION)}{{{graph_client.node_id("entityId")}: params.o_id}})')
+                else:
+                    statements.append(f'MERGE (subject:`__Entity__`{{{graph_client.node_id("entityId")}: params.s_id}})')
+                    statements.append(f'MERGE (object:`__Entity__`{{{graph_client.node_id("entityId")}: params.o_id}})')
+
                 statements.extend([
-                    f'MATCH (subject:`__Entity__`{{{graph_client.node_id("entityId")}: params.s_id}})',
-                    f'MATCH (object:`__Entity__`{{{graph_client.node_id("entityId")}: params.o_id}})',
                     'MERGE (subject)-[r:`__RELATION__`{value: params.p}]->(object)',
                     'ON CREATE SET r.count = 1 ON MATCH SET r.count = r.count + 1'
                 ])
