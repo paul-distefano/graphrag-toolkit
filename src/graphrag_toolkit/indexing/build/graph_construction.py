@@ -76,7 +76,7 @@ class GraphConstruction(NodeHandler):
 
         batch_writes_enabled = kwargs.pop('batch_writes_enabled')
         batch_write_size = kwargs.pop('batch_write_size')
-
+        
         logger.debug(f'Batch config: [batch_writes_enabled: {batch_writes_enabled}, batch_write_size: {batch_write_size}]')
         logger.debug(f'Graph construction kwargs: {kwargs}')
 

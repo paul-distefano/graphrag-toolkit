@@ -5,4 +5,4 @@ from .build_pipeline import BuildPipeline
 from .vector_indexing import VectorIndexing
 from .graph_construction import GraphConstruction
 from .checkpoint import Checkpoint
-from .filter import Filter
+from .build_filter import BuildFilter, DEFAULT_BUILD_FILTER

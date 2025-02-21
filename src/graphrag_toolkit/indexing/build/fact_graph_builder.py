@@ -23,7 +23,7 @@ class FactGraphBuilder(GraphBuilder):
     def build(self, node:BaseNode, graph_client: GraphStore, **kwargs:Any):
             
         fact_metadata = node.metadata.get('fact', {})
-        include_domain_labels = kwargs.pop('include_domain_labels', False)
+        include_domain_labels = kwargs['include_domain_labels']
 
         if fact_metadata:
 

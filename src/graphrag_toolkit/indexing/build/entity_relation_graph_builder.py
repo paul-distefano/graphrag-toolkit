@@ -23,7 +23,7 @@ class EntityRelationGraphBuilder(GraphBuilder):
     def build(self, node:BaseNode, graph_client: GraphStore, **kwargs:Any):
             
         fact_metadata = node.metadata.get('fact', {})
-        include_domain_labels = kwargs.pop('include_domain_labels', False)
+        include_domain_labels = kwargs['include_domain_labels']
 
         if fact_metadata:
 
@@ -52,7 +52,7 @@ class EntityRelationGraphBuilder(GraphBuilder):
 
                 if include_domain_labels:
                     statements.extend([
-                        f'MERGE (subject)-[rr:{relationship_name_from(fact.predicate.value)}]->(object)',
+                        f'MERGE (subject)-[rr:`{relationship_name_from(fact.predicate.value)}`]->(object)',
                         'ON CREATE SET rr.count = 1 ON MATCH SET rr.count = rr.count + 1'
                     ])
 

@@ -16,7 +16,7 @@ from graphrag_toolkit.indexing.model import SourceType, SourceDocument, source_d
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.build.checkpoint import Checkpoint, CheckpointWriter
 from graphrag_toolkit.indexing.build.metadata_to_nodes import MetadataToNodes
-from graphrag_toolkit.indexing.build.filter import Filter
+from graphrag_toolkit.indexing.build.build_filter import BuildFilter
 from graphrag_toolkit.storage.constants import INDEX_KEY
 
 from llama_index.core.async_utils import asyncio_run
@@ -43,7 +43,8 @@ class BuildPipeline():
                builders:Optional[List[NodeBuilder]]=[], 
                show_progress=False, 
                checkpoint:Optional[Checkpoint]=None,
-               filter:Optional[Filter]=None,
+               filter:Optional[BuildFilter]=None,
+               include_domain_labels:Optional[bool]=None,
                **kwargs:Any
             ):
         return Pipe(
@@ -57,6 +58,7 @@ class BuildPipeline():
                 show_progress=show_progress,
                 checkpoint=checkpoint,
                 filter=filter,
+                include_domain_labels=include_domain_labels,
                 **kwargs
             ).build
         )
@@ -70,7 +72,8 @@ class BuildPipeline():
                  builders:Optional[List[NodeBuilder]]=[], 
                  show_progress=False, 
                  checkpoint:Optional[Checkpoint]=None,
-                 filter:Optional[Filter]=None,
+                 filter:Optional[BuildFilter]=None,
+                 include_domain_labels:Optional[bool]=None,
                  **kwargs:Any
             ):
         
@@ -79,6 +82,7 @@ class BuildPipeline():
         batch_size = batch_size or GraphRAGConfig.build_batch_size
         batch_writes_enabled = batch_writes_enabled or GraphRAGConfig.batch_writes_enabled
         batch_write_size = batch_write_size or GraphRAGConfig.build_batch_write_size
+        include_domain_labels = include_domain_labels or GraphRAGConfig.include_domain_labels
         
         for c in components:
             if isinstance(c, NodeHandler):
@@ -104,6 +108,7 @@ class BuildPipeline():
         self.batch_size = batch_size
         self.batch_writes_enabled = batch_writes_enabled
         self.batch_write_size = batch_write_size
+        self.include_domain_labels = include_domain_labels
         self.metadata_to_nodes = MetadataToNodes(builders=builders, filter=filter)
         self.node_filter = NodeFilter() if not checkpoint else checkpoint.add_filter(NodeFilter())
         self.pipeline_kwargs = kwargs
@@ -155,6 +160,7 @@ class BuildPipeline():
                     batch_writes_enabled=self.batch_writes_enabled, 
                     batch_size=self.batch_size,
                     batch_write_size=self.batch_write_size,
+                    include_domain_labels=self.include_domain_labels,
                     **self.pipeline_kwargs
                 )) 
             for node in output_nodes:

@@ -170,6 +170,10 @@ class OpenSearchIndex(VectorIndex):
     embed_model:EmbeddingType
 
     _client: OpensearchVectorClient = PrivateAttr(default=None)
+
+    def __getstate__(self):
+        self._client = None
+        return super().__getstate__()
         
     @property
     def client(self) -> OpensearchVectorClient:

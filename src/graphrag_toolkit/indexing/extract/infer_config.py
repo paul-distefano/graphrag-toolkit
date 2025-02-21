@@ -14,4 +14,4 @@ class OnExistingClassifications(Enum):
 class InferClassificationsConfig:
     num_samples:Optional[int]=5
     num_iterations:Optional[int]=1
-    on_existing_classifications:Optional[OnExistingClassifications]=OnExistingClassifications.RETAIN_EXISTING
+    on_existing_classifications:Optional[OnExistingClassifications]=OnExistingClassifications.MERGE_EXISTING

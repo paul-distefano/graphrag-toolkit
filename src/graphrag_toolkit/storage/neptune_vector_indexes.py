@@ -51,6 +51,7 @@ class NeptuneIndex(VectorIndex):
     label: str
     path: str
     return_fields: str
+
     
     def add_embeddings(self, nodes):
                 

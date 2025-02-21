@@ -3,7 +3,7 @@
 
 import logging
 from typing import List, Any
-from graphrag_toolkit.indexing.build.filter import Filter
+from graphrag_toolkit.indexing.build.build_filter import BuildFilter
 from graphrag_toolkit.indexing.build.node_builder import NodeBuilder
 from graphrag_toolkit.indexing.build.source_node_builder import SourceNodeBuilder
 from graphrag_toolkit.indexing.build.chunk_node_builder import ChunkNodeBuilder
@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 
 class MetadataToNodes():
 
-    def __init__(self, builders:List[NodeBuilder]=[], filter:Filter=None):
+    def __init__(self, builders:List[NodeBuilder]=[], filter:BuildFilter=None):
 
         self.builders = builders or self.default_builders()
-        self.filter = filter or Filter()
+        self.filter = filter or BuildFilter()
 
         logger.debug(f'Node builders: {[type(b).__name__ for b in self.builders]}')
     

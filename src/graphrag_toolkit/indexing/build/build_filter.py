@@ -6,12 +6,12 @@ from typing import Callable
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_FILTER = lambda s: False
+DEFAULT_BUILD_FILTER = lambda s: False
 
-class Filter():
+class BuildFilter():
     def __init__(self, topic_filter_fn:Callable[[str], bool]=None, statement_filter_fn:Callable[[str], bool]=None):
-        self.topic_filter_fn = topic_filter_fn or DEFAULT_FILTER
-        self.statement_filter_fn = statement_filter_fn or DEFAULT_FILTER
+        self.topic_filter_fn = topic_filter_fn or DEFAULT_BUILD_FILTER
+        self.statement_filter_fn = statement_filter_fn or DEFAULT_BUILD_FILTER
 
     def ignore_topic(self, topic:str) -> bool:
         result = self.topic_filter_fn(topic)

@@ -27,6 +27,7 @@ DEFAULT_BUILD_NUM_WORKERS = 2
 DEFAULT_BUILD_BATCH_SIZE = 4
 DEFAULT_BUILD_BATCH_WRITE_SIZE = 25
 DEFAULT_BATCH_WRITES_ENABLED = True
+DEFAULT_INCLUDE_DOMAIN_LABELS = False
 DEFAULT_ENABLE_CACHE = False
 
 def _is_json_string(s):
@@ -57,6 +58,7 @@ class _GraphRAGConfig:
     _build_batch_size: Optional[int] = None
     _build_batch_write_size: Optional[int] = None
     _batch_writes_enabled: Optional[bool] = None
+    _include_domain_labels: Optional[bool] = None
     _enable_cache: Optional[bool] = None
 
     @property
@@ -135,6 +137,16 @@ class _GraphRAGConfig:
     @batch_writes_enabled.setter
     def batch_writes_enabled(self, batch_writes_enabled:bool) -> None:
         self._batch_writes_enabled = batch_writes_enabled
+
+    @property
+    def include_domain_labels(self) -> bool:
+        if self._include_domain_labels is None:
+            self.include_domain_labels = string_to_bool(os.environ.get('INCLUDE_DOMAIN_LABELS'), DEFAULT_INCLUDE_DOMAIN_LABELS)  
+        return self._include_domain_labels
+
+    @include_domain_labels.setter
+    def include_domain_labels(self, include_domain_labels:bool) -> None:
+        self._include_domain_labels = include_domain_labels
 
     @property
     def enable_cache(self) -> bool:

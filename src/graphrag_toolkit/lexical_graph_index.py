@@ -3,7 +3,6 @@
 
 from typing import List, Optional, Union, Any
 from pipe import Pipe
-from dataclasses import dataclass, field
 
 from graphrag_toolkit.storage import GraphStoreFactory, GraphStoreType
 from graphrag_toolkit.storage import VectorStoreFactory, VectorStoreType
@@ -17,12 +16,12 @@ from graphrag_toolkit.indexing.extract import GraphScopedValueStore
 from graphrag_toolkit.indexing.extract import LLMPropositionExtractor, BatchLLMPropositionExtractor
 from graphrag_toolkit.indexing.extract import TopicExtractor, BatchTopicExtractor
 from graphrag_toolkit.indexing.extract import ExtractionPipeline
-from graphrag_toolkit.indexing.extract import InferClassifications, OnExistingClassifications, InferClassificationsConfig
+from graphrag_toolkit.indexing.extract import InferClassifications, InferClassificationsConfig
 from graphrag_toolkit.indexing.build import BuildPipeline
 from graphrag_toolkit.indexing.build import VectorIndexing
 from graphrag_toolkit.indexing.build import GraphConstruction
 from graphrag_toolkit.indexing.build import Checkpoint
-from graphrag_toolkit.indexing.build import Filter
+from graphrag_toolkit.indexing.build import BuildFilter, DEFAULT_BUILD_FILTER
 from graphrag_toolkit.indexing.build.null_builder import NullBuilder
 
 from llama_index.core.node_parser import SentenceSplitter, NodeParser
@@ -41,18 +40,27 @@ class ExtractionConfig():
         self.preferred_entity_classifications = preferred_entity_classifications
         self.infer_entity_classifications = infer_entity_classifications
 
+class BuildConfig():
+    def __init__(self,
+                 filter:Optional[BuildFilter]=DEFAULT_BUILD_FILTER,
+                 include_domain_labels:Optional[bool]=None):
+        self.filter = filter
+        self.include_domain_labels = include_domain_labels
+        
 class IndexingConfig():
     def __init__(self,
                  chunking:Optional[List[NodeParser]]=[],
                  extraction:Optional[ExtractionConfig]=None,
+                 build:Optional[BuildConfig]=None,
                  batch_config:Optional[BatchConfig]=None):
         
         if chunking is not None and len(chunking) == 0:
             chunking.append(SentenceSplitter(chunk_size=256, chunk_overlap=20))
         
-        self.chunking = chunking
+        self.chunking = chunking # None = no chunking
         self.extraction = extraction or ExtractionConfig()
-        self.batch_config = batch_config
+        self.build = build or BuildConfig()
+        self.batch_config = batch_config # None = do not use batch inference
 
 def get_topic_scope(node:BaseNode):
     source = node.relationships.get(NodeRelationship.SOURCE, None)
@@ -235,7 +243,6 @@ class LexicalGraphIndex():
             self,
             nodes:List[BaseNode]=[],
             handler:Optional[NodeHandler]=None,
-            filter:Optional[Filter]=None,
             checkpoint:Optional[Checkpoint]=None,
             show_progress:Optional[bool]=False,
             **kwargs:Any) -> None:
@@ -245,7 +252,6 @@ class LexicalGraphIndex():
         Args:
             nodes (List[BaseNode], optional): Set of previously extracted nodes.
             handler (Optional[NodeHandler], optional): Handles nodes emitted at the end of the build process.
-            filter (Optional[Filter], optional): Filters out topics and statements
             checkpoint (Optional[Checkpoint], optional): Nodes that are successfully processed by all stages of the build process
                 are checkpointed to the extraction directory, so that they are not reprocessed on subsequent invocations.
             show_progress (bool, optional): Shows execution progress bar(s). Defaults to False.
@@ -265,7 +271,8 @@ class LexicalGraphIndex():
             ],
             show_progress=show_progress,
             checkpoint=checkpoint,
-            filter=filter,
+            filter=self.indexing_config.build.filter,
+            include_domain_labels=self.indexing_config.build.include_domain_labels,
             **kwargs
         )
 
@@ -276,7 +283,6 @@ class LexicalGraphIndex():
             self, 
             nodes:List[BaseNode]=[], 
             handler:Optional[NodeHandler]=None,
-            filter:Optional[Filter]=None,
             checkpoint:Optional[Checkpoint]=None,
             show_progress:Optional[bool]=False,
             **kwargs:Any
@@ -287,7 +293,6 @@ class LexicalGraphIndex():
         Args:
             nodes (List[BaseNode], optional): Set of nodes from which graph elements are to be extracted.
             handler (Optional[NodeHandler], optional): Handles nodes emitted at the end of the build process.
-            filter (Optional[Filter], optional): Filters out topics and statements
             checkpoint (Optional[Checkpoint], optional): Nodes that are successfully processed by all stages of the build process
                 are checkpointed to the extraction directory, so that they are not reprocessed on subsequent invocations.
             show_progress (bool, optional): Shows execution progress bar(s). Defaults to False.
@@ -314,7 +319,8 @@ class LexicalGraphIndex():
             ],
             show_progress=show_progress,
             checkpoint=checkpoint,
-            filter=filter,
+            filter=self.indexing_config.build.filter,
+            include_domain_labels=self.indexing_config.build.include_domain_labels,
             **kwargs
         )
 
