@@ -14,6 +14,7 @@
     - [Batch extraction](#batch-extraction)
     - [Checkpoints](#checkpoints)
   - [Advanced graph construction](#advanced-graph-construction)
+  - [Extraction configuration in v1.x of the graphrag-toolkit](#extraction-configuration-in-v1x-of-the-graphrag-toolkit)
     
 ### Overview
 
@@ -223,38 +224,46 @@ The `FileBasedChunks` object has the following parameters:
 | `collection_id` | Id for a particular collection of extracted documents. Optional: if no `collection_id` is supplied, the graphrag-toolkit will create a timestamp value. Extracted documents will be written to `/<docs_directory>/<collection_id>/`. | No |
 
 
-
 #### Configuring the extract and build stages
 
 You can configure the number of workers and batch sizes for the extract and build stages of the `LexicalGraphIndex` using the `GraphRAGConfig` object. See [Configuration](./configuration.md) for more details on using the configuration object. 
 
-Besides configuring the workers and batch sizes, you can also configure the extraction process with regard to chunking, proposition extraction and entity classification by passing an instance of `ExtractionConfig` to the `LexicalGraphIndex` constructor:
+Besides configuring the workers and batch sizes, you can also configure the indexing process with regard to chunking, proposition extraction and entity classification, and graph and vector store contents by passing an instance of `IndexingConfig` to the `LexicalGraphIndex` constructor:
 
 ```python
-from graphrag_toolkit import LexicalGraphIndex, ExtractionConfig
+from graphrag_toolkit import LexicalGraphIndex, IndexingConfig, ExtractionConfig
 
 ...
 
 graph_index = LexicalGraphIndex(
     graph_store, 
     vector_store,
-    extraction_config = ExtractionConfig(
-      enable_chunking=False,
-      enable_proposition_extraction=False
+    indexing_config = IndexingConfig(
+      chunking=None,
+      extraction=ExtractionConfig(
+        enable_proposition_extraction=False
+      )
+      
     )
 )
 ```
+
+> Note that configuration has changed in v2.x of the graphrag-toolkit. See [Extraction configuration in v1.x of the graphrag-toolkit](#extraction-configuration-in-v1x-of-the-graphrag-toolkit) for deatils of the configuration options in v1.x of the toolkit.
+
+The `IndexingConfig` object has the following parameters:
+
+| Parameter  | Description | Default Value |
+| ------------- | ------------- | ------------- |
+| `chunking` | A list of node parsers (e.g. LlamaIndex `SentenceSplitter`) to be used for chunking source documents. Set `chunking` to `None` to skip chunking. | `SentenceSplitter` with `chunk_size=256` and `chunk_overlap=20` |
+| `extraction` | An `ExtractionConfig` object specifying extraction options | `ExtractionConfig` with default values |
+| `batch_config` | Batch configuration to be used if performing [batch extraction](./batch-extraction.md). If `batch_config` is `None`, the toolkit will perform chunk-by-chunk extraction.  | `None` |
 
 The `ExtractionConfig` object has the following parameters:
 
 | Parameter  | Description | Default Value |
 | ------------- | ------------- | ------------- |
-| `enable_chunking` | Chunk the source data using a LlamaIndex `SentenceSplitter` | `True` |
-| `chunk_size` | Token chunk size for each chunk if using the `SentenceSplitter` | `256` |
-| `chunk_overlap` | Token overlap of each chunk when splitting if using the `SentenceSplitter` | `20` |
 | `enable_proposition_extraction` | Perform proposition extraction before extracting topics, statements, facts and entities | `True` |
 | `preferred_entity_classifications` | Comma-separated list of preferred entity classifications used to seed the entity extraction | `DEFAULT_ENTITY_CLASSIFICATIONS` |
-| `batch_config` | Batch configuration to be used if performing [batch extraction](./batch-extraction.md) | `None` |
 
 
 #### Batch extraction
@@ -387,3 +396,35 @@ docs = SimpleWebPageReader(
 # Run the build and extraction stages
 docs | extraction_pipeline | build_pipeline | sink 
 ```
+
+### Extraction configuration in v1.x of the graphrag-toolkit
+
+v1.x of the graphrag-toolkit used an `ExtractionConfig` object to configure the extraction process.
+
+```
+from graphrag_toolkit import LexicalGraphIndex, ExtractionConfig
+
+...
+
+graph_index = LexicalGraphIndex(
+    graph_store, 
+    vector_store,
+    extraction_config = ExtractionConfig(
+      enable_chunking=False,
+      enable_proposition_extraction=False
+    )
+)
+```
+
+In v2.x of the graphrag-toolkit, `ExtractionConfig` is a parameter of `IndexingConfig` 
+
+The v1.x `ExtractionConfig` object has the following parameters:
+
+| Parameter  | Description | Default Value |
+| ------------- | ------------- | ------------- |
+| `enable_chunking` | Chunk the source data using a LlamaIndex `SentenceSplitter` | `True` |
+| `chunk_size` | Token chunk size for each chunk if using the `SentenceSplitter` | `256` |
+| `chunk_overlap` | Token overlap of each chunk when splitting if using the `SentenceSplitter` | `20` |
+| `enable_proposition_extraction` | Perform proposition extraction before extracting topics, statements, facts and entities | `True` |
+| `preferred_entity_classifications` | Comma-separated list of preferred entity classifications used to seed the entity extraction | `DEFAULT_ENTITY_CLASSIFICATIONS` |
+| `batch_config` | Batch configuration to be used if performing [batch extraction](./batch-extraction.md) | `None` |

@@ -6,6 +6,10 @@ The toolkit uses low-level [LlamaIndex](https://docs.llamaindex.ai/en/stable/)  
 
 If you're running on AWS, there's a quick start AWS CloudFormation template in the [examples](./examples) directory. Note that you must run your application in an AWS region containing the Amazon Bedrock foundation models used by the toolkit (see the [configuration](./docs/configuration.md#graphragconfig) section in the documentation for details on the default models used), and must [enable access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) to these models before running any part of the solution.
 
+## v2.x
+
+v2.x of the graphrag-toolkit includes a number of breaking changes. The [graph model]((./docs/graph-model.md)) has changed so that the lexical graph can better co-exist with domain-specific graph data. The `LexicalGraphIndex` [configuration](./docs/indexing.md#configuring-the-extract-and-build-stages) has also changed.
+
 ## Installation
 
 The graphrag-toolkit requires python and [pip](http://www.pip-installer.org/en/latest/) to install. You can install the graphrag-toolkit using pip:

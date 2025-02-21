@@ -20,13 +20,13 @@ The code examples here are formatted to run in a Jupyter notebook. If you’re b
 
 ### Using batch inference with the LexicalGraphIndex
 
-To use batch inference in the extract stage of the indexing process, create a `BatchConfig` object and supply it to the `LexicalGraphIndex` as part of the [`ExtractionConfig`](./indexing.md#configuring-the-extract-and-build-stages): 
+To use batch inference in the extract stage of the indexing process, create a `BatchConfig` object and supply it to the `LexicalGraphIndex` as part of the [`IndexingConfig`](./indexing.md#configuring-the-extract-and-build-stages): 
 
 ```python
 import os
 
 from graphrag_toolkit import LexicalGraphIndex
-from graphrag_toolkit import GraphRAGConfig, ExtractionConfig
+from graphrag_toolkit import GraphRAGConfig, IndexingConfig
 from graphrag_toolkit.storage import GraphStoreFactory
 from graphrag_toolkit.storage import VectorStoreFactory
 from graphrag_toolkit.indexing.extract import BatchConfig
@@ -47,7 +47,7 @@ def batch_extract_and_load():
         role_arn='arn:aws:iam::111111111111:role/my-batch-inference-role'
     )
 
-    extraction_config = ExtractionConfig(batch_config=batch_config)
+    indexing_config = IndexingConfig(batch_config=batch_config)
 
     graph_store = GraphStoreFactory.for_graph_store(os.environ['GRAPH_STORE'])
     vector_store = VectorStoreFactory.for_vector_store(os.environ['VECTOR_STORE'])
@@ -55,7 +55,7 @@ def batch_extract_and_load():
     graph_index = LexicalGraphIndex(
         graph_store, 
         vector_store,
-        extraction_config=extraction_config
+        indexing_config=indexing_config
     )
 
     reader = SimpleDirectoryReader(input_dir='path/to/directory')

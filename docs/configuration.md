@@ -35,6 +35,7 @@ The graphrag-toolkit also allows you to set the logging level and apply logging 
 | `build_batch_size` | The number of input nodes to be processed in parallel across all workers in the build stage | `4` | `BUILD_BATCH_SIZE` |
 | `build_batch_write_size` | The number of elements to be written in a bulk operation to the graph and vector stores (see [Batch writes](#batch-writes)) | `25` | `BUILD_BATCH_WRITE_SIZE` |
 | `batch_writes_enabled` | Determines whether, on a per-worker basis, to write all elements (nodes and edges, or vectors) emitted by a batch of input nodes as a bulk operation, or singly, to the graph and vector stores (see [Batch writes](#batch-writes)) | `True` | `BATCH_WRITES_ENABLED` |
+| `include_domain_labels` | Determines whether entities will have a domain-specific label (e.g. `Company`) as well as the [graph model's](./graph-model.md#entity-relationship-tier) `__Entity__` label | `False` | `DEFAULT_INCLUDE_DOMAIN_LABELS` |
 | `enable_cache` | Determines whether the results of LLM calls to models on Amazon Bedrock are cached to the local filesystem (see [Caching Amazon Bedrock LLM responses](#caching-amazon-bedrock-llm-responses)) | `False` | `ENABLE_CACHE` |
 
 To set a configuration parameter in your application code:
