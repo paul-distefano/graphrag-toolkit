@@ -21,7 +21,7 @@ from graphrag_toolkit.indexing.build import BuildPipeline
 from graphrag_toolkit.indexing.build import VectorIndexing
 from graphrag_toolkit.indexing.build import GraphConstruction
 from graphrag_toolkit.indexing.build import Checkpoint
-from graphrag_toolkit.indexing.build import BuildFilter, DEFAULT_BUILD_FILTER
+from graphrag_toolkit.indexing.build import BuildFilter
 from graphrag_toolkit.indexing.build.null_builder import NullBuilder
 
 from llama_index.core.node_parser import SentenceSplitter, NodeParser
@@ -42,7 +42,7 @@ class ExtractionConfig():
 
 class BuildConfig():
     def __init__(self,
-                 filter:Optional[BuildFilter]=DEFAULT_BUILD_FILTER,
+                 filter:Optional[BuildFilter]=None,
                  include_domain_labels:Optional[bool]=None):
         self.filter = filter
         self.include_domain_labels = include_domain_labels
