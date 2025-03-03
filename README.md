@@ -109,6 +109,7 @@ if __name__ == '__main__':
 
   - [Storage Model](./docs/storage-model.md) 
   - [Indexing](./docs/indexing.md) 
+  - [Batch Extraction](./docs/batch-extraction.md) 
   - [Querying](./docs/querying.md) 
   - [Configuration](./docs/configuration.md) 
   - [Graph Model](./docs/graph-model.md)
