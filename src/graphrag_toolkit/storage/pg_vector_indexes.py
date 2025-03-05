@@ -5,8 +5,9 @@ import json
 import logging
 import psycopg2
 import numpy as np
+import boto3
 from pgvector.psycopg2 import register_vector
-from typing import List, Sequence, Dict, Any
+from typing import List, Sequence, Dict, Any, Optional
 from urllib.parse import urlparse
 
 from graphrag_toolkit.config import GraphRAGConfig, EmbeddingType
@@ -23,41 +24,69 @@ class PGIndex(VectorIndex):
     @staticmethod
     def for_index(index_name:str,
                   connection_string:str,
+                  database='postgres',
+                  schema='graphrag',
                   host:str='localhost',
                   port:int=5432,
                   username:str=None,
                   password:str=None,
                   embed_model:EmbeddingType=None,
-                  dimensions:int=None):
+                  dimensions:int=None,
+                  enable_iam_db_auth=False):
         
         parsed = urlparse(connection_string)
 
+        database = parsed.path[1:] if parsed.path else database
         host = parsed.hostname or host
         port = parsed.port or port
         username = parsed.username or username
         password = parsed.password or password
+         
         
         embed_model = embed_model or GraphRAGConfig.embed_model
         dimensions = dimensions or GraphRAGConfig.embed_dimensions
 
-        return PGIndex(index_name=index_name, host=host, port=port, username=username, password=password, dimensions=dimensions, embed_model=embed_model)
+        return PGIndex(index_name=index_name, 
+                       database=database, 
+                       schema=schema,
+                       host=host, 
+                       port=port, 
+                       username=username, 
+                       password=password, 
+                       dimensions=dimensions, 
+                       embed_model=embed_model, 
+                       enable_iam_db_auth=enable_iam_db_auth)
 
     index_name:str
+    database:str
+    schema:str
     host:str
     port:int
     username:str
-    password:str
+    password:Optional[str]
     dimensions:int
     embed_model:EmbeddingType
+    enable_iam_db_auth:bool=False
     initialized:bool=False
 
     def _get_connection(self):
 
+        token = None
+
+        if self.enable_iam_db_auth:
+            session = boto3.Session()
+            region = session.region_name
+            client = session.client('rds')
+            token = client.generate_db_auth_token(DBHostname=self.host, Port=self.port, DBUsername=self.username, Region=region)
+            
+        password = token or self.password
+
         dbconn = psycopg2.connect(
             host=self.host,
             user=self.username, 
-            password=self.password,
+            password=password,
             port=self.port, 
+            database=self.database,
             connect_timeout=10
         )
 
@@ -70,7 +99,7 @@ class PGIndex(VectorIndex):
             cur.execute('CREATE EXTENSION IF NOT EXISTS vector;')
             register_vector(dbconn)
 
-            cur.execute(f'''CREATE TABLE IF NOT EXISTS {self.index_name}(
+            cur.execute(f'''CREATE TABLE IF NOT EXISTS {self.schema}.{self.index_name}(
                 id bigserial primary key,
                 {self.index_name}Id VARCHAR(255) unique,
                 value text,
@@ -78,8 +107,8 @@ class PGIndex(VectorIndex):
                 embedding vector({self.dimensions})
                 );'''
             )
-            cur.execute(f'CREATE INDEX IF NOT EXISTS {self.index_name}_{self.index_name}Id_idx ON {self.index_name} USING hash ({self.index_name}Id);')
-            cur.execute(f'CREATE INDEX IF NOT EXISTS {self.index_name}_embedding_idx ON {self.index_name} USING hnsw (embedding vector_l2_ops)')
+            cur.execute(f'CREATE INDEX IF NOT EXISTS {self.index_name}_{self.index_name}Id_idx ON {self.schema}.{self.index_name} USING hash ({self.index_name}Id);')
+            cur.execute(f'CREATE INDEX IF NOT EXISTS {self.index_name}_embedding_idx ON {self.schema}.{self.index_name} USING hnsw (embedding vector_l2_ops)')
             
             cur.close()
 
@@ -98,7 +127,7 @@ class PGIndex(VectorIndex):
         )
         for node in nodes:
             cur.execute(
-                f'INSERT INTO {self.index_name} ({self.index_name}Id, value, metadata, embedding) SELECT %s, %s, %s, %s WHERE NOT EXISTS (SELECT * FROM {self.index_name} c WHERE c.{self.index_name}Id = %s);',
+                f'INSERT INTO {self.schema}.{self.index_name} ({self.index_name}Id, value, metadata, embedding) SELECT %s, %s, %s, %s WHERE NOT EXISTS (SELECT * FROM {self.schema}.{self.index_name} c WHERE c.{self.index_name}Id = %s);',
                 (node.id_, node.text,  json.dumps(node.metadata), id_to_embed_map[node.id_], node.id_)
             )
 
@@ -153,7 +182,7 @@ class PGIndex(VectorIndex):
         query_bundle = to_embedded_query(query_bundle, self.embed_model)
 
         cur.execute(f'''SELECT {self.index_name}Id, metadata, embedding <-> %s AS score
-            FROM {self.index_name}
+            FROM {self.schema}.{self.index_name}
             ORDER BY score ASC LIMIT %s;''',
             (np.array(query_bundle.embedding), top_k)
         )
@@ -177,7 +206,7 @@ class PGIndex(VectorIndex):
             
 
         cur.execute(f'''SELECT {self.index_name}Id, value, metadata, embedding
-            FROM {self.index_name}
+            FROM {self.schema}.{self.index_name}
             WHERE {self.index_name}Id IN ({format_ids(ids)});'''
         )
 
