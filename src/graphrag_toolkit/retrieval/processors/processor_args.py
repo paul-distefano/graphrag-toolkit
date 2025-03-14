@@ -25,6 +25,12 @@ class ProcessorArgs():
         self.num_workers = kwargs.get('num_workers', 10)
         self.reranking_source_metadata_fn = kwargs.get('reranking_source_metadata_fn', None)
         self.source_formatter = kwargs.get('source_formatter', None)
+
+        self.ecs_max_score_factor = kwargs.get('ecs_max_score_factor', 2)
+        self.ecs_min_score_factor = kwargs.get('ecs_min_score_factor', 0.5)
+        self.ecs_max_context_search_strs = kwargs.get('ecs_max_context_search_strs', 2)
+        self.ecs_max_context_items = kwargs.get('ecs_max_context_items', 5)
+
   
     def to_dict(self, new_args:Dict[str, Any]={}):
         args = self.__dict__
