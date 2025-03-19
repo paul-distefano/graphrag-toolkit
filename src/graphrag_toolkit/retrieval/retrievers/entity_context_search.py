@@ -114,7 +114,8 @@ class EntityContextSearch(TraversalBasedBaseRetriever):
                     context_search_str.append(entity_score_map[c_item]['value'])
                     c_score_total += c_score
             context_search_str = ', '.join(context_search_str[:self.args.ecs_max_context_items])
-            context_search_str_map[context_search_str] = (s_score/c_score_total)
+            if c_score_total > 0:
+                context_search_str_map[context_search_str] = (s_score/c_score_total)
         
         logger.debug(f'context_search_str_map: {context_search_str_map}')
         

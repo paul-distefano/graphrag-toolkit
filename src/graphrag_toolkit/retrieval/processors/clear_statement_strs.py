@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from graphrag_toolkit.retrieval.processors import ProcessorBase, ProcessorArgs
-from graphrag_toolkit.retrieval.model import SearchResultCollection, SearchResult, Topic
+from graphrag_toolkit.retrieval.model import SearchResultCollection, SearchResult, Topic, Statement
 
 from llama_index.core.schema import QueryBundle
 
@@ -14,7 +14,8 @@ class ClearStatementStrs(ProcessorBase):
         
         def clear_statement_strs(topic:Topic):
             for statement in topic.statements:
-                statement.statement_str = None
+                if isinstance(statement, Statement):
+                    statement.statement_str = None
             return topic
     
         def clear_all_statement_strs(index:int, search_result:SearchResult):
