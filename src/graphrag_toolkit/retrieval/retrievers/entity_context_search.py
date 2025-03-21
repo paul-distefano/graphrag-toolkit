@@ -60,18 +60,22 @@ class EntityContextSearch(TraversalBasedBaseRetriever):
 
         return [entity.entity.entityId for entity in entities]   
 
-    def _get_context_search_strs(self, start_node_ids:List[str]) -> List[str]:
+    def _get_entity_contexts(self, start_node_ids:List[str]) -> List[str]:
+
+        if self.args.ecs_max_contexts < 1:
+            return []
 
         cypher = f'''
         // get entity context
         MATCH (s:`__Entity__`)-[:`__RELATION__`*1..2]-(c:`__Entity__`)
         WHERE {self.graph_store.node_id("s.entityId")} in $entityIds
         AND NOT {self.graph_store.node_id("c.entityId")} in $entityIds
-        RETURN {self.graph_store.node_id("s.entityId")} as s, collect(distinct {self.graph_store.node_id("c.entityId")}) as c
+        RETURN {self.graph_store.node_id("s.entityId")} as s, collect(distinct {self.graph_store.node_id("c.entityId")}) as c LIMIT $limit
         '''
         
         properties = {
-            'entityIds': start_node_ids
+            'entityIds': start_node_ids,
+            'limit': self.args.intermediate_limit
         }
         
         results = self.graph_store.execute_query(cypher, properties)
@@ -102,36 +106,65 @@ class EntityContextSearch(TraversalBasedBaseRetriever):
         for result in results:
             entity_score_map[result['s_id']] = { 'value': result['value'], 'score': result['score']}
             
-        context_search_str_map = {}
+        scored_entity_contexts = []
+        prime_context = []
         
-        for s, c in entity_map.items():
-            context_search_str = [entity_score_map[s]['value']]
-            s_score = entity_score_map[s]['score']
-            c_score_total = 0
-            for c_item in c:
-                c_score = entity_score_map[c_item]['score']
-                if c_score <= (self.args.ecs_max_score_factor * s_score) and c_score >= (self.args.ecs_min_score_factor * s_score):
-                    context_search_str.append(entity_score_map[c_item]['value'])
-                    c_score_total += c_score
-            context_search_str = ', '.join(context_search_str[:self.args.ecs_max_context_items])
-            if c_score_total > 0:
-                context_search_str_map[context_search_str] = (s_score/c_score_total)
-        
-        logger.debug(f'context_search_str_map: {context_search_str_map}')
-        
-        context_search_strs = sorted(context_search_str_map, key=context_search_str_map.get, reverse=True)
+        for parent, children in entity_map.items():
 
-        return context_search_strs[:self.args.ecs_max_context_search_strs]
+            parent_entity = entity_score_map[parent]
+            parent_score = parent_entity['score']
+
+            context_entities = [parent_entity['value']]
+            prime_context.append(parent_entity['value'])
+
+            logger.debug(f'parent: {parent_entity}')
+
+            for child in children:
+
+                child_entity = entity_score_map[child]
+                child_score = child_entity['score']
+
+                logger.debug(f'child : {child_entity}')
+
+                if child_score <= (self.args.ecs_max_score_factor * parent_score) and child_score >= (self.args.ecs_min_score_factor * parent_score):
+                    context_entities.append(child_entity['value'])
+
+            if len(context_entities) > 1:
+                scored_entity_contexts.append({
+                    'entities': context_entities[:self.args.ec2_max_entities_per_context],
+                    'score': parent_score
+                })
+
+        scored_entity_contexts = sorted(scored_entity_contexts, key=lambda ec: ec['score'], reverse=True)
+
+        logger.debug(f'scored_entity_contexts: {scored_entity_contexts}')
+
+        all_entity_contexts = [prime_context]
+
+        for scored_entity_context in scored_entity_contexts:
+            entities = scored_entity_context['entities']
+            all_entity_contexts.extend([
+                entities[x:x+3] 
+                for x in range(0, max(1, len(entities) - 2))
+            ])
+
+        logger.debug(f'all_entity_contexts: {all_entity_contexts}')
+
+        entity_contexts = all_entity_contexts[:self.args.ecs_max_contexts]
+                 
+        logger.debug(f'entity_contexts: {entity_contexts}')
+        
+        return entity_contexts
     
     def _get_sub_retriever(self):
         sub_retriever = (self.sub_retriever if isinstance(self.sub_retriever, TraversalBasedBaseRetriever) 
                          else self.sub_retriever(
                             self.graph_store, 
                             self.vector_store, 
-                            vss_diversity_factor=None,
                             vss_top_k=2,
                             max_search_results=2,
-                            include_facts=True
+                            vss_diversity_factor=self.args.vss_diversity_factor,
+                            include_facts=self.args.include_facts
                         ))
         logger.debug(f'sub_retriever: {type(sub_retriever).__name__}')
         return sub_retriever
@@ -141,16 +174,15 @@ class EntityContextSearch(TraversalBasedBaseRetriever):
         logger.debug('Running entity-context-based search...')
 
         sub_retriever = self._get_sub_retriever()
-        context_search_strs = self._get_context_search_strs(start_node_ids)
+        entity_contexts = self._get_entity_contexts(start_node_ids)
 
-        logger.debug(f'context_search_strs: {context_search_strs}')
-        
         search_results = []
 
-        for context_search_str in context_search_strs:
-            results = sub_retriever.retrieve(QueryBundle(query_str=context_search_str))
-            for result in results:
-                search_results.append(SearchResult.model_validate(result.metadata))
+        for entity_context in entity_contexts:
+            if entity_context:
+                results = sub_retriever.retrieve(QueryBundle(query_str=', '.join(entity_context)))
+                for result in results:
+                    search_results.append(SearchResult.model_validate(result.metadata))
                     
                 
         search_results_collection = SearchResultCollection(results=search_results) 
