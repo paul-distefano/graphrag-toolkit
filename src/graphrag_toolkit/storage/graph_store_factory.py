@@ -72,7 +72,7 @@ class GraphStoreFactory():
     
     @staticmethod
     def for_neptune_database(graph_endpoint, port=8182, **kwargs):
-        endpoint_url = kwargs.pop('endpoint_url')
+        endpoint_url = kwargs.pop('endpoint_url', None)
         if not endpoint_url:
             endpoint_url = f'https://{graph_endpoint}' if ':' in graph_endpoint else f'https://{graph_endpoint}:{port}'
         config = kwargs.pop('config', {})
