@@ -15,7 +15,7 @@ v2.x of the graphrag-toolkit includes a number of breaking changes. The [graph m
 The graphrag-toolkit requires Python and [pip](http://www.pip-installer.org/en/latest/) to install. You can install the graphrag-toolkit using pip:
 
 ```
-$ pip install https://github.com/awslabs/graphrag-toolkit/archive/refs/tags/v2.1.0.zip
+$ pip install https://github.com/awslabs/graphrag-toolkit/archive/refs/tags/v2.2.0.zip
 ```
 
 ### Supported Python versions
