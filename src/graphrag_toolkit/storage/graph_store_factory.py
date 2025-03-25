@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+import json
 from typing import Union
 from graphrag_toolkit.storage.graph_store import GraphStore, DummyGraphStore, GraphQueryLogFormatting, RedactedGraphQueryLogFormatting
 from graphrag_toolkit.storage.neptune_graph_stores import NeptuneAnalyticsClient, NeptuneDatabaseClient
@@ -71,12 +72,16 @@ class GraphStoreFactory():
     
     @staticmethod
     def for_neptune_database(graph_endpoint, port=8182, **kwargs):
-        endpoint_url = f'https://{graph_endpoint}' if ':' in graph_endpoint else f'https://{graph_endpoint}:{port}'
-        return NeptuneDatabaseClient(endpoint_url=endpoint_url, log_formatting=get_log_formatting(kwargs))
+        endpoint_url = kwargs.pop('endpoint_url')
+        if not endpoint_url:
+            endpoint_url = f'https://{graph_endpoint}' if ':' in graph_endpoint else f'https://{graph_endpoint}:{port}'
+        config = kwargs.pop('config', {})
+        return NeptuneDatabaseClient(endpoint_url=endpoint_url, log_formatting=get_log_formatting(kwargs), config=json.dumps(config))
 
     @staticmethod
     def for_neptune_analytics(graph_id, **kwargs):
-        return NeptuneAnalyticsClient(graph_id=graph_id, log_formatting=get_log_formatting(kwargs))
+        config = kwargs.pop('config', {})
+        return NeptuneAnalyticsClient(graph_id=graph_id, log_formatting=get_log_formatting(kwargs), config=json.dumps(config))
 
     @staticmethod
     def for_falkordb(graph_endpoint, **kwargs):
