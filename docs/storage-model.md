@@ -7,7 +7,6 @@
 - [Overview](#overview)
 - [Graph store](#graph-store)
 - [Vector store](#vector-store)
-  - [Amazon OpenSearch Serverless and Neptune Analytics vector stores](#amazon-opensearch-serverless-and-neptune-analytics-vector-stores)
 
 ### Overview
 
