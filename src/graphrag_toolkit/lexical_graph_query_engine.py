@@ -56,6 +56,7 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
             vector_store,
             retriever=retriever,
             post_processors=post_processors,
+            context_format='text',
             **kwargs
         )
     
@@ -167,6 +168,15 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
             logger.exception(f'Error answering query [query: {query_bundle.query_str}, context: {context}]')
             raise
             
+    def _format_as_text(self, json_results):
+        lines = []
+        for json_result in json_results:
+            lines.append(f"""## {json_result['topic']}""")
+            lines.append(' '.join([s for s in json_result['statements']]))
+            lines.append(f"""[Source: {json_result['source']}]""")
+            lines.append('\n')
+        return '\n'.join(lines)
+    
     def _format_context(self, search_results:List[NodeWithScore], context_format:str='json'):
 
         if context_format == 'bedrock_xml':
@@ -180,10 +190,10 @@ class LexicalGraphQueryEngine(BaseQueryEngine):
             data = yaml.dump(json_results, sort_keys=False)
         elif context_format == 'xml':
             data = json2xml.Json2xml(json_results, attr_type=False).to_xml()
+        elif context_format == 'text':
+            data = self._format_as_text(json_results)
         else:
             data = json.dumps(json_results, indent=2)
-            
-        logger.debug(f'data: {data}')
         
         return data
     
