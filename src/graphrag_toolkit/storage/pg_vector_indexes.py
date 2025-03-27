@@ -25,7 +25,7 @@ class PGIndex(VectorIndex):
     def for_index(index_name:str,
                   connection_string:str,
                   database='postgres',
-                  schema='graphrag',
+                  schema_name='graphrag',
                   host:str='localhost',
                   port:int=5432,
                   username:str=None,
@@ -34,6 +34,12 @@ class PGIndex(VectorIndex):
                   dimensions:int=None,
                   enable_iam_db_auth=False):
         
+        def compute_enable_iam_db_auth(s, default):
+            if 'enable_iam_db_auth' in s.lower():
+                return 'enable_iam_db_auth=true' in s.lower()
+            else:
+                return default
+        
         parsed = urlparse(connection_string)
 
         database = parsed.path[1:] if parsed.path else database
@@ -41,14 +47,14 @@ class PGIndex(VectorIndex):
         port = parsed.port or port
         username = parsed.username or username
         password = parsed.password or password
-         
+        enable_iam_db_auth = compute_enable_iam_db_auth(parsed.query, enable_iam_db_auth)
         
         embed_model = embed_model or GraphRAGConfig.embed_model
         dimensions = dimensions or GraphRAGConfig.embed_dimensions
 
         return PGIndex(index_name=index_name, 
                        database=database, 
-                       schema=schema,
+                       schema_name=schema_name,
                        host=host, 
                        port=port, 
                        username=username, 
@@ -59,7 +65,7 @@ class PGIndex(VectorIndex):
 
     index_name:str
     database:str
-    schema:str
+    schema_name:str
     host:str
     port:int
     username:str
@@ -77,7 +83,12 @@ class PGIndex(VectorIndex):
             session = boto3.Session()
             region = session.region_name
             client = session.client('rds')
-            token = client.generate_db_auth_token(DBHostname=self.host, Port=self.port, DBUsername=self.username, Region=region)
+            token = client.generate_db_auth_token(
+                DBHostname=self.host, 
+                Port=self.port, 
+                DBUsername=self.username, 
+                Region=region
+            )
             
         password = token or self.password
 
@@ -87,7 +98,7 @@ class PGIndex(VectorIndex):
             password=password,
             port=self.port, 
             database=self.database,
-            connect_timeout=10
+            connect_timeout=15
         )
 
         dbconn.set_session(autocommit=True)
@@ -96,19 +107,18 @@ class PGIndex(VectorIndex):
 
             cur = dbconn.cursor()
 
-            cur.execute('CREATE EXTENSION IF NOT EXISTS vector;')
             register_vector(dbconn)
 
-            cur.execute(f'''CREATE TABLE IF NOT EXISTS {self.schema}.{self.index_name}(
-                id bigserial primary key,
+            cur.execute(f'''CREATE TABLE IF NOT EXISTS {self.schema_name}.{self.index_name}(
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 {self.index_name}Id VARCHAR(255) unique,
                 value text,
                 metadata text,
                 embedding vector({self.dimensions})
                 );'''
             )
-            cur.execute(f'CREATE INDEX IF NOT EXISTS {self.index_name}_{self.index_name}Id_idx ON {self.schema}.{self.index_name} USING hash ({self.index_name}Id);')
-            cur.execute(f'CREATE INDEX IF NOT EXISTS {self.index_name}_embedding_idx ON {self.schema}.{self.index_name} USING hnsw (embedding vector_l2_ops)')
+            cur.execute(f'CREATE INDEX IF NOT EXISTS {self.index_name}_{self.index_name}Id_idx ON {self.schema_name}.{self.index_name} USING hash ({self.index_name}Id);')
+            cur.execute(f'CREATE INDEX IF NOT EXISTS {self.index_name}_embedding_idx ON {self.schema_name}.{self.index_name} USING hnsw (embedding vector_l2_ops)')
             
             cur.close()
 
@@ -127,7 +137,7 @@ class PGIndex(VectorIndex):
         )
         for node in nodes:
             cur.execute(
-                f'INSERT INTO {self.schema}.{self.index_name} ({self.index_name}Id, value, metadata, embedding) SELECT %s, %s, %s, %s WHERE NOT EXISTS (SELECT * FROM {self.schema}.{self.index_name} c WHERE c.{self.index_name}Id = %s);',
+                f'INSERT INTO {self.schema_name}.{self.index_name} ({self.index_name}Id, value, metadata, embedding) SELECT %s, %s, %s, %s WHERE NOT EXISTS (SELECT * FROM {self.schema_name}.{self.index_name} c WHERE c.{self.index_name}Id = %s);',
                 (node.id_, node.text,  json.dumps(node.metadata), id_to_embed_map[node.id_], node.id_)
             )
 
@@ -182,7 +192,7 @@ class PGIndex(VectorIndex):
         query_bundle = to_embedded_query(query_bundle, self.embed_model)
 
         cur.execute(f'''SELECT {self.index_name}Id, metadata, embedding <-> %s AS score
-            FROM {self.schema}.{self.index_name}
+            FROM {self.schema_name}.{self.index_name}
             ORDER BY score ASC LIMIT %s;''',
             (np.array(query_bundle.embedding), top_k)
         )
@@ -206,7 +216,7 @@ class PGIndex(VectorIndex):
             
 
         cur.execute(f'''SELECT {self.index_name}Id, value, metadata, embedding
-            FROM {self.schema}.{self.index_name}
+            FROM {self.schema_name}.{self.index_name}
             WHERE {self.index_name}Id IN ({format_ids(ids)});'''
         )
 
