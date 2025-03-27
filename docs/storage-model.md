@@ -12,7 +12,7 @@
 
 The graphrag-toolkit uses two separate stores: a `GraphStore` and a `VectorStore`. A `VectorStore` acts as a container for a collection of `VectorIndex`. When constructing or querying a graph, you must provide instances of both a graph store and vector store.
 
-The toolkit provides graph store implementations for both [Amazon Neptune Analytics](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html) and [Amazon Neptune Database](https://docs.aws.amazon.com/neptune/latest/userguide/intro.html) (engine version 1.4.1.0 or later), and now [FalkorDB](https://docs.falkordb.com/)**,** along with vector store implementations for Neptune Analytics and [Amazon OpenSearch Serverless](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless.html). The graphrag-toolkit provides several convenient factory methods for creating instances of these stores. These factory methods accept formatted store identifiers, described below.
+The toolkit provides graph store implementations for both [Amazon Neptune Analytics](https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html) and [Amazon Neptune Database](https://docs.aws.amazon.com/neptune/latest/userguide/intro.html) (engine version 1.4.1.0 or later), and now [FalkorDB](https://docs.falkordb.com/)**,** along with vector store implementations for Neptune Analytics, [Amazon OpenSearch Serverless](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless.html) and Postgres with the pgvector extension. The graphrag-toolkit provides several convenient factory methods for creating instances of these stores.
 
 > This early release of the toolkit provides support for Amazon Neptune and Amazon OpenSearch Serverless, but we welcome alternative store implementations. The store APIs and the ways in which the stores are used have been designed to anticipate alternative implementations. However, the proof is in the development: if you experience issues developing an alternative store, [let us know](https://github.com/awslabs/graphrag-toolkit/issues).
 
@@ -44,6 +44,7 @@ The graphrag-toolkit supports the following vector-stores:
 
   - [Amazon OpenSearch Serverless](./vector-store-opensearch-serverless.md)
   - [Amazon Neptune Analytics](./vector-store-neptune-analytics.md)
+  - [Postgres with the pgvector extension](./vector-store-postgres.md)
 
 By default, the `VectorStoreFactory` will enable both the statement index and the chunk index. If you want to enable just one of the indexes, pass an `index_names` argument to the factory method:
 

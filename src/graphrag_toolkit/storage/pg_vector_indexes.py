@@ -98,7 +98,7 @@ class PGIndex(VectorIndex):
             password=password,
             port=self.port, 
             database=self.database,
-            connect_timeout=15
+            connect_timeout=30
         )
 
         dbconn.set_session(autocommit=True)
