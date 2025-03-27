@@ -29,7 +29,7 @@ postgresql://graphrag:!zfg%dGGh@mydbcluster.cluster-123456789012.us-west-2.rds.a
 
 #### Connecting to an IAM auth-enabled Postgres vector store
 
-If your Postgres database supports [AWS Identity and Access Management (IAM) database authentication](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html), omit th epassword, and add `enable_iam_db_auth=True` to the connection string query parameters:
+If your Postgres database supports [AWS Identity and Access Management (IAM) database authentication](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html), omit the password, and add `enable_iam_db_auth=True` to the connection string query parameters:
 
 ```
 postgresql://graphrag@mydbcluster.cluster-123456789012.us-west-2.rds.amazonaws.com:5432/postgres?enable_iam_db_auth=True
