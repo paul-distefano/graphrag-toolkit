@@ -21,10 +21,24 @@ def format_id_for_neptune(id_name:str):
             return NodeId(parts[0], '`~id`', False)           
         else:
             return NodeId(parts[1], f'id({parts[0]})', False)
+        
+def create_config(config:Optional[str]=None):
+    config_args = {}
+    if config:
+        config_args = json.loads(config)
+    return Config(
+        retries={
+            'total_max_attempts': 1, 
+            'mode': 'standard'
+        }, 
+        read_timeout=600,
+        **config_args
+    )
 
 class NeptuneAnalyticsClient(GraphStore):
     
     graph_id: str
+    config : Optional[str] = None
     _client: Optional[Any] = PrivateAttr(default=None)
         
     def __getstate__(self):
@@ -36,7 +50,7 @@ class NeptuneAnalyticsClient(GraphStore):
         if self._client is None:
             self._client = boto3.client(
                 'neptune-graph', 
-                config=(Config(retries={'total_max_attempts': 1, 'mode': 'standard'}, read_timeout=600))
+                config=create_config(self.config)
             )
         return self._client
     
@@ -83,6 +97,7 @@ class NeptuneAnalyticsClient(GraphStore):
 class NeptuneDatabaseClient(GraphStore):
             
     endpoint_url: str
+    config : Optional[str] = None
     _client: Optional[Any] = PrivateAttr(default=None)
         
     def __getstate__(self):
@@ -95,7 +110,7 @@ class NeptuneDatabaseClient(GraphStore):
             self._client = boto3.client(
                 'neptunedata', 
                 endpoint_url=self.endpoint_url,
-                config=(Config(retries={'total_max_attempts': 1, 'mode': 'standard'}, read_timeout=600))
+                config=create_config(self.config)
             )
         return self._client
     
